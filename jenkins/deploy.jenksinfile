@@ -12,20 +12,20 @@ pipeline {
             }
 
         }
-        stage("Provision the cloud image") {
-            steps {
-                sh '''
-                    openstack image create --public --property os_distro='fedora-atomic' --disk-format qcow2 \
-                    --container-format bare --file /root/Fedora-Atomic-25-20170512.2.x86_64.qcow2 \
-                    fedora-atomic.qcow2
-                '''
-            }
-        }
-        stage("Create a flavor") {
-            steps {
-                sh 'nova flavor-create cloud.flavor auto 2048 7 1 --is-public True'
-            }
-        }
+//        stage("Provision the cloud image") {
+//            steps {
+//                sh '''
+//                    openstack image create --public --property os_distro='fedora-atomic' --disk-format qcow2 \
+//                    --container-format bare --file /root/Fedora-Atomic-25-20170512.2.x86_64.qcow2 \
+//                    fedora-atomic.qcow2
+//                '''
+//            }
+//        }
+//        stage("Create a flavor") {
+//            steps {
+//                sh 'nova flavor-create cloud.flavor auto 2048 7 1 --is-public True'
+//            }
+//        }
         stage("Create a key pair") {
             steps {
                 sh 'openstack keypair create --public-key ~/.ssh/id_rsa.pub kolla-ubuntu'
