@@ -3,6 +3,15 @@
 pipeline {
     agent any
     stages {
+        stage("Import environment variables") {
+            environment {
+                OPENRC = credentials("sequencesearch-openrc.sh")
+            }
+            steps {
+                sh '$OPENRC'
+            }
+
+        }
         stage("Provision the cloud image") {
             steps {
                 sh '''
