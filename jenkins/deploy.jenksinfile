@@ -63,5 +63,22 @@ pipeline {
                 '''
             }
         }
+        stage("Create cluster template") {
+            steps {
+                sh '''
+                    magnum cluster-template-create --name k8s-cluster-template --image fedora-atomic \
+                    --keypair kolla-controller --external-network public_net --dns-nameserver 8.8.8.8 \
+                    --flavor cloud.flavor --docker-volume-size 3 --network-driver flannel --coe kubernetes
+                '''
+            }
+        }
+        stage("Create a cluster instance from template") {
+            steps {
+                sh '''
+                    magnum cluster-create --name k8s-cluster --cluster-template k8s-cluster-template \
+                    --master-count 1 --node-count 2
+                '''
+            }
+        }
     }
 }
