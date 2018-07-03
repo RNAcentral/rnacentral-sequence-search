@@ -31,54 +31,54 @@ pipeline {
                 sh 'openstack keypair create --public-key ~/.ssh/id_rsa.pub kolla-ubuntu'
             }
         }
-        stage("Create public Neutron network") {
+        stage("Create a Neutron network") {
+            /**
+             * Examples of network creation:
+             *
+             * neutron net-create public_net --shared --router:external --provider:physical_network physnet2 --provider:network_type flat
+             *
+             * neutron subnet-create public_net 10.7.15.0/24 --name public_subnet --allocation-pool start=10.7.15.150,end=10.7.15.180 --disable-dhcp --gateway 10.7.15.1
+             *
+             * neutron net-create private_net_vlan --provider:segmentation_id 500 \
+             * --provider:physical_network physnet1 --provider:network_type vlan
+             *
+             * neutron subnet-create private_net_vlan 10.10.20.0/24 --name private_subnet \
+             * --allocation-pool start=10.10.20.50,end=10.10.20.100 \
+             * --dns-nameserver 8.8.8.8 --gateway 10.10.20.1
+             */
+
             steps {
                 sh '''
-                    neutron net-create public_net --shared --router:external --provider:physical_network \
-                    physnet2 --provider:network_type flat
-
-                    neutron subnet-create public_net 10.7.15.0/24 --name public_subnet \
-                    --allocation-pool start=10.7.15.150,end=10.7.15.180 --disable-dhcp --gateway 10.7.15.1
-                '''
-            }
-        }
-        stage("Create private Neutron network") {
-            steps {
-                sh '''
-                    neutron net-create private_net_vlan --provider:segmentation_id 500 \
-                    --provider:physical_network physnet1 --provider:network_type vlan
-
-                    neutron subnet-create private_net_vlan 10.10.20.0/24 --name private_subnet \
-                    --allocation-pool start=10.10.20.50,end=10.10.20.100 \
-                    --dns-nameserver 8.8.8.8 --gateway 10.10.20.1
+                    neutron net-create rnacentral_search_production
+                    neutron subnet-create rnacentral_search_production 192.168.0.0/24 --gateway 192.168.0.1 --name rnacentral_search_production_subnet --dns-nameserver 8.8.8.8
                 '''
             }
         }
         stage("Create a router") {
             steps {
                 sh '''
-                    neutron router-create router1
-                    neutron router-interface-add router1 private_subnet
-                    neutron router-gateway-set router1 public_net
+                    neutron router-create production_router
+                    neutron router-interface-add production_router rnacentral_search_production_subnet
+                    neutron router-gateway-set production_router ext-net-36
                 '''
             }
         }
-        stage("Create cluster template") {
-            steps {
-                sh '''
-                    magnum cluster-template-create --name k8s-cluster-template --image fedora-atomic \
-                    --keypair kolla-controller --external-network public_net --dns-nameserver 8.8.8.8 \
-                    --flavor cloud.flavor --docker-volume-size 3 --network-driver flannel --coe kubernetes
-                '''
-            }
-        }
-        stage("Create a cluster instance from template") {
-            steps {
-                sh '''
-                    magnum cluster-create --name k8s-cluster --cluster-template k8s-cluster-template \
-                    --master-count 1 --node-count 2
-                '''
-            }
-        }
+        // stage("Create cluster template") {
+        //    steps {
+        //        sh '''
+        //            magnum cluster-template-create --name k8s-cluster-template --image fedora-atomic \
+        //            --keypair kolla-controller --external-network public_net --dns-nameserver 8.8.8.8 \
+        //            --flavor cloud.flavor --docker-volume-size 3 --network-driver flannel --coe kubernetes
+        //        '''
+        //    }
+        // }
+        // stage("Create a cluster instance from template") {
+        //    steps {
+        //        sh '''
+        //            magnum cluster-create --name k8s-cluster --cluster-template k8s-cluster-template \
+        //            --master-count 1 --node-count 2
+        //        '''
+        //    }
+        // }
     }
 }
