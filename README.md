@@ -1,0 +1,26 @@
+# Non-coding RNA Sequence Search Repository DevOps code
+
+This repository contains DevOps code for managing a non-coding RNA Sequence Search microservice infrastructure.
+
+Basically, it provides a set of Jenkinsfiles for managing Sequence Search infrastructure as a
+Kubernetes cluster on top of EBI OpenStack. Internally those Jenkinsfiles rely upon a set of bash scripts,
+Ansible playbooks and OpenStack console client commands.
+
+Unfortunately, Red Hat OpenStack doesn't support the Magnum API that allows for provisioning a Kubernetes
+clusters from the console. Thus, we had to resort to Kubespray scipts.
+
+
+## How to use this
+
+### Install dependencies
+
+- use `python` and `pip` to install python-based dependencies via `pip install -r requirements.txt`
+
+
+## "Sources of inspiration"
+
+Code in this repository is based on the following projects by other folks (kudos to them):
+
+- https://github.com/pcm32/kubespray-ebi-portal/tree/v2.3.0-ubuntu-xenial - my Kubespray customization scripts are based on this
+- https://cloudbase.it/easily-deploy-a-kubernetes-cluster-on-openstack/ - OpenStack console client commands
+- https://github.com/kubernetes-incubator/kubespray - Kubespray main repo

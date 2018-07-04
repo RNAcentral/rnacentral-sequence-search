@@ -1,5 +1,3 @@
-// https://cloudbase.it/easily-deploy-a-kubernetes-cluster-on-openstack/
-
 pipeline {
     agent any
     stages {
