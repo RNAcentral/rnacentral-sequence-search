@@ -12,9 +12,18 @@ clusters from the console. Thus, we had to resort to Kubespray scipts.
 
 ## How to use this
 
-### Install dependencies
 
-- use `python` and `pip` to install python-based dependencies via `pip install -r requirements.txt`
+### Installation
+
+Suppose that you want to install this set of Jenkins pipelines to an entirely new machine.
+
+Here are the steps required to do this:
+
+- Install and configure Jenkins on that machine
+- In Jenkins interface create a one-branch pipeline for each `*.jenkinsfile` in `/jenkins` folder
+- In Jenkins upload secret file `openstack.rc` copied from RedHat Horizon dashboard
+ (Project -> Compute -> Access & Security -> API Access)
+- Install python-based dependencies via `pip install -r requirements.txt` (possibly, using a virtualenv)
 
 
 ## "Sources of inspiration"
