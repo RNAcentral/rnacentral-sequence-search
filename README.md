@@ -12,7 +12,6 @@ clusters from the console. Thus, we had to resort to Kubespray scipts.
 
 ## How to use this
 
-
 ### Installation
 
 Suppose that you want to install this set of Jenkins pipelines to an entirely new machine.
