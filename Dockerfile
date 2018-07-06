@@ -1,4 +1,4 @@
-FROM pcm32/kubespray-deps:v2.3.0
+FROM burkovba/kubespray:v2.5.0
 
 RUN apt-get update -y && apt-get install -y --no-install-recommends patch vim && \
     apt-get autoremove -y && apt-get clean && rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*
