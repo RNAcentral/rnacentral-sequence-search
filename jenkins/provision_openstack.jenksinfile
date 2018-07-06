@@ -3,10 +3,10 @@ pipeline {
     stages {
         stage("Import environment variables") {
             environment {
-                OPENRC = credentials("sequencesearch-openrc.sh")
+                OPENSTACKRC = credentials("openstack.rc")
             }
             steps {
-                sh '$OPENRC'
+                sh '$OPENSTACKRC'
             }
 
         }
