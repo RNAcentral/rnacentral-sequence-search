@@ -32,3 +32,4 @@ Code in this repository is based on the following projects by other folks (kudos
 - https://github.com/pcm32/kubespray-ebi-portal/tree/v2.3.0-ubuntu-xenial - my Kubespray customization scripts are based on this
 - https://cloudbase.it/easily-deploy-a-kubernetes-cluster-on-openstack/ - OpenStack console client commands
 - https://github.com/kubernetes-incubator/kubespray - Kubespray main repo
+- https://gist.github.com/yonglai/d4617d6914d5f4eb22e4e5a15c0e9a03 - Ansible gist for installing Docker
