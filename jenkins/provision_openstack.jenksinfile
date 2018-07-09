@@ -61,22 +61,22 @@ pipeline {
                 '''
             }
         }
-//        stage("Create cluster template") {
-//           steps {
-//               sh '''
-//                   magnum cluster-template-create --name k8s-cluster-template --image CentOS7-1612 \
-//                   --keypair production-keypair --external-network ext-net-36 --dns-nameserver 8.8.8.8 \
-//                   --flavor s1.massive --docker-volume-size 3 --network-driver flannel --coe kubernetes
-//               '''
-//           }
-//        }
-//        stage("Create a cluster instance from template") {
-//           steps {
-//               sh '''
-//                   magnum cluster-create --name rnacentral-search-production-k8s-cluster --cluster-template k8s-cluster-template \
-//                   --master-count 1 --node-count 2
-//               '''
-//           }
-//        }
-//    }
+        stage("Create API VM, associate any floating IP with it") {
+            environment {
+                FLOATINGIP = credentials("floating_IP")
+            }
+            steps {
+                sh '''
+                    nova boot --image CentOS7-1612 --flavor s1.massive --nic net-name=rnacentral_search_production rest_api
+                    server_id=$(openstack server list --column 'ID' --name rest_api --format csv | tail -1)
+                    server_id=$(eval echo $server_id)
+                    server_port_id=$(neutron port-list --device-id $server_id --format csv --column id | tail -1)
+                    server_port_id=$(eval echo $server_port_id)
+                    ip_id=$(neutron floatingip-list --column id --format csv | tail -1)
+                    ip_id=$(eval echo $ip_id)
+                    neutron floatingip-associate $ip_id $server_port_id
+                '''
+            }
+        }
+    }
 }
