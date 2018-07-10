@@ -94,7 +94,7 @@ pipeline {
                     OS_PASSWORD=${OS_PASSWORD}
                     floating_ip=$(openstack floating ip list --format csv --column "Floating IP Address" | tail -1)
                     floating_ip=$(eval echo $floating_ip)
-                    ansible-playbook site.yml -i hosts --extra-vars "host=$floating_ip"
+                    ansible-playbook -i ../ansible/hosts ../ansible/site.yml
                 '''
             }
         }
