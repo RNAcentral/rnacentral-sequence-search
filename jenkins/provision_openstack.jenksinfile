@@ -17,7 +17,7 @@ pipeline {
             steps {
                 sh '''
                     source ../openstack.rc
-                    OS_PASSWORD = ${OS_PASSWORD}
+                    OS_PASSWORD=${OS_PASSWORD}
                     openstack keypair create --public-key id_rsa.pub rnacentral_search_production_keypair
                     chmod 400 rnacentral_search_production_keypair
                 '''
@@ -44,7 +44,7 @@ pipeline {
             steps {
                 sh '''
                     source ../openstack.rc
-                    OS_PASSWORD = ${OS_PASSWORD}
+                    OS_PASSWORD=${OS_PASSWORD}
                     neutron net-create rnacentral_search_production
                     neutron subnet-create rnacentral_search_production 192.168.0.0/24 --gateway 192.168.0.1 --name rnacentral_search_production_subnet --dns-nameserver 8.8.8.8
                 '''
@@ -57,7 +57,7 @@ pipeline {
             steps {
                 sh '''
                     source ../openstack.rc
-                    OS_PASSWORD = ${OS_PASSWORD}
+                    OS_PASSWORD=${OS_PASSWORD}
                     neutron router-create production_router
                     neutron router-interface-add production_router rnacentral_search_production_subnet
                     neutron router-gateway-set production_router ext-net-36
@@ -72,7 +72,7 @@ pipeline {
             steps {
                 sh '''
                     source ../openstack.rc
-                    OS_PASSWORD = ${OS_PASSWORD}
+                    OS_PASSWORD=${OS_PASSWORD}
                     nova boot --image CentOS7-1612 --flavor s1.massive --nic net-name=rnacentral_search_production rest_api
                     server_id=$(openstack server list --column 'ID' --name rest_api --format csv | tail -1)
                     server_id=$(eval echo $server_id)
@@ -91,7 +91,7 @@ pipeline {
             steps {
                 sh '''
                     source ../openstack.rc
-                    OS_PASSWORD = ${OS_PASSWORD}
+                    OS_PASSWORD=${OS_PASSWORD}
                     floating_ip=$(openstack floating ip list --format csv --column "Floating IP Address" | tail -1)
                     floating_ip=$(eval echo $floating_ip)
                     ansible-playbook site.yml -i hosts --extra-vars "host=$floating_ip"
