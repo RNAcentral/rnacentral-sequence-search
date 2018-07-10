@@ -26,7 +26,10 @@ pipeline {
 //        }
         stage("Create a key pair") {
             steps {
-                sh 'openstack keypair create --public-key id_rsa.pub production-keypair'
+                sh '''
+                    openstack keypair create --public-key id_rsa.pub rnacentral_search_production_keypair
+                    chmod 400 rnacentral_search_production_keypair
+                '''
             }
         }
         stage("Create a Neutron network") {
@@ -75,6 +78,15 @@ pipeline {
                     ip_id=$(neutron floatingip-list --column id --format csv | tail -1)
                     ip_id=$(eval echo $ip_id)
                     neutron floatingip-associate $ip_id $server_port_id
+                '''
+            }
+        }
+        stage("Deploy docker") {
+            steps {
+                sh '''
+                    floating_ip=$(openstack floating ip list --format csv --column "Floating IP Address" | tail -1)
+                    floating_ip=$(eval echo $floating_ip)
+                    ansible-playbook site.yml -i hosts --extra-vars "host=$floating_ip"
                 '''
             }
         }
