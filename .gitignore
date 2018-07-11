@@ -1,1 +1,2 @@
 openstack.rc
+terraform/providers.tf
