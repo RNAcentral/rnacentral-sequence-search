@@ -33,3 +33,5 @@ Code in this repository is based on the following projects by other folks (kudos
 - https://cloudbase.it/easily-deploy-a-kubernetes-cluster-on-openstack/ - OpenStack console client commands
 - https://github.com/kubernetes-incubator/kubespray - Kubespray main repo
 - https://gist.github.com/yonglai/d4617d6914d5f4eb22e4e5a15c0e9a03 - Ansible gist for installing Docker
+- https://platform9.com/blog/how-to-use-terraform-with-openstack/ - sample Terraform/OpenStack configuration
+- https://heapanalytics.com/blog/engineering/terraform-gotchas - explanation of Terraform configuration
