@@ -6,7 +6,7 @@
   hosts: default
   remote_user: centos
   vars:
-    ansible_ssh_private_key_file: "../sequence_search_rsa"
+    ansible_ssh_private_key_file: "~/.ssh/production_sequence_search_rsa"
 
   tasks:
     - name: Install yum utils

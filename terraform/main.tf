@@ -1,6 +1,6 @@
 resource "openstack_compute_keypair_v2" "terraform" {
   name = "terraform"
-  public_key = "${file("${var.ssh_key_file}.pub")}"
+  # public_key = "${file("${var.ssh_key_file}.pub")}"
 }
 
 resource "openstack_networking_network_v2" "terraform" {
@@ -11,15 +11,15 @@ resource "openstack_networking_network_v2" "terraform" {
 resource "openstack_networking_subnet_v2" "terraform" {
   name = "terraform"
   network_id = "${openstack_networking_network_v2.terraform.id}"
-  cidr = "10.0.0.0/24"
+  cidr = "192.168.0.0/24"
   ip_version = 4
-  dns_nameservers = ["8.8.8.8","8.8.4.4"]
+  dns_nameservers = ["8.8.8.8"]
 }
 
 resource "openstack_networking_router_v2" "terraform" {
   name = "terraform"
   admin_state_up = "true"
-  external_gateway = "${var.external_gateway}"
+  external_network_id = "${var.external_network_id}"
 }
 
 resource "openstack_networking_router_interface_v2" "terraform" {
@@ -52,7 +52,7 @@ resource "openstack_compute_secgroup_v2" "terraform" {
   }
 }
 
-resource "openstack_compute_floatingip_v2" "terraform" {
+resource "openstack_networking_floatingip_v2" "terraform" {
   pool = "${var.pool}"
   depends_on = ["openstack_networking_router_interface_v2.terraform"]
 }
@@ -63,7 +63,7 @@ resource "openstack_compute_instance_v2" "terraform" {
   flavor_name = "${var.flavor}"
   key_pair = "${openstack_compute_keypair_v2.terraform.name}"
   security_groups = [ "${openstack_compute_secgroup_v2.terraform.name}" ]
-  floating_ip = "${openstack_compute_floatingip_v2.terraform.address}"
+  floating_ip = "${var.floating_ip}"
   network {
     uuid = "${openstack_networking_network_v2.terraform.id}"
   }
@@ -81,6 +81,12 @@ resource "openstack_compute_instance_v2" "terraform" {
     ]
   }
 }
+
+#resource "openstack_compute_floatingip_associate_v2" "terraform" {
+#  floating_ip = "${openstack_networking_floatingip_v2.terraform.address}"
+#  instance_id = "${openstack_compute_instance_v2.terraform.id}"
+#  fixed_ip = "${openstack_compute_instance_v2.multi-net.network.1.fixed_ip_v4}"
+#}
 
 output "address" {
   value = "${openstack_compute_floatingip_v2.terraform.address}"

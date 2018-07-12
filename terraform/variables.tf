@@ -1,5 +1,5 @@
 variable "image" {
-  default = "Ubuntu 14.04"
+  default = "CentOS7-1612"
 }
 
 variable "flavor" {
@@ -7,16 +7,17 @@ variable "flavor" {
 }
 
 variable "ssh_key_file" {
-  default = "~/.ssh/id_rsa.terraform"
+  default = "~/.ssh/production_sequence_search_rsa"
 }
 
 variable "ssh_user_name" {
   default = "centos"
 }
 
-variable "external_gateway" {
+variable "external_network_id" {
+  default = "ext-net"
 }
 
-variable "pool" {
-  default = "public"
+variable "floating_ip" {
+  default = "193.62.55.80"
 }
