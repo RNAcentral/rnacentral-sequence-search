@@ -88,6 +88,7 @@ resource "openstack_compute_floatingip_associate_v2" "terraform" {
   # fixed_ip = "${openstack_compute_instance_v2.multi-net.network.1.fixed_ip_v4}"
 }
 
-output "private_key" {
-  value = "${openstack_compute_keypair_v2.terraform.private_key}"
+resource "local_file" "private_key" {
+  content = "${openstack_compute_keypair_v2.terraform.private_key}"
+  filename = "production_rsa"
 }
