@@ -15,7 +15,7 @@ variable "ssh_user_name" {
 }
 
 variable "external_network_id" {
-  default = "ext-net"
+  default = "e25c3173-bb5c-4bbc-83a7-f0551099c8cd"  # ext-net-36
 }
 
 variable "floating_ip" {
