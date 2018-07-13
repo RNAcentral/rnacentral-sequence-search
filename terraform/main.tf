@@ -52,14 +52,21 @@ resource "openstack_compute_secgroup_v2" "terraform" {
   }
 }
 
-#resource "openstack_networking_floatingip_v2" "terraform" {
-#  pool = "${var.pool}"
-#  depends_on = ["openstack_networking_router_interface_v2.terraform"]
-#}
-
-resource "openstack_compute_instance_v2" "terraform" {
+resource "openstack_compute_instance_v2" "api" {
   depends_on = ["openstack_compute_keypair_v2.terraform"]
-  name = "terraform"
+  name = "api"
+  image_name = "${var.image}"
+  flavor_name = "${var.flavor}"
+  key_pair = "${openstack_compute_keypair_v2.terraform.name}"
+  security_groups = [ "${openstack_compute_secgroup_v2.terraform.name}" ]
+  network {
+    uuid = "${openstack_networking_network_v2.terraform.id}"
+  }
+}
+
+resource "openstack_compute_instance_v2" "kafka" {
+  depends_on = ["openstack_compute_keypair_v2.terraform"]
+  name = "kafka"
   image_name = "${var.image}"
   flavor_name = "${var.flavor}"
   key_pair = "${openstack_compute_keypair_v2.terraform.name}"
@@ -82,9 +89,22 @@ resource "openstack_compute_instance_v2" "terraform" {
 #  }
 }
 
+resource "openstack_compute_instance_v2" "worker" {
+  count = 3
+  depends_on = ["openstack_compute_keypair_v2.terraform"]
+  name = "worker-${count.index}"
+  image_name = "${var.image}"
+  flavor_name = "${var.flavor}"
+  key_pair = "${openstack_compute_keypair_v2.terraform.name}"
+  security_groups = [ "${openstack_compute_secgroup_v2.terraform.name}" ]
+  network {
+    uuid = "${openstack_networking_network_v2.terraform.id}"
+  }
+}
+
 resource "openstack_compute_floatingip_associate_v2" "terraform" {
   floating_ip = "${var.floating_ip}"
-  instance_id = "${openstack_compute_instance_v2.terraform.id}"
+  instance_id = "${openstack_compute_instance_v2.api.id}"
   # fixed_ip = "${openstack_compute_instance_v2.multi-net.network.1.fixed_ip_v4}"
 }
 
