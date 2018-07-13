@@ -5,8 +5,10 @@
   gather_facts: No
   hosts: default
   remote_user: centos
+  become: true
+  become_method: sudo
   vars:
-    ansible_ssh_private_key_file: "~/.ssh/production_sequence_search_rsa"
+    ansible_ssh_private_key_file: "../terraform/terraform_rsa"
 
   tasks:
     - name: Install yum utils
