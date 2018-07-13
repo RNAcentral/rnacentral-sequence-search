@@ -1,0 +1,22 @@
+pipeline {
+    agent any
+    stages {
+        stage("Write providers.tf to disk") {
+            environment {
+                PROVIDERS = credentials("providers.tf")
+            }
+            steps {
+                sh 'cat $PROVIDERS > ../terrafrom/providers.tf'
+            }
+        }
+        stage("Provision infrastructure with terraform") {
+            steps {
+                dir('terraform') {
+                    sh '''
+                        terraform apply
+                    '''
+                }
+            }
+        }
+    }
+}

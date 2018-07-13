@@ -1,0 +1,17 @@
+pipeline {
+    agent any
+    stages {
+        stage("Destroy OpenStack infrastructure") {
+            environment {
+                PROVIDERS = credentials("providers.tf")
+            }
+            steps {
+                dir('terraform') {
+                    sh '''
+                        terraform destroy
+                    '''
+                }
+            }
+        }
+    }
+}
