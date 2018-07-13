@@ -7,7 +7,7 @@ variable "flavor" {
 }
 
 variable "ssh_key_file" {
-  default = "~/.ssh/production_sequence_search_rsa"
+  default = "terraform_rsa"
 }
 
 variable "ssh_user_name" {

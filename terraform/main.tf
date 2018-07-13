@@ -1,6 +1,6 @@
 resource "openstack_compute_keypair_v2" "terraform" {
   name = "terraform"
-  # public_key = "${file("${var.ssh_key_file}.pub")}"
+  public_key = "${file("${var.ssh_key_file}.pub")}"
 }
 
 resource "openstack_networking_network_v2" "terraform" {
@@ -88,7 +88,7 @@ resource "openstack_compute_floatingip_associate_v2" "terraform" {
   # fixed_ip = "${openstack_compute_instance_v2.multi-net.network.1.fixed_ip_v4}"
 }
 
-resource "local_file" "private_key" {
-  content = "${openstack_compute_keypair_v2.terraform.private_key}"
-  filename = "production_rsa"
-}
+#resource "local_file" "private_key" {
+#  content = "${openstack_compute_keypair_v2.terraform.private_key}"
+#  filename = "production_rsa"
+#}

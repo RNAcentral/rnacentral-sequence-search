@@ -6,13 +6,14 @@ pipeline {
                 PROVIDERS = credentials("providers.tf")
             }
             steps {
-                sh 'cat $PROVIDERS > ../terrafrom/providers.tf'
+                sh 'cat $PROVIDERS > ../terraform/providers.tf'
             }
         }
         stage("Provision infrastructure with terraform") {
             steps {
-                dir('terraform') {
+                dir('../terraform') {
                     sh '''
+                        terraform init
                         terraform apply
                     '''
                 }
