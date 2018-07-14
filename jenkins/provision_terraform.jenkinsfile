@@ -19,5 +19,25 @@ pipeline {
                 }
             }
         }
+        stage("Install docker on all machines") {
+            steps {
+                dir('../ansible') {
+                    sh '''
+                        ansible-playbook -i hosts site.yml --tags "docker"
+                    '''
+                }
+            }
+        }
+        stage("Install kafka on broker") {
+            steps {
+                sh '''
+                dir('../ansible') {
+                    sh '''
+                        ansible-playbook -i hosts site.yml --tags "kafka"
+                    '''
+                }
+                '''
+            }
+        }
     }
 }
