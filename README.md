@@ -38,4 +38,5 @@ Code in this repository is based on the following projects by other folks (kudos
 - https://tasdikrahman.me/2017/03/19/Organising-tasks-in-roles-using-Ansible/ - plays vs roles vs tasks
 - https://www.ajg.id.au/2018/05/23/ansible-ssh-jump-hosts-and-multiple-private-keys/ - working with jumphosts
 - https://platform9.com/blog/how-to-use-terraform-with-openstack/ - sample Terraform/OpenStack configuration
+- https://github.com/diodonfrost/terraform-openstack-examples/tree/master/01-sample-instance - more Terraform examples
 - https://heapanalytics.com/blog/engineering/terraform-gotchas - explanation of Terraform configuration

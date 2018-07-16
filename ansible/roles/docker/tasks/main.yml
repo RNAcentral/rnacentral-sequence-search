@@ -1,5 +1,5 @@
 ---
-# This role contains tasks related to docker installation
+  # This role contains tasks related to docker installation
   - name: Install yum utils
     yum:
       name: yum-utils
