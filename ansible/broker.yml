@@ -1,0 +1,10 @@
+---
+- hosts: kafka
+  gather_facts: No
+  remote_user: centos
+  become: true
+  become_method: sudo
+  vars:
+    ansible_ssh_private_key_file: "../terraform/terraform_rsa"
+  roles:
+    - {role: kafka, tags: 'kafka'}

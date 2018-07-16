@@ -2,7 +2,9 @@
 193.62.55.80
 
 [kafka]
-ansible_ssh_common_args=' -o ProxyCommand="ssh -W %h:%p 193.62.55.80"'
+192.168.0.6 ansible_ssh_common_args='-o ProxyCommand="ssh -o ''ForwardAgent yes'' centos@193.62.55.80 ''ssh-add && nc %h %p''"'
 
 [workers]
-ansible_ssh_common_args=' -o ProxyCommand="ssh -W %h:%p 193.62.55.80"'
+192.168.0.7 ansible_ssh_common_args=' -o ProxyCommand="ssh -W %h:%p 193.62.55.80"'
+; 192.168.0.8 ansible_ssh_common_args=' -o ProxyCommand="ssh -W %h:%p 193.62.55.80"'
+; 192.168.0.9 ansible_ssh_common_args=' -o ProxyCommand="ssh -W %h:%p 193.62.55.80"'

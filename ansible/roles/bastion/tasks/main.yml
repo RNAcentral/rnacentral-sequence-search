@@ -1,0 +1,8 @@
+---
+  - name: Install ssh key
+    copy:
+      src: ../terraform/terraform_rsa
+      dest: /home/centos/.ssh/id_rsa
+      owner: centos
+      group: centos
+      mode: 0400

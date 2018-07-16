@@ -23,7 +23,8 @@ pipeline {
             steps {
                 dir('../ansible') {
                     sh '''
-                        ansible-playbook -i hosts site.yml --tags "docker"
+                        ansible-playbook -i hosts api.yml --tags "docker"
+                        ansible-playbook -i hosts workers.yml --tags "docker"
                     '''
                 }
             }
@@ -33,7 +34,7 @@ pipeline {
                 sh '''
                 dir('../ansible') {
                     sh '''
-                        ansible-playbook -i hosts site.yml --tags "kafka"
+                        ansible-playbook -i hosts broker.yml --tags "kafka"
                     '''
                 }
                 '''
