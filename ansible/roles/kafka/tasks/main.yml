@@ -2,14 +2,14 @@
   # This role installs and spins up kafka broker and Zookeeper instance on a single machine
   - name: Download kafka binaries
     get_url:
-      url: https://www.apache.org/dyn/closer.cgi?path=/kafka/1.1.0/kafka_2.11-1.1.0.tgz
+      url: http://apache.mirror.anlx.net/kafka/1.1.0/kafka_2.11-1.1.0.tgz
       dest: /usr/local/bin
-      become: true
 
   - name: Untar kafka
     unarchive:
       src: /usr/local/bin/kafka_2.11-1.1.0.tgz
       dest: /usr/local/bin
+      remote_src: yes
 
   - name: Run Zookeeper
     shell: nohup /usr/local/bin/kafka_2.11-1.1.0/bin/zookeeper-server-start.sh config/zookeeper.properties &
