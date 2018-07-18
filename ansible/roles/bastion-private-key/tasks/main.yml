@@ -1,0 +1,14 @@
+---
+  - name: Install ssh key
+    copy:
+      src: ../terraform/terraform_rsa
+      dest: /home/centos/.ssh/id_rsa
+      owner: centos
+      group: centos
+      mode: 0400
+
+# In case you need netcat:
+#  - name: Install nc
+#    yum:
+#      name: nmap-ncat
+#      state: latest

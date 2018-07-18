@@ -1,0 +1,17 @@
+---
+  # Most of the subnet in our case is not visible from outside world
+  # so we need to use a jumphost/bastion to ssh to it and from it
+  # to ssh to private machines. To do this, we need to configure ssh
+  # and install private key on bastion host.
+  - name: Create ssh config file
+    become: false
+    template:
+      src: ssh-bastion.conf
+      dest: "~/.ssh/config"
+
+  - name: Copy private key to your users ssh configuration directory
+    become: false
+    copy:
+      src: "../terraform/terraform_rsa"
+      dest: "~/.ssh/id_rsa"
+      mode: 0400

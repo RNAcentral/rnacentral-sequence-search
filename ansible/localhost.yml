@@ -1,0 +1,5 @@
+---
+- hosts: localhost
+  gather_facts: False
+  roles:
+    - {role: bastion-ssh-config, tags: ["localhost", "bastion"]}
