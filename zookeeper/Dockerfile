@@ -1,9 +1,14 @@
 FROM centos:7
 
+RUN yum install -y \
+    tar \
+    unzip \
+    wget
+
 # install jdk
-RUN curl -OL http://download.oracle.com/otn-pub/java/jdk/10.0.2+13/19aef61b38124481863b1413dce1855f/jdk-10.0.2_linux-x64_bin.tar.gz && \
-    tar -zxvf jdk-10.0.2_linux-x64_bin.tar.gz && \
-    mv jdk-10.0.2_linux-x64_bin /usr/local/bin && \
+#RUN wget http://download.oracle.com/otn-pub/java/jdk/10.0.2+13/19aef61b38124481863b1413dce1855f/jdk-10.0.2_linux-x64_bin.tar.gz
+#RUN tar -zxvf jdk-10.0.2_linux-x64_bin.tar.gz
+#RUN mv jdk-10.0.2_linux-x64_bin /usr/local/bin
 
 # export Java environment variables
 RUN cat "export JAVA_HOME = /usr/jdk/jdk-1.8.0_60" >> /etc/bashrc
