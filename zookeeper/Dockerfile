@@ -1,4 +1,4 @@
-FROM centos:7
+FROM nimmis/java-centos:oracle-9-jdk
 
 RUN yum install -y \
     tar \
@@ -11,16 +11,16 @@ RUN yum install -y \
 #RUN mv jdk-10.0.2_linux-x64_bin /usr/local/bin
 
 # export Java environment variables
-RUN cat "export JAVA_HOME = /usr/jdk/jdk-1.8.0_60" >> /etc/bashrc
-RUN cat "export PATH=$PATH:$JAVA_HOME/bin" >> /etc/bashrc
+#RUN cat "export JAVA_HOME = /usr/jdk/jdk-1.8.0_60" >> /etc/bashrc
+#RUN cat "export PATH=$PATH:$JAVA_HOME/bin" >> /etc/bashrc
 
 # update-alternatives
-RUN update-alternatives --install /usr/bin/java java /usr/local/bin/jdk-10.0.2_linux-x64_bin/bin/java 100
+#RUN update-alternatives --install /usr/bin/java java /usr/local/bin/jdk-10.0.2_linux-x64_bin/bin/java 100
 
 # install zookeeper
 RUN curl -OL https://archive.apache.org/dist/zookeeper/zookeeper-3.4.13/zookeeper-3.4.13.tar.gz && \
     tar -zxvf zookeeper-3.4.13.tar.gz && \
-    mv zookeeper-3.4.13.tar.gz /usr/local/bin && \
+    mv zookeeper-3.4.13 /usr/local/bin && \
     cd /usr/local/bin/zookeeper-3.4.13 && \
     mkdir data
 
