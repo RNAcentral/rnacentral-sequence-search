@@ -4,8 +4,6 @@ RUN yum install -y \
     curl \
     gcc \
     git \
-    httpd \
-    httpd-devel \
     libaio \
     "nc.x86_64" \
     openssl \
@@ -15,7 +13,8 @@ RUN yum install -y \
     wget \
     zlib-devel \
     gcc-c++ \
-    make
+    make \
+    python-pip
 
 RUN curl -OL http://eddylab.org/software/hmmer/hmmer-3.2.1.tar.gz && \
     tar -zxvf hmmer-3.2.1.tar.gz && \
@@ -24,3 +23,7 @@ RUN curl -OL http://eddylab.org/software/hmmer/hmmer-3.2.1.tar.gz && \
     make && \
     make install && \
     cd easel; make install
+
+ADD requirements.txt /
+
+RUN pip install -r requirements.txt
