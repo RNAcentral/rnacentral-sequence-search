@@ -3,7 +3,8 @@ FROM nimmis/java-centos:oracle-9-jdk
 RUN yum install -y \
     tar \
     unzip \
-    wget
+    wget \
+    less
 
 # download kafka
 RUN curl -OL http://apache.mirror.anlx.net/kafka/1.1.0/kafka_2.11-1.1.0.tgz && \

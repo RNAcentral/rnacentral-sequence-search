@@ -22,10 +22,10 @@ fi
 # if it detects that either of the processes has exited.
 # Otherwise it loops forever, waking up every 60 seconds
 
-while sleep 60; do
-  ps aux |grep zookeeper-server-start.sh |grep -q -v grep
+while sleep 30; do
+  ps aux |grep zookeeper |grep -q -v grep
   PROCESS_1_STATUS=$?
-  ps aux |grep kafka-server-start.sh |grep -q -v grep
+  ps aux |grep kafka |grep -q -v grep
   PROCESS_2_STATUS=$?
   # If the greps above find anything, they exit with 0 status
   # If they are not both 0, then something is wrong
