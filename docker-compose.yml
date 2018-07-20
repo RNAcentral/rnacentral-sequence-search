@@ -1,0 +1,25 @@
+version: '2'
+
+services:
+  kafka:
+    restart: always
+    build: ./kafka
+    ports:
+      - "9092:9092"
+      - "2181:2181"
+
+  api:
+    restart: always
+    build: ./api
+    ports:
+      - "8000:8000"
+
+  consumer:
+    restart: always
+    build: ./consumer
+
+  postgres:
+    restart: always
+    build: ./postgres
+    ports:
+      - "5432:5432"
