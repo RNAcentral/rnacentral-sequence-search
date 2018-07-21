@@ -1,2 +1,3 @@
 openstack.rc
 terraform/providers.tf
+producer/producer/producer/local_settings.py
