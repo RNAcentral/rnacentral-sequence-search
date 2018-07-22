@@ -8,9 +8,9 @@ services:
       - "9092:9092"
       - "2181:2181"
 
-  api:
+  producer:
     restart: always
-    build: ./api
+    build: ./producer
     ports:
       - "8000:8000"
 
