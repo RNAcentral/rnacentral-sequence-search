@@ -13,10 +13,16 @@ services:
     build: ./producer
     ports:
       - "8000:8000"
+    depends_on:
+      - kafka
+      - postgres
 
   consumer:
     restart: always
     build: ./consumer
+    depends_on:
+      - kafka
+      - postgres
 
   postgres:
     restart: always
