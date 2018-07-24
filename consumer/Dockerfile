@@ -1,5 +1,7 @@
 FROM centos:7
 
+RUN yum -y --enablerepo=extras install epel-release
+RUN yum -y update
 RUN yum install -y \
     curl \
     gcc \
@@ -24,6 +26,6 @@ RUN curl -OL http://eddylab.org/software/hmmer/hmmer-3.2.1.tar.gz && \
     make install && \
     cd easel; make install
 
-ADD requirements.txt /
+ADD requirements.txt .
 
 RUN pip install -r requirements.txt
