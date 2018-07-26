@@ -5,6 +5,7 @@ services:
     restart: always
     build: ./kafka
     ports:
+      # expose kafka broker (9092) and zookeeper (2181)
       - "9092:9092"
       - "2181:2181"
 

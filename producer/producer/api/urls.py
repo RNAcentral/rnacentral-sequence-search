@@ -11,12 +11,13 @@ See the License for the specific language governing permissions and
 limitations under the License.
 """
 
-from django.conf.urls import url, include
+from django.conf.urls import url
 from django.views.generic import TemplateView
+
+from .views import SubmitJob
 
 
 urlpatterns = [
-    # REST API (use trailing slashes)
-    url(r'^api/current/', include('api.urls')),
-    url(r'^api/v1/', include('api.urls')),
+    # launch nhmmer search
+    url(r'submit-query/?$', SubmitJob.as_view(), {}, name='nhmmer-submit-job'),
 ]

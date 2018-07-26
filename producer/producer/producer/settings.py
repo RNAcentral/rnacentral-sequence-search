@@ -122,6 +122,13 @@ USE_TZ = True
 
 STATIC_URL = '/static/'
 
+KAFKA_TOPICS = {
+    'tRNA': 'tRNA',
+    'rRNA': 'rRNA',
+    'miRBase': 'miRBase',
+    'other': 'other'
+}
+
 try:
     from .local_settings import *  # pylint: disable=W0401, W0614
 except ImportError:
