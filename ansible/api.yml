@@ -1,11 +1,12 @@
 ---
 - hosts: api
-  gather_facts: No
+  gather_facts: Yes
   remote_user: centos
   become: true
   become_method: sudo
   vars:
     ansible_ssh_private_key_file: "../terraform/terraform_rsa"
   roles:
-    - bastion-private-key
-    - docker
+    - {role: 'bastion-private-key', tags: 'bastion'}
+    - {role: 'docker', tags: 'docker'}
+    - {role: 'producer', tags: 'producer'}
