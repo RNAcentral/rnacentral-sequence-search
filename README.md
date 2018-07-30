@@ -36,6 +36,7 @@ Code in this repository is based on the following projects by other folks (kudos
 - https://github.com/kubernetes-incubator/kubespray - Kubespray main repo
 - https://gist.github.com/yonglai/d4617d6914d5f4eb22e4e5a15c0e9a03 - Ansible gist for installing Docker
 - https://tasdikrahman.me/2017/03/19/Organising-tasks-in-roles-using-Ansible/ - plays vs roles vs tasks
+- https://github.com/ANXS/postgresql - Ansible postgres role
 - https://www.ajg.id.au/2018/05/23/ansible-ssh-jump-hosts-and-multiple-private-keys/ - working with jumphosts
 - https://platform9.com/blog/how-to-use-terraform-with-openstack/ - sample Terraform/OpenStack configuration
 - https://github.com/diodonfrost/terraform-openstack-examples/tree/master/01-sample-instance - more Terraform examples
