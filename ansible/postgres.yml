@@ -15,7 +15,7 @@
     postgresql_admin_user: "postgres"
     postgresql_default_auth_method: "trust"
 
-    postgresql_service_enabled: false # should the service be enabled, default is true
+    postgresql_service_enabled: true # should the service be enabled, default is true
 
     postgresql_cluster_name: "main"
     postgresql_cluster_reset: false
@@ -62,5 +62,13 @@
         db: docker                  # database
         priv: "ALL"                 # privilege string format: example: INSERT,UPDATE/table:SELECT/anothertable:ALL
         role_attr_flags: "CREATEDB" # role attribute flags
+
+    # List of hosts, from which postgres is available via password authentication
+    postgresql_pg_hba_passwd_hosts:
+      - hostvars['producer'].ansible_host
+      - hostvars['kafka'].ansible_host
+      - hostvars['postgres'].ansible_host
+      - hostvars['workers'].ansible_host
+
   roles:
     - postgresql
