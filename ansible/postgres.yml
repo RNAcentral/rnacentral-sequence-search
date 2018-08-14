@@ -65,10 +65,7 @@
 
     # List of hosts, from which postgres is available via password authentication
     postgresql_pg_hba_passwd_hosts:
-      - hostvars['producer'].ansible_host
-      - hostvars['kafka'].ansible_host
-      - hostvars['postgres'].ansible_host
-      - hostvars['workers'].ansible_host
+      - '192.168.0.0/24'
 
   roles:
     - postgresql

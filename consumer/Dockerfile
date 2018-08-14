@@ -16,7 +16,7 @@ RUN yum install -y \
     zlib-devel \
     gcc-c++ \
     make \
-    python-pip
+    python3-pip
 
 RUN curl -OL http://eddylab.org/software/hmmer/hmmer-3.2.1.tar.gz && \
     tar -zxvf hmmer-3.2.1.tar.gz && \
@@ -28,4 +28,4 @@ RUN curl -OL http://eddylab.org/software/hmmer/hmmer-3.2.1.tar.gz && \
 
 ADD requirements.txt .
 
-RUN pip install -r requirements.txt
+RUN pip3 install -r requirements.txt
