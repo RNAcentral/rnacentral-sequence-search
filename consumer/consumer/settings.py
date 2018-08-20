@@ -11,6 +11,14 @@ See the License for the specific language governing permissions and
 limitations under the License.
 """
 
+import pathlib
+
+
+# consumer folder, where media, static, templates and other subfolders are located
+PROJECT_ROOT = pathlib.Path(__file__).parent
+
+RESULTS_DIR = PROJECT_ROOT / 'results'
+
 # minimum query sequence length
 MIN_LENGTH = 10
 

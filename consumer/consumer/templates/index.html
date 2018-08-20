@@ -1,0 +1,15 @@
+{% extends "base.html" %}
+
+{% set title = "Main" %}
+
+{% block content %}
+{% if results %}
+    <ul>
+    {% for result in results %}
+    <li><a href="{{ url('result', result_id=result.id) }}">{{ result.id }}</a></li>
+    {% endfor %}
+    </ul>
+{% else %}
+    <p>No results are available.</p>
+{% endif %}
+{% endblock %}
