@@ -25,7 +25,7 @@ class Server:
         app = web.Application()
 
         # setup Jinja2 template renderer
-        aiohttp_jinja2.setup(app, loader=jinja2.PackageLoader('aiohttpdemo_polls', 'templates'))
+        aiohttp_jinja2.setup(app, loader=jinja2.PackageLoader('consumer', 'templates'))
 
         # create db connection on startup, shutdown on exit
         # app.on_startup.append(init_pg)

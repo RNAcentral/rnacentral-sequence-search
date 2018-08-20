@@ -7,8 +7,7 @@ from . import settings
 
 @aiohttp_jinja2.template('index.html')
 async def index(request):
-    dirs = os.listdir(settings.RESULTS_DIR)
-    results = [dirs]
+    results = os.listdir(settings.RESULTS_DIR)
     return {'results': results}
 
 

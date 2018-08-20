@@ -6,7 +6,9 @@
 {% if results %}
     <ul>
     {% for result in results %}
-    <li><a href="{{ url('result', result_id=result.id) }}">{{ result.id }}</a></li>
+      <li><a href="{{ url('result', result_id=result.id) }}">{{ result.id }}</a></li>
+    {% else %}
+      <li>No results so far</li>
     {% endfor %}
     </ul>
 {% else %}

@@ -17,7 +17,17 @@ import pathlib
 # consumer folder, where media, static, templates and other subfolders are located
 PROJECT_ROOT = pathlib.Path(__file__).parent
 
+# full path to results files
 RESULTS_DIR = PROJECT_ROOT / 'results'
+
+# full path to query files
+QUERY_DIR = ''
+
+# full path to nhmmer executable
+NHMMER_EXECUTABLE = ''
+
+# full path to sequence database
+SEQDATABASE = ''
 
 # minimum query sequence length
 MIN_LENGTH = 10
@@ -30,24 +40,6 @@ EXPIRATION = 60*60*24*7  # seconds
 
 # maximum time to run nhmmer
 MAX_RUN_TIME = 60*60  # seconds
-
-# full path to query files
-QUERY_DIR = ''
-
-# full path to results files
-RESULTS_DIR = ''
-
-# full path to nhmmer executable
-NHMMER_EXECUTABLE = ''
-
-# full path to sequence database
-SEQDATABASE = ''
-
-# base url of the remote nhmmer server
-NHMMER_SERVER = ''
-
-# url of the dashboard showing the status of the queue
-RQDASHBOARD = ''
 
 
 def get_config(argv):
