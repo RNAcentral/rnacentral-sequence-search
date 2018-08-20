@@ -1,3 +1,4 @@
+import asyncio
 import aiohttp_jinja2
 from aiohttp import web
 import os
@@ -19,17 +20,32 @@ async def result(request, result_id):
 
 
 async def submit_job(request):
-    async with request.app['db'].acquire() as conn:
-        question_id = int(request.match_info['question_id'])
-        data = await request.post()
-        try:
-            choice_id = int(data['choice'])
-        except (KeyError, TypeError, ValueError) as e:
-            raise web.HTTPBadRequest(text='You have not specified choice value') from e
-        try:
-            await db.vote(conn, question_id, choice_id)
-        except db.RecordNotFound as e:
-            raise web.HTTPNotFound(text=str(e))
-        router = request.app.router
-        url = router['results'].url_for(question_id=str(question_id))
-        return web.HTTPFound(location=url)
+    data = await request.json()
+    try:
+        job_id = data['job_id']
+        databases = data['databases']
+        sequence = data['sequence']
+    except (KeyError, TypeError, ValueError) as e:
+        raise web.HTTPBadRequest(text='Bad input') from e
+
+    await asyncio.sleep(1)  # will replace this with NHMMER run
+
+    router = request.app.router
+    url = router['results'].url_for(result_id=job_id)
+    return web.HTTPFound(location=url)
+
+
+    # async with request.app['db'].acquire() as conn:
+    #     question_id = int(request.match_info['question_id'])
+    #     data = await request.post()
+    #     try:
+    #         choice_id = int(data['choice'])
+    #     except (KeyError, TypeError, ValueError) as e:
+    #         raise web.HTTPBadRequest(text='You have not specified choice value') from e
+    #     try:
+    #         await db.vote(conn, question_id, choice_id)
+    #     except db.RecordNotFound as e:
+    #         raise web.HTTPNotFound(text=str(e))
+    #     router = request.app.router
+    #     url = router['results'].url_for(question_id=str(question_id))
+    #     return web.HTTPFound(location=url)
