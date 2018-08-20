@@ -2,8 +2,8 @@ import logging
 import sys
 
 
-from consumer.settings import get_config
-from consumer.server import Server
+from .settings import get_config
+from .server import Server
 
 
 def main(argv):
@@ -13,6 +13,7 @@ def main(argv):
 
     server = Server(config['host'], config['port'])
     server.run()
+
 
 if __name__ == '__main__':
     main(sys.argv[1:])

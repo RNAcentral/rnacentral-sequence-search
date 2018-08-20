@@ -3,6 +3,7 @@ import pathlib
 from .views import index, submit_job, result
 from .settings import PROJECT_ROOT
 
+
 def setup_routes(app):
     app.router.add_get('/', index, name='index')
     app.router.add_get('/results/{result_id}', result, name='result')

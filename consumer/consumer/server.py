@@ -8,11 +8,11 @@ from aiohttp import web
 
 # from consumer.db import close_pg, init_pg
 # from consumer.middlewares import setup_middlewares
-from consumer.urls import setup_routes
+from .urls import setup_routes
 
 
 class Server:
-    def __init__(self, host, port, loop):
+    def __init__(self, host, port):
         self.host = host
         self.port = port
 
@@ -23,7 +23,6 @@ class Server:
 
     def run(self):
         app = web.Application()
-        app['config'] = config
 
         # setup Jinja2 template renderer
         aiohttp_jinja2.setup(app, loader=jinja2.PackageLoader('aiohttpdemo_polls', 'templates'))
@@ -38,4 +37,4 @@ class Server:
         # setup middlewares
         # setup_middlewares(app)
 
-        web.run_app(app, host=config['host'], port=config['port'])
+        web.run_app(app, host=self.host, port=self.port)

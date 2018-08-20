@@ -48,3 +48,10 @@ NHMMER_SERVER = ''
 
 # url of the dashboard showing the status of the queue
 RQDASHBOARD = ''
+
+
+def get_config(argv):
+    config = {}
+    config["host"] = argv["host"] if "host" in argv else "localhost"
+    config["port"] = argv["port"] if "port" in argv else "8000"
+    return config
