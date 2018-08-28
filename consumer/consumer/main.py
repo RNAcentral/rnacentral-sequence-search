@@ -15,7 +15,9 @@ from .urls import setup_routes
 from .settings import settings
 
 """
-Run this with:
+Run either of the following commands from the parent of current directory:
+
+adev runserver consumer --livereload
 
 python3 -m consumer.main
 """
