@@ -30,6 +30,18 @@ templates, middlewares...).
 I suggest that you run consumer as a docker container. Dockerfile contains NHMMER installation code, while python
 dependencies are listed in requirements.txt and can be installed with: `pip3 install -r requirements.txt`.
 
+## How to run
+
+To run a development server with auto-reload, run the following command from root of this directory:
+
+`adev runserver consumer --livereload`
+
+To run a development aiohttp server, run the following command from root of this directory:
+
+python3 -m consumer.main`
+
+To run a production server with gunicorn, see gunicorn.py in consumer directory
+
 ## Code samples:
 
  - http://edmundmartin.com/aiohttp-background-tasks/ - this is a demo on how to run background tasks with aiohttp
