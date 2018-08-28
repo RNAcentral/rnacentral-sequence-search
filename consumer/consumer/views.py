@@ -3,7 +3,7 @@ import aiohttp_jinja2
 from aiohttp import web
 import os
 
-from . import settings
+from .settings import settings
 
 
 @aiohttp_jinja2.template('index.html')
