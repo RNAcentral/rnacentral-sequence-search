@@ -7,7 +7,7 @@ import logging
 
 import aiohttp_jinja2
 import jinja2
-from aiohttp import web
+from aiohttp import web, web_middlewares
 
 # from consumer.db import close_pg, init_pg
 # from consumer.middlewares import setup_middlewares
@@ -26,7 +26,9 @@ python3 -m consumer.main
 def create_app(loop):
     logging.basicConfig(level=logging.DEBUG)
 
-    app = web.Application()
+    app = web.Application(middlewares=[
+        web_middlewares.normalize_path_middleware(append_slash=True),
+    ])
 
     app.update(
         name='consumer',
