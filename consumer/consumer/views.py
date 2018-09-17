@@ -25,13 +25,13 @@ async def submit_job(request):
         job_id = data['job_id']
         databases = data['databases']
         sequence = data['sequence']
+        print("job_id = {job_id}, databases = {databases}, sequence = {sequence}".format(job_id=job_id, databases=databases, sequence=sequence))
     except (KeyError, TypeError, ValueError) as e:
         raise web.HTTPBadRequest(text='Bad input') from e
 
     await asyncio.sleep(1)  # will replace this with NHMMER run
 
-    router = request.app.router
-    url = router['results'].url_for(result_id=job_id)
+    url = request.app.router['result'].url_for(result_id=str(job_id))
     return web.HTTPFound(location=url)
 
 
