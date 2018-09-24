@@ -3,7 +3,7 @@ import logging
 
 import aiohttp_jinja2
 import jinja2
-from aiojobs.aiohttp import setup
+from aiojobs.aiohttp import setup as setup_aiojobs
 from aiohttp import web, web_middlewares
 
 # from consumer.db import close_pg, init_pg
@@ -46,7 +46,7 @@ def create_app(loop):
     # setup_middlewares(app)
 
     # setup aiojobs scheduler
-    setup(app)
+    setup_aiojobs(app)
 
     return app
 

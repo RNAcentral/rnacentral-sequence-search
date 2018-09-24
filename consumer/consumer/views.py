@@ -37,8 +37,8 @@ async def submit_job(request):
 
 
 async def nhmmer():
-    await asyncio.sleep(1)
-    return
+    await asyncio.sleep(5)
+    print("nhmmer finished")
 
 
     # async with request.app['db'].acquire() as conn:
