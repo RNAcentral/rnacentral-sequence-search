@@ -13,86 +13,92 @@ limitations under the License.
 
 import os
 import shlex
-import subprocess as sub
+import asyncio.subprocess
 
-from .settings import QUERY_DIR, RESULTS_DIR, NHMMER_EXECUTABLE, SEQDATABASE
+from .settings import settings
 
 
-class NhmmerSearch(object):
-    """Class for launching nhmmer and storing results."""
-    def __init__(self, sequence, job_id):
-        """Initialize internal variables."""
-        self.sequence = sequence.replace('T', 'U').upper()
-        self.job_id = job_id
-        self.cmd = None
-        self.params = {
-            'query': os.path.join(QUERY_DIR, '%s.fasta' % job_id),
-            'output': os.path.join(RESULTS_DIR, '%s.txt' % job_id),
-            'nhmmer': NHMMER_EXECUTABLE,
-            'db': SEQDATABASE,
-            'cpu': 4,
-        }
-        self.set_e_values()
+class NhmmerError(Exception):
+    """Raise when nhmmer exits with a non-zero status"""
+    pass
 
-    def set_e_values(self):
-        """
-        Set E-values dynamically depending on the query sequence length.
-        The values were computed by searching the full dataset
-        using random short sequences as queries
-        with an extremely high E-value and recording
-        the E-values of the best hit.
-        """
-        length = len(self.sequence)
-        if length <= 30:
-            e_value = pow(10, 5)
-        elif length > 30 and length <= 40:
-            e_value = pow(10, 2)
-        elif length > 40 and length <= 50:
-            e_value = pow(10, -1)
-        else:
-            e_value = pow(10, -2)
-        self.params['incE'] = e_value
-        self.params['E'] = e_value
 
-    def create_query_file(self):
-        """Write out query in fasta format."""
-        with open(self.params['query'], 'w') as f:
-            f.write('>query\n')
-            f.write(self.sequence)
-            f.write('\n')
+def get_e_value(sequence):
+    """
+    Set E-values dynamically depending on the query sequence length.
+    The values were computed by searching the full dataset
+    using random short sequences as queries
+    with an extremely high E-value and recording
+    the E-values of the best hit.
+    """
+    length = len(sequence)
 
-    def get_command(self):
-        """Get nhmmer command."""
-        self.cmd = \
-            ('{nhmmer} '
-             '--qformat fasta '   # query format
-             '--tformat fasta '   # target format
-             '-o {output} '       # direct main output to a file
-             '--incE {incE} '     # use an E-value of <= X as the inclusion threshold
-             '-E {E} '            # report target sequences with an E-value of <= X
-             '--rna '             # explicitly specify database alphabet
-             '--toponly '         # search only top strand
-             '--cpu {cpu} '       # number of CPUs to use
-             '{query} '           # query file
-             '{db}').format(**self.params)
+    if length <= 30:
+        e_value = pow(10, 5)
+    elif 30 < length <= 40:
+        e_value = pow(10, 2)
+    elif 40 < length <= 50:
+        e_value = pow(10, -1)
+    else:
+        e_value = pow(10, -2)
 
-    def run_nhmmer(self):
-        """Launch nhmmer."""
-        if not self.cmd:
-            self.get_command()
-        process = sub.Popen(shlex.split(self.cmd), stdout=sub.PIPE,
-                            stderr=sub.PIPE)
-        output, errors = process.communicate()
-        return_code = process.returncode
-        if return_code != 0:
-            class NhmmerError(Exception):
-                """Raise when nhmmer exits with a non-zero status"""
-                pass
-            raise NhmmerError(errors, output, return_code)
+    return e_value
 
-    def __call__(self):
-        """Main entry point."""
-        self.create_query_file()
-        self.get_command()
-        self.run_nhmmer()
-        return self.params['output']
+
+def create_query_file(params, sequence):
+    """Write out query in fasta format."""
+    with open(params['query'], 'w') as f:
+        f.write('>query\n')
+        f.write(sequence)
+        f.write('\n')
+
+
+def get_command(params):
+    """Get nhmmer command."""
+    return
+
+
+async def run_nhmmer(params):
+    """Launch nhmmer."""
+    command = ('{nhmmer} '
+               '--qformat fasta '  # query format
+               '--tformat fasta '  # target format
+               '-o {output} '  # direct main output to a file
+               '--incE {incE} '  # use an E-value of <= X as the inclusion threshold
+               '-E {E} '  # report target sequences with an E-value of <= X
+               '--rna '  # explicitly specify database alphabet
+               '--toponly '  # search only top strand
+               '--cpu {cpu} '  # number of CPUs to use
+               '{query} '  # query file
+               '{db}').format(params)
+
+    process = await asyncio.subprocess.create_subprocess_exec(
+        shlex.split(command),
+        stdout=asyncio.subprocess.PIPE,
+        stderr=asyncio.subprocess.PIPE
+    )
+
+    output, errors = await process.communicate()
+    return_code = process.returncode
+    if return_code != 0:
+        raise NhmmerError(errors, output, return_code)
+
+
+async def nhmmer_search(sequence, job_id):
+    # Initialize internal variables.
+    sequence = sequence.replace('T', 'U').upper()
+    e_value = get_e_value(sequence)
+    params = {
+        'query': os.path.join(settings.QUERY_DIR, '%s.fasta' % job_id),
+        'output': os.path.join(settings.RESULTS_DIR, '%s.txt' % job_id),
+        'nhmmer': settings.NHMMER_EXECUTABLE,
+        'db': settings.SEQDATABASE,
+        'cpu': 4,
+        'incE': e_value,
+        'E': e_value
+    }
+
+    create_query_file(params, sequence)
+    await run_nhmmer(params)
+
+    return params['output']

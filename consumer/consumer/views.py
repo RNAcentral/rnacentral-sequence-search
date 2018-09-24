@@ -1,9 +1,12 @@
+import os
+
+
 import asyncio
 from aiojobs.aiohttp import spawn
 import aiohttp_jinja2
 from aiohttp import web
-import os
 
+from .nhmmer_search import nhmmer_search
 from .settings import settings
 
 
@@ -30,15 +33,10 @@ async def submit_job(request):
     except (KeyError, TypeError, ValueError) as e:
         raise web.HTTPBadRequest(text='Bad input') from e
 
-    await spawn(request, nhmmer())
+    await spawn(request, nhmmer_search(sequence=sequence, job_id=job_id))
 
     url = request.app.router['result'].url_for(result_id=str(job_id))
     return web.HTTPFound(location=url)
-
-
-async def nhmmer():
-    await asyncio.sleep(5)
-    print("nhmmer finished")
 
 
     # async with request.app['db'].acquire() as conn:
