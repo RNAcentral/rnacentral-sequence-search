@@ -1,12 +1,9 @@
-import os
 import asyncio
 import logging
-# import sys
-# from collections import deque
-# from concurrent.futures import ThreadPoolExecutor
 
 import aiohttp_jinja2
 import jinja2
+from aiojobs.aiohttp import setup
 from aiohttp import web, web_middlewares
 
 # from consumer.db import close_pg, init_pg
@@ -47,6 +44,9 @@ def create_app(loop):
 
     # setup middlewares
     # setup_middlewares(app)
+
+    # setup aiojobs scheduler
+    setup(app)
 
     return app
 
