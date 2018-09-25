@@ -49,13 +49,13 @@ class Settings:
     RESULTS_DIR = PROJECT_ROOT / 'results'
 
     # full path to query files
-    QUERY_DIR = ''
+    QUERY_DIR = PROJECT_ROOT / 'queries'
 
     # full path to nhmmer executable
-    NHMMER_EXECUTABLE = ''
+    NHMMER_EXECUTABLE = 'nhmmer'
 
     # full path to sequence database
-    SEQDATABASE = ''
+    SEQDATABASE = PROJECT_ROOT / 'databases' / 'rnacentral_nhmmer.fasta'
 
     # minimum query sequence length
     MIN_LENGTH = 10

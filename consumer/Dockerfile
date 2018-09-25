@@ -16,7 +16,11 @@ RUN yum install -y \
     zlib-devel \
     gcc-c++ \
     make \
-    python3-pip
+    python36 \
+    python36-devel \
+    python36-setuptools
+
+RUN easy_install-3.6 pip
 
 RUN curl -OL http://eddylab.org/software/hmmer/hmmer-3.2.1.tar.gz && \
     tar -zxvf hmmer-3.2.1.tar.gz && \
@@ -27,5 +31,8 @@ RUN curl -OL http://eddylab.org/software/hmmer/hmmer-3.2.1.tar.gz && \
     cd easel; make install
 
 ADD requirements.txt .
+ADD consumer .
 
 RUN pip3 install -r requirements.txt
+
+CMD adev runserver consumer --livereload

@@ -58,35 +58,10 @@ def get_command(params):
     return
 
 
-async def run_nhmmer(params):
-    """Launch nhmmer."""
-    command = ('{nhmmer} '
-               '--qformat fasta '  # query format
-               '--tformat fasta '  # target format
-               '-o {output} '  # direct main output to a file
-               '--incE {incE} '  # use an E-value of <= X as the inclusion threshold
-               '-E {E} '  # report target sequences with an E-value of <= X
-               '--rna '  # explicitly specify database alphabet
-               '--toponly '  # search only top strand
-               '--cpu {cpu} '  # number of CPUs to use
-               '{query} '  # query file
-               '{db}').format(params)
-
-    process = await asyncio.subprocess.create_subprocess_exec(
-        shlex.split(command),
-        stdout=asyncio.subprocess.PIPE,
-        stderr=asyncio.subprocess.PIPE
-    )
-
-    output, errors = await process.communicate()
-    return_code = process.returncode
-    if return_code != 0:
-        raise NhmmerError(errors, output, return_code)
-
-
 async def nhmmer_search(sequence, job_id):
     # Initialize internal variables.
     sequence = sequence.replace('T', 'U').upper()
+
     e_value = get_e_value(sequence)
     params = {
         'query': os.path.join(settings.QUERY_DIR, '%s.fasta' % job_id),
@@ -99,6 +74,29 @@ async def nhmmer_search(sequence, job_id):
     }
 
     create_query_file(params, sequence)
-    await run_nhmmer(params)
+
+    command = ('{nhmmer} '
+               '--qfasta '         # query format
+               '--tformat fasta '  # target format
+               '-o {output} '      # direct main output to a file
+               '--incE {incE} '    # use an E-value of <= X as the inclusion threshold
+               '-E {E} '           # report target sequences with an E-value of <= X
+               '--rna '            # explicitly specify database alphabet
+               '--watson '         # search only top strand
+               '--cpu {cpu} '      # number of CPUs to use
+               '{query} '          # query file
+               '{db}').format(**params)
+
+    process = await asyncio.subprocess.create_subprocess_exec(
+        *shlex.split(command),
+        stdout=asyncio.subprocess.PIPE,
+        stderr=asyncio.subprocess.PIPE
+    )
+
+    output, errors = await process.communicate()
+    print(output, errors)
+    return_code = process.returncode
+    if return_code != 0:
+        raise NhmmerError(errors, output, return_code)
 
     return params['output']
