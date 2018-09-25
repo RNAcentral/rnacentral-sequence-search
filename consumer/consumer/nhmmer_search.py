@@ -53,16 +53,12 @@ def create_query_file(params, sequence):
         f.write('\n')
 
 
-def get_command(params):
-    """Get nhmmer command."""
-    return
-
-
 async def nhmmer_search(sequence, job_id):
     # Initialize internal variables.
     sequence = sequence.replace('T', 'U').upper()
 
     e_value = get_e_value(sequence)
+
     params = {
         'query': os.path.join(settings.QUERY_DIR, '%s.fasta' % job_id),
         'output': os.path.join(settings.RESULTS_DIR, '%s.txt' % job_id),
