@@ -54,7 +54,6 @@ def create_query_file(params, sequence):
 
 
 async def nhmmer_search(sequence, job_id):
-    # Initialize internal variables.
     sequence = sequence.replace('T', 'U').upper()
 
     e_value = get_e_value(sequence)
@@ -90,7 +89,6 @@ async def nhmmer_search(sequence, job_id):
     )
 
     output, errors = await process.communicate()
-    print(output, errors)
     return_code = process.returncode
     if return_code != 0:
         raise NhmmerError(errors, output, return_code)
