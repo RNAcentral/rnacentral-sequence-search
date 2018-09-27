@@ -1,5 +1,5 @@
 ---
-- hosts: workers
+- hosts: consumers
   gather_facts: No
   remote_user: centos
   become: true
@@ -7,4 +7,4 @@
   vars:
     ansible_ssh_private_key_file: "../terraform/terraform_rsa"
   roles:
-    - {role: 'docker', tags: 'docker'}
+    - {role: consumer, tags: 'consumer'}

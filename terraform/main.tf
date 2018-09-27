@@ -59,9 +59,9 @@ resource "openstack_compute_secgroup_v2" "terraform" {
   }
 }
 
-resource "openstack_compute_instance_v2" "api" {
+resource "openstack_compute_instance_v2" "producer" {
   depends_on = ["openstack_compute_keypair_v2.terraform"]
-  name = "api"
+  name = "producer"
   image_name = "${var.image}"
   flavor_name = "${var.flavor}"
   key_pair = "${openstack_compute_keypair_v2.terraform.name}"
@@ -98,10 +98,10 @@ resource "openstack_compute_instance_v2" "postgres" {
 #  }
 }
 
-resource "openstack_compute_instance_v2" "worker" {
+resource "openstack_compute_instance_v2" "consumer" {
   count = 3
   depends_on = ["openstack_compute_keypair_v2.terraform"]
-  name = "worker-${count.index + 1}"
+  name = "consumer-${count.index + 1}"
   image_name = "${var.image}"
   flavor_name = "${var.flavor}"
   key_pair = "${openstack_compute_keypair_v2.terraform.name}"
@@ -114,7 +114,7 @@ resource "openstack_compute_instance_v2" "worker" {
 
 resource "openstack_compute_floatingip_associate_v2" "terraform" {
   floating_ip = "${var.floating_ip}"
-  instance_id = "${openstack_compute_instance_v2.api.id}"
+  instance_id = "${openstack_compute_instance_v2.producer.id}"
   # fixed_ip = "${openstack_compute_instance_v2.multi-net.network.1.fixed_ip_v4}"
 }
 

@@ -4,15 +4,13 @@
 [producer]
 192.168.0.5
 
-[kafka]
-192.168.0.6
 ; 192.168.0.6 ansible_ssh_common_args=' -o ProxyCommand="ssh -W %h:%p 193.62.55.80"'
 ; 192.168.0.6 ansible_ssh_common_args='-o ProxyCommand="ssh -o ''ForwardAgent yes'' centos@193.62.55.80 ''ssh-add && nc %h %p''"'
 
 [postgres]
-192.168.0.7
+192.168.0.6
 
-[workers]
+[consumers]
+192.168.0.7
 192.168.0.8
 192.168.0.9
-192.168.0.10
