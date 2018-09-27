@@ -72,9 +72,9 @@ resource "openstack_compute_instance_v2" "api" {
   }
 }
 
-resource "openstack_compute_instance_v2" "kafka" {
+resource "openstack_compute_instance_v2" "postgres" {
   depends_on = ["openstack_compute_keypair_v2.terraform"]
-  name = "kafka"
+  name = "postgres"
   image_name = "${var.image}"
   flavor_name = "${var.flavor}"
   key_pair = "${openstack_compute_keypair_v2.terraform.name}"
@@ -98,19 +98,6 @@ resource "openstack_compute_instance_v2" "kafka" {
 #  }
 }
 
-resource "openstack_compute_instance_v2" "postgres" {
-  depends_on = ["openstack_compute_keypair_v2.terraform"]
-  name = "postgres"
-  image_name = "${var.image}"
-  flavor_name = "${var.flavor}"
-  key_pair = "${openstack_compute_keypair_v2.terraform.name}"
-  security_groups = [ "${openstack_compute_secgroup_v2.terraform.name}" ]
-  network {
-    uuid = "${openstack_networking_network_v2.terraform.id}"
-    fixed_ip_v4 = "192.168.0.7"
-  }
-}
-
 resource "openstack_compute_instance_v2" "worker" {
   count = 3
   depends_on = ["openstack_compute_keypair_v2.terraform"]
@@ -121,7 +108,7 @@ resource "openstack_compute_instance_v2" "worker" {
   security_groups = [ "${openstack_compute_secgroup_v2.terraform.name}" ]
   network {
     uuid = "${openstack_networking_network_v2.terraform.id}"
-    fixed_ip_v4 = "192.168.0.${count.index + 8}"
+    fixed_ip_v4 = "192.168.0.${count.index + 7}"
   }
 }
 
