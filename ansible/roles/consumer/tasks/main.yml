@@ -1,0 +1,56 @@
+---
+  # This role is related to producer installation
+  - name: Enable epel repository
+    yum_repository:
+      name: epel
+      baseurl: https://download.fedoraproject.org/pub/epel/$releasever/$basearch/
+      enabled: yes
+      state: present
+      description: epel repostiory
+      gpgcheck: no
+
+  - name: Install yum dependencies
+    yum:
+      name:
+      - curl
+      - gcc
+      - git
+      - libaio
+      - "nc.x86_64"
+      - openssl
+      - openssl-devel
+      - tar
+      - unzip
+      - wget
+      - zlib-devel
+      - gcc-c++
+      - make
+      - python36
+      - python36-devel
+      - python36-setuptools
+
+  - name: Install pip3
+    shell: easy_install-3.6 pip
+
+  - name: Install nhmmer
+    shell: |
+      curl -OL http://eddylab.org/software/hmmer/hmmer-3.2.1.tar.gz
+      tar -zxvf hmmer-3.2.1.tar.gz
+      cd hmmer-3.2.1
+      ./configure --prefix /usr/local
+      make
+      make install
+      cd easel; make install
+
+  - name: Copy aiohttp code
+    copy:
+      src: ../../../consumer
+      dest: /srv
+      owner: centos
+      group: centos
+      mode: 0644
+
+  - name: Install pip3 requirements
+    shell: pip3 install -r requirements.txt
+    args:
+      chdir: /srv/producer
