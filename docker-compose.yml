@@ -1,29 +1,19 @@
 version: '2'
 
 services:
-  kafka:
-    restart: always
-    build: ./kafka
-    ports:
-      # expose kafka broker (9092) and zookeeper (2181)
-      - "9092:9092"
-      - "2181:2181"
-
   producer:
     restart: always
     build: ./producer
     ports:
       - "8000:8000"
     depends_on:
-      - kafka
       - postgres
 
   consumer:
     restart: always
     build: ./consumer
-    depends_on:
-      - kafka
-      - postgres
+    ports:
+      - "8000:8000"
 
   postgres:
     restart: always

@@ -35,4 +35,4 @@ ADD consumer .
 
 RUN pip3 install -r requirements.txt
 
-CMD adev runserver consumer --livereload
+CMD python36 -m consumer.main
