@@ -1,6 +1,6 @@
 from rest_framework.serializers import ModelSerializer
 
-from models import Job, JobChunk, Database
+from .models import Job, JobChunk, Database
 
 
 class JobSerializer(ModelSerializer):

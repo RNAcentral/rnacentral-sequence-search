@@ -7,6 +7,7 @@ import aiohttp_jinja2
 from aiohttp import web
 
 from .nhmmer_search import nhmmer_search
+from .nhmmer_parse import nhmmer_parse
 from .settings import settings
 
 
@@ -33,10 +34,23 @@ async def submit_job(request):
     except (KeyError, TypeError, ValueError) as e:
         raise web.HTTPBadRequest(text='Bad input') from e
 
-    await spawn(request, nhmmer_search(sequence=sequence, job_id=job_id))
+    await spawn(request, nhmmer(sequence, job_id))
 
     url = request.app.router['result'].url_for(result_id=str(job_id))
     return web.HTTPFound(location=url)
+
+
+async def nhmmer(sequence, job_id):
+    """
+    Function that performs nhmmer search and then reports the result to provider API.
+
+    :param sequence: string, e.g. AAAAGGTCGGAGCGAGGCAAAATTGGCTTTCAAACTAGGTTCTGGGTTCACATAAGACCT
+    :param job_id:
+    :return:
+    """
+    filename = await nhmmer_search(sequence=sequence, job_id=job_id)
+    for record in nhmmer_parse(filename=filename):
+        print(record)
 
 
     # async with request.app['db'].acquire() as conn:

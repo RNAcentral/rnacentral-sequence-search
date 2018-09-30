@@ -161,7 +161,7 @@ URS0000000013 137 AAGAGGGGGACCUUCGGGCCUCUCGCGUCAAGAU 170
     """
     lines = text.split('\n')
     data = parse_record_description(lines[:6])
-    data.update(parse_alignment(lines[7:], data['target_length']))
+    data.update(parse_alignment(lines[7:], data['target_length'], query_length))
     data['query_length'] = query_length
     return data
 
@@ -186,11 +186,10 @@ def get_query_length(record):
     Query:       query  [M=2905]
     """
     match = re.search(r'Query:       query  \[M=(\d+)\]', record)
-    if match:
-        return int(match.group(1))
+    return int(match.group(1)) if match else 0
 
 
-def nhmmer_parse(filename="", record_generator=0, stats_text='Internal pipeline statistics summary'):
+def nhmmer_parse(filename="", stats_text='Internal pipeline statistics summary'):
     """Split file into matches and return parsed data."""
     with open(filename, 'r') as f:
         for i, record in enumerate(record_generator(f, '>>')):
@@ -200,7 +199,7 @@ def nhmmer_parse(filename="", record_generator=0, stats_text='Internal pipeline 
                 continue
             if stats_text in record:  # last record contains internal query statistics
                 record = strip_out_internal_stats(record, stats_text)
-            data = parse_record(record)
+            data = parse_record(record, query_length)
             data['result_id'] = i
             yield data
 
