@@ -14,10 +14,12 @@ limitations under the License.
 from django.conf.urls import url
 from django.views.generic import TemplateView
 
-from .views import SubmitJob
+from .views import SubmitJob, JobStatus
 
 
 urlpatterns = [
     # launch nhmmer search
     url(r'submit-query/?$', SubmitJob.as_view(), {}, name='nhmmer-submit-job'),
+    # see nhmmer search results
+    url(r'job-status/?$', JobStatus.as_view(), {}, name='nhmmer-job-status')
 ]

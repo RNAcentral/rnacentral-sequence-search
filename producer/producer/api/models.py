@@ -5,10 +5,17 @@ from django.db import models
 
 
 class Job(models.Model):
+    STATUS_CHOICES = (
+        ('Started', 'Started'),
+        ('Success', 'Success'),
+        ('Failed', 'Failed'),
+    )
+
     id = models.CharField(max_length=36, primary_key=True)
     query = models.TextField()
     submitted = models.DateTimeField(null=True)
     finished = models.DateTimeField(null=True, blank=True)
+    status = models.CharField(max_length=255, choices=STATUS_CHOICES)
 
 
 class Database(models.Model):

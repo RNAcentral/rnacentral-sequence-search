@@ -8,8 +8,8 @@ from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status
 
-from models import Job, JobChunk
-from serializers import JobSerializer, ResultSerializer
+from .models import Job
+from .serializers import JobSerializer, JobChunkSerializer
 
 
 class SubmitJob(APIView):
@@ -30,7 +30,7 @@ class SubmitJob(APIView):
 
 class JobDone(APIView):
     def post(self, request, format=None):
-        serializer = ResultSerializer(data=request.data)
+        serializer = JobChunkSerializer(data=request.data)
         if serializer.is_valid():
             serializer.save()
             return Response(serializer.data, status=status.HTTP_201_CREATED)
@@ -38,5 +38,6 @@ class JobDone(APIView):
 
 class JobStatus(APIView):
     def get(self, request, job_id, format=None):
-        job = Job.objects.get(id=job_id)
-        serializer = StatusSerializer()
+        job = Job.objects.get(id=job_id).select_related("job_chunk")
+        serializer = JobSerializer(instance=job)
+        return Response(serializer.data, status=status.HTTP_200_OK)
