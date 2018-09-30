@@ -31,7 +31,6 @@ RUN curl -OL http://eddylab.org/software/hmmer/hmmer-3.2.1.tar.gz && \
     cd easel; make install
 
 ADD requirements.txt .
-ADD consumer .
 
 RUN pip3 install -r requirements.txt
 

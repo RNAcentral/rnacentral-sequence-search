@@ -5,15 +5,22 @@ services:
     restart: always
     build: ./producer
     ports:
-      - "8000:8000"
+      - "8002:8002"
     depends_on:
       - postgres
+    volumes:
+      - ./producer/producer:/producer
 
   consumer:
     restart: always
     build: ./consumer
     ports:
       - "8000:8000"
+    volumes:
+      - ./consumer/consumer:/consumer
+    environment:
+      PRODUCER_HOST: "producer"
+      PRODUCER_PORT: "8000"
 
   postgres:
     restart: always

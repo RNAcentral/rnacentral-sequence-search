@@ -23,4 +23,4 @@ COPY producer .
 COPY requirements.txt .
 RUN pip install -r requirements.txt
 
-CMD python manage.py migrate && python manage.py runserver --nothreading
+CMD python manage.py migrate && python manage.py runserver --nothreading --port=8002
