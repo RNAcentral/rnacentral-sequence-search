@@ -69,6 +69,10 @@ class Settings:
     # maximum time to run nhmmer
     MAX_RUN_TIME = 60 * 60  # seconds
 
+    # producer server location
+    PRODUCER_HOST = 'localhost'
+    PRODUCER_PORT = '8002'
+
     def __init__(self, **custom_settings):
         """
         :param custom_settings: Custom settings to override defaults, only attributes already defined can be set.

@@ -1,10 +1,8 @@
 import os
 
-
-import asyncio
 from aiojobs.aiohttp import spawn
 import aiohttp_jinja2
-from aiohttp import web
+from aiohttp import web, client
 
 from .nhmmer_search import nhmmer_search
 from .nhmmer_parse import nhmmer_parse
@@ -20,7 +18,7 @@ async def index(request):
 async def result(request, result_id):
     try:
         result = open(settings.RESULTS_DIR / result_id / "output.txt")
-    except :
+    except:
         response = aiohttp_jinja2.render_template('404.html', request, {})
 
 
@@ -48,9 +46,22 @@ async def nhmmer(sequence, job_id):
     :param job_id:
     :return:
     """
+
+    # TODO: recoverable errors handling
+    # TODO: irrecoverable errors handling
+
     filename = await nhmmer_search(sequence=sequence, job_id=job_id)
+
+    data = []
     for record in nhmmer_parse(filename=filename):
-        print(record)
+        data.push(record)
+
+    client.request(
+        'post',
+        settings.PRODUCER_HOST + ':' + settings.PRODUCER_PORT,
+        data=data,
+        headers={'content-type': 'application/json'}
+    )
 
 
     # async with request.app['db'].acquire() as conn:
