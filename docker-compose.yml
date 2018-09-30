@@ -10,6 +10,8 @@ services:
       - postgres
     volumes:
       - ./producer/producer:/producer
+    environment:
+      ENVIRONMENT: "docker-compose"
 
   consumer:
     restart: always
