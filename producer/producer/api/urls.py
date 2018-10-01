@@ -14,12 +14,16 @@ limitations under the License.
 from django.conf.urls import url
 from django.views.generic import TemplateView
 
-from .views import SubmitJob, JobStatus
+from .views import APIRoot, SubmitJob, JobStatus, JobDone
 
 
 urlpatterns = [
+    # job status
+    url(r'^$', APIRoot.as_view(), {}, name='api-root'),
     # launch nhmmer search
-    url(r'submit-query/?$', SubmitJob.as_view(), {}, name='nhmmer-submit-job'),
+    url(r'submit-job/?$', SubmitJob.as_view(), {}, name='submit-job'),
     # see nhmmer search results
-    url(r'job-status/?$', JobStatus.as_view(), {}, name='nhmmer-job-status')
+    url(r'job-status/?$', JobStatus.as_view(), {}, name='job-status'),
+    # consumers report job results to this view
+    url(r'job-done/(?P<job_id>\d+)/(?P<database>[a-zA-Z0-9_]+)?$', JobDone.as_view(), {}, name='job-done'),
 ]

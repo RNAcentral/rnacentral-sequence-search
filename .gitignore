@@ -4,3 +4,5 @@ producer/producer/producer/local_settings.py
 
 postgres/local_init.sql
 postrges/local.Dockerfile
+
+__pycache__/

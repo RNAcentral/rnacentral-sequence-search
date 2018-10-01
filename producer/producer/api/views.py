@@ -6,10 +6,24 @@ import requests
 from django.conf import settings
 from rest_framework.views import APIView
 from rest_framework.response import Response
+from rest_framework.reverse import reverse
+from rest_framework.permissions import AllowAny
 from rest_framework import status
 
 from .models import Job
 from .serializers import JobSerializer, JobChunkSerializer
+
+
+class APIRoot(APIView):
+    """This is the root of the sequence search API."""
+    # the above docstring appears on the API website
+    permission_classes = (AllowAny,)
+
+    def get(self, request, format=format):
+        return Response({
+            'submit-job': reverse('submit-job', request=request),
+            'job-status': reverse('job-status', request=request),
+    })
 
 
 class SubmitJob(APIView):
