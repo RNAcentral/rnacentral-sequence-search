@@ -4,29 +4,26 @@ from __future__ import unicode_literals
 import requests
 
 from django.conf import settings
-from rest_framework.views import APIView
-from rest_framework.response import Response
-from rest_framework.reverse import reverse
-from rest_framework.permissions import AllowAny
-from rest_framework import status
+from rest_framework import views, viewsets, mixins, response, reverse, permissions, status
 
 from .models import Job
 from .serializers import JobSerializer, JobChunkSerializer
 
 
-class APIRoot(APIView):
+class APIRoot(views.APIView):
     """This is the root of the sequence search API."""
     # the above docstring appears on the API website
-    permission_classes = (AllowAny,)
+    permission_classes = (permissions.AllowAny,)
 
     def get(self, request, format=format):
-        return Response({
-            'submit-job': reverse('submit-job', request=request),
-            'job-status': reverse('job-status', request=request),
+        return response.Response({
+            'submit-job': reverse.reverse('submit-job', request=request),
+            'job-status': reverse.reverse('job-status', request=request),
     })
 
 
-class SubmitJob(APIView):
+class SubmitJob(views.APIView):
+    """To run a sequence search job, post it to this endpoint."""
     def post(self, request, format=None):
         serializer = JobSerializer(data=request.data)
         if serializer.is_valid():
@@ -37,21 +34,27 @@ class SubmitJob(APIView):
                     data={"job_id": request.data['job_id'], "sequence": request.data['sequence']}
                 )
 
-            return Response(serializer.data, status=status.HTTP_201_CREATED)
+            return response.Response(serializer.data, status=status.HTTP_201_CREATED)
         else:
-            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+            return response.Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
-class JobDone(APIView):
+class JobDone(views.APIView):
+    """
+    When consumer is done running nhmmer job,
+    it posts results of respective job chunk to this endpoint.
+    """
     def post(self, request, format=None):
         serializer = JobChunkSerializer(data=request.data)
         if serializer.is_valid():
             serializer.save()
-            return Response(serializer.data, status=status.HTTP_201_CREATED)
+            return response.Response(serializer.data, status=status.HTTP_201_CREATED)
 
 
-class JobStatus(APIView):
-    def get(self, request, job_id, format=None):
-        job = Job.objects.get(id=job_id).select_related("job_chunk")
-        serializer = JobSerializer(instance=job)
-        return Response(serializer.data, status=status.HTTP_200_OK)
+class JobStatusViewSet(viewsets.GenericViewSet, mixins.ListModelMixin, mixins.RetrieveModelMixin):
+    """Viewset that lists all jobs that were ever started."""
+    serializer_class = JobSerializer
+    lookup_field = 'job_id'
+
+    def get_queryset(self):
+        return Job.objects.all().order_by('-submitted')
