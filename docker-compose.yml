@@ -12,17 +12,20 @@ services:
       - ./producer/producer:/producer
     environment:
       ENVIRONMENT: "docker-compose"
+    entrypoint: sleep infinity
 
   consumer:
     restart: always
     build: ./consumer
     ports:
       - "8000:8000"
+      - "8001:8001"
     volumes:
       - ./consumer/consumer:/consumer
     environment:
       PRODUCER_HOST: "producer"
-      PRODUCER_PORT: "8000"
+      PRODUCER_PORT: "8002"
+    entrypoint: sleep infinity
 
   postgres:
     restart: always

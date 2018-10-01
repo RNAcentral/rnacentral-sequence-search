@@ -91,28 +91,8 @@ class Settings:
         for attr_name in dir(self):
             if attr_name.startswith('_') or attr_name.upper() != attr_name:
                 continue
-
-            orig_value = getattr(self, attr_name)
-            is_required = isinstance(orig_value, Required)
-            orig_type = orig_value.v_type if is_required else type(orig_value)
-            env_var_name = attr_name
-            env_var = os.getenv(env_var_name, None)
-            if env_var is not None:
-                if issubclass(orig_type, bool):
-                    env_var = env_var.upper() in ('1', 'TRUE')
-                elif issubclass(orig_type, int):
-                    env_var = int(env_var)
-                elif issubclass(orig_type, pathlib.Path):
-                    env_var = pathlib.Path(env_var)
-                elif issubclass(orig_type, bytes):
-                    env_var = env_var.encode()
-                # could do floats here and lists etc via json
-                setattr(self, attr_name, env_var)
-            elif is_required and attr_name not in self._custom_settings:
-                raise RuntimeError('The required environment variable "{0}" is currently not set, '
-                                   'you\'ll need to run `source activate.settings.sh` '
-                                   'or you can set that single environment variable with '
-                                   '`export {0}="<value>"`'.format(env_var_name))
+            elif os.getenv(attr_name, None) is not None:
+                setattr(self, attr_name, os.getenv(attr_name))
 
 
 settings = Settings()

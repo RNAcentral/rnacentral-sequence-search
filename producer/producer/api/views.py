@@ -19,7 +19,7 @@ class APIRoot(views.APIView):
         return response.Response({
             'submit-job': reverse.reverse('submit-job', request=request),
             'job-status': reverse.reverse('job-status', request=request),
-    })
+        })
 
 
 class SubmitJob(views.APIView):
