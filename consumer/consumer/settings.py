@@ -70,8 +70,10 @@ class Settings:
     MAX_RUN_TIME = 60 * 60  # seconds
 
     # producer server location
+    PRODUCER_PROTOCOL = 'http'
     PRODUCER_HOST = 'localhost'
     PRODUCER_PORT = '8002'
+    PRODUCER_JOB_DONE_URL = 'job-done'
 
     def __init__(self, **custom_settings):
         """

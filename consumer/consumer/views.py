@@ -31,17 +31,22 @@ async def submit_job(request):
         job_id = data['job_id']
         databases = data['databases']
         sequence = data['sequence']
-        print("job_id = {job_id}, databases = {databases}, sequence = {sequence}".format(job_id=job_id, databases=databases, sequence=sequence))
+        print("job_id = {job_id}, databases = {databases}, sequence = {sequence}".format(
+            job_id=job_id,
+            databases=databases,
+            sequence=sequence)
+        )
     except (KeyError, TypeError, ValueError) as e:
         raise web.HTTPBadRequest(text='Bad input') from e
 
-    await spawn(request, nhmmer(sequence, job_id))
+    for database in databases:
+        await spawn(request, nhmmer(sequence, job_id, database))
 
     url = request.app.router['result'].url_for(result_id=str(job_id))
     return web.HTTPFound(location=url)
 
 
-async def nhmmer(sequence, job_id):
+async def nhmmer(sequence, job_id, database):
     """
     Function that performs nhmmer search and then reports the result to provider API.
 
@@ -59,9 +64,18 @@ async def nhmmer(sequence, job_id):
     for record in nhmmer_parse(filename=filename):
         data.push(record)
 
+    response_url = "{protocol}://{host}:{port}/{url}/{job_id}/{database}".format(
+        protocol=settings.PRODUCER_PROTOCOL,
+        host=settings.PRODUCER_HOST,
+        port=settings.PRODUCER_PORT,
+        url=settings.PRODUCER_JOB_DONE_URL,
+        job_id=job_id,
+        database=database
+    )
+
     client.request(
         'post',
-        settings.PRODUCER_HOST + ':' + settings.PRODUCER_PORT,
+        response_url,
         data=data,
         headers={'content-type': 'application/json'}
     )
