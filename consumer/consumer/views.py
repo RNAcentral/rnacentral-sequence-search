@@ -26,6 +26,11 @@ async def result(request):
 
 
 async def submit_job(request):
+    """
+    For testing purposes, try the following command:
+
+    curl -H "Content-Type:application/json" -d "{\"job_id\": 1, \"databases\": [\"miRBase\"], \"sequence\": \"AAAAGGTCGGAGCGAGGCAAAATTGGCTTTCAAACTAGGTTCTGGGTTCACATAAGACCT\"}" localhost:8000/job
+    """
     data = await request.json()
     try:
         job_id = data['job_id']

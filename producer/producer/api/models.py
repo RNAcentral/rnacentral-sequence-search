@@ -2,6 +2,7 @@
 from __future__ import unicode_literals
 
 from django.db import models
+from django.contrib.postgres.fields import ArrayField
 
 
 class Job(models.Model):
@@ -13,6 +14,7 @@ class Job(models.Model):
 
     id = models.AutoField(primary_key=True)
     query = models.TextField()
+    databases = ArrayField(models.CharField(max_length=255, choices=settings.DATABASE_CHOICES))
     submitted = models.DateTimeField(null=True)
     finished = models.DateTimeField(null=True, blank=True)
     status = models.CharField(max_length=255, choices=STATUS_CHOICES, default='started')
