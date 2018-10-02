@@ -1,7 +1,9 @@
 # -*- coding: utf-8 -*-
 from __future__ import unicode_literals
 
+from django.conf import settings
 from django.db import models
+from django.utils import timezone
 from django.contrib.postgres.fields import ArrayField
 
 
@@ -15,14 +17,9 @@ class Job(models.Model):
     id = models.AutoField(primary_key=True)
     query = models.TextField()
     databases = ArrayField(models.CharField(max_length=255, choices=settings.DATABASE_CHOICES))
-    submitted = models.DateTimeField(null=True)
+    submitted = models.DateTimeField(default=timezone.now)
     finished = models.DateTimeField(null=True, blank=True)
     status = models.CharField(max_length=255, choices=STATUS_CHOICES, default='started')
-
-
-class Database(models.Model):
-    name = models.CharField(max_length=36, primary_key=True)
-    ip = models.CharField(max_length=15)
 
 
 class JobChunk(models.Model):
@@ -33,7 +30,7 @@ class JobChunk(models.Model):
         ('failed', 'failed'),
     )
 
-    database = models.ForeignKey(Database, related_name="job_chunk")
+    database = models.CharField(max_length=255, choices=settings.DATABASE_CHOICES)
     job = models.ForeignKey(Job, related_name="job_chunk")
     result = models.TextField(null=True)
     status = models.CharField(max_length=255, choices=STATUS_CHOICES, default='started')

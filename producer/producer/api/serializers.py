@@ -1,7 +1,7 @@
 from rest_framework import serializers
 from django.conf import settings
 
-from .models import Job, JobChunk, Database
+from .models import Job, JobChunk
 
 
 class JobSerializer(serializers.ModelSerializer):
@@ -10,9 +10,9 @@ class JobSerializer(serializers.ModelSerializer):
         fields = '__all__'
 
 
-class SubmitJobSerializer(serializers.Serializer):
-    query = serializers.CharField()
-    databases = serializers.ListField(child=serializers.CharField(choices=settings.DATABASE_CHOICES))
+# class SubmitJobSerializer(serializers.Serializer):
+#     query = serializers.CharField()
+#     databases = serializers.ListField(child=serializers.ChoiceField(choices=settings.DATABASE_CHOICES))
 
 
 class JobChunkSerializer(serializers.ModelSerializer):
