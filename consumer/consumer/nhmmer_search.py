@@ -23,40 +23,21 @@ class NhmmerError(Exception):
     pass
 
 
-def get_e_value(sequence):
-    """
-    Set E-values dynamically depending on the query sequence length.
-    The values were computed by searching the full dataset
-    using random short sequences as queries
-    with an extremely high E-value and recording
-    the E-values of the best hit.
-    """
-    length = len(sequence)
-
-    if length <= 30:
-        e_value = pow(10, 5)
-    elif 30 < length <= 40:
-        e_value = pow(10, 2)
-    elif 40 < length <= 50:
-        e_value = pow(10, -1)
-    else:
-        e_value = pow(10, -2)
-
-    return e_value
-
-
-def create_query_file(params, sequence):
-    """Write out query in fasta format."""
-    with open(params['query'], 'w') as f:
-        f.write('>query\n')
-        f.write(sequence)
-        f.write('\n')
-
-
 async def nhmmer_search(sequence, job_id):
     sequence = sequence.replace('T', 'U').upper()
 
-    e_value = get_e_value(sequence)
+    # Set e-values dynamically depending on the query sequence length.
+    # The values were computed by searching the full dataset using random short
+    # sequences as queries with an extremely high e-value and recording the
+    # e-values of the best hit.
+    if len(sequence) <= 30:
+        e_value = pow(10, 5)
+    elif 30 < len(sequence) <= 40:
+        e_value = pow(10, 2)
+    elif 40 < len(sequence) <= 50:
+        e_value = pow(10, -1)
+    else:
+        e_value = pow(10, -2)
 
     params = {
         'query': os.path.join(settings.QUERY_DIR, '%s.fasta' % job_id),
@@ -68,7 +49,11 @@ async def nhmmer_search(sequence, job_id):
         'E': e_value
     }
 
-    create_query_file(params, sequence)
+    # write out query in fasta format
+    with open(params['query'], 'w') as f:
+        f.write('>query\n')
+        f.write(sequence)
+        f.write('\n')
 
     command = ('{nhmmer} '
                '--qfasta '         # query format
