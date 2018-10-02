@@ -11,15 +11,18 @@ from .settings import settings
 
 @aiohttp_jinja2.template('index.html')
 async def index(request):
-    results = os.listdir(settings.RESULTS_DIR)
+    result_filenames = os.listdir(settings.RESULTS_DIR)
+    results = [{'id': filename.strip(".txt")[0]} for filename in result_filenames]
     return {'results': results}
 
 
-async def result(request, result_id):
-    try:
-        result = open(settings.RESULTS_DIR / result_id / "output.txt")
-    except:
-        response = aiohttp_jinja2.render_template('404.html', request, {})
+async def result(request):
+    result_id = request.match_info['result_id']
+    filename = settings.RESULTS_DIR / (result_id + ".txt")
+    if os.path.isfile(filename) and os.access(filename, os.R_OK):
+        return web.FileResponse(filename)
+    else:
+        return aiohttp_jinja2.render_template('404.html', request, {})
 
 
 async def submit_job(request):
