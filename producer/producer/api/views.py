@@ -27,11 +27,11 @@ class SubmitJob(views.APIView):
     def post(self, request, format=None):
         serializer = JobSerializer(data=request.data)
         if serializer.is_valid():
-            serializer.save()
+            instance = serializer.save()
             for database in request.data["databases"]:
                 requests.post(
-                    url=settings.CONSUMERS[database],
-                    data={"job_id": request.data['job_id'], "sequence": request.data['sequence']}
+                    url="http://" + settings.CONSUMERS[database],
+                    data={"job_id": instance.id, "sequence": instance.query}
                 )
 
             return response.Response(serializer.data, status=status.HTTP_201_CREATED)
