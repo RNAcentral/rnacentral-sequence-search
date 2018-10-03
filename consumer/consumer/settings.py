@@ -55,7 +55,7 @@ class Settings:
     NHMMER_EXECUTABLE = 'nhmmer'
 
     # full path to sequence database
-    SEQDATABASE = PROJECT_ROOT / 'databases' / 'rnacentral_nhmmer.fasta'
+    SEQDATABASES = PROJECT_ROOT / 'databases'
 
     # minimum query sequence length
     MIN_LENGTH = 10
@@ -74,6 +74,25 @@ class Settings:
     PRODUCER_HOST = 'localhost'
     PRODUCER_PORT = '8002'
     PRODUCER_JOB_DONE_URL = 'job-done'
+
+    # list of rnacentral databases
+    RNACENTRAL_DATABASES = [
+        "greengenes",
+        "pdbe",
+        "refseq",
+        "sgd",
+        "tair",
+        "lncrnadb",
+        "pombase",
+        "rfam",
+        "snopy",
+        "tmrna_web",
+        "mirbase",
+        "rdp",
+        "rgd",
+        "srpdb",
+        "wormbase"
+    ]
 
     def __init__(self, **custom_settings):
         """

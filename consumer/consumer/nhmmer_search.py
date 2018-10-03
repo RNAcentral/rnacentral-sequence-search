@@ -23,7 +23,7 @@ class NhmmerError(Exception):
     pass
 
 
-async def nhmmer_search(sequence, job_id):
+async def nhmmer_search(sequence, job_id, database):
     sequence = sequence.replace('T', 'U').upper()
 
     # Set e-values dynamically depending on the query sequence length.
@@ -43,7 +43,7 @@ async def nhmmer_search(sequence, job_id):
         'query': os.path.join(settings.QUERY_DIR, '%s.fasta' % job_id),
         'output': os.path.join(settings.RESULTS_DIR, '%s.txt' % job_id),
         'nhmmer': settings.NHMMER_EXECUTABLE,
-        'db': settings.SEQDATABASE,
+        'db': settings.SEQDATABASES / (database + '.fasta'),
         'cpu': 4,
         'incE': e_value,
         'E': e_value
