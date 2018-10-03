@@ -1,10 +1,13 @@
 import json
 import logging
+import os
+import shutil
 
 from aiohttp.test_utils import AioHTTPTestCase, unittest_run_loop
 from aiohttp import web
 
 from ..main import create_app
+from ..settings import settings
 
 
 """
@@ -14,14 +17,37 @@ python -m unittest consumer.tests.test_submit_job
 """
 
 
+TMP_DIR = settings.PROJECT_ROOT / '.tmp'
+RESULTS_DIR = settings.PROJECT_ROOT / '.tmp' / 'results'
+QUERY_DIR = settings.PROJECT_ROOT / '.tmp' / 'queries'
+
+
+def setUpModule():
+    settings.RESULTS_DIR = RESULTS_DIR
+    settings.QUERY_DIR = QUERY_DIR
+
+    # create temporary directories for queries and results
+    try:
+        os.mkdir(TMP_DIR)
+    except FileExistsError:
+        pass
+
+    try:
+        os.mkdir(RESULTS_DIR)
+    except FileExistsError:
+        pass
+
+    try:
+        os.mkdir(QUERY_DIR)
+    except FileExistsError:
+        pass
+
+
+def tearDownModule():
+    shutil.rmtree(TMP_DIR)
+
+
 class SubmitJobTestCase(AioHTTPTestCase):
-    def setUpAsync(self):
-        # TODO: create temporary queries and results directories for testing purposes, modify settings accordingly
-        pass
-
-    def tearDown(self):
-        pass
-
     async def get_application(self):
         logging.basicConfig(level=logging.ERROR)  # subdue messages like 'DEBUG:asyncio:Using selector: KqueueSelector'
         return create_app()
@@ -30,10 +56,10 @@ class SubmitJobTestCase(AioHTTPTestCase):
     async def test_submit_job_post_success(self):
         url = self.app.router["submit-job"].url_for()
         data = json.dumps({"job_id": 1, "sequence": "ACGCTCGTAGC", "databases": ["mirbase"]})
-        resp = await self.client.post(path=url, data=data)
-        assert resp.status == 200
-        text = await resp.text()
-        print(text)
+        async with self.client.post(path=url, data=data) as response:
+            assert response.status == 200
+            text = await response.text()
+            print(text)
 
     @unittest_run_loop
     async def test_submit_job_post_fail_job_id(self):
