@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 from __future__ import unicode_literals
 
+import json
 import requests
 
 from django.conf import settings
@@ -30,8 +31,8 @@ class SubmitJob(views.APIView):
             instance = serializer.save()
             for database in request.data["databases"]:
                 requests.post(
-                    url="http://" + settings.CONSUMERS[database],
-                    data={"job_id": instance.id, "sequence": instance.query}
+                    url="http://" + settings.CONSUMERS[database] + '/' + settings.CONSUMER_SUBMIT_JOB_URL,
+                    data=json.dumps({"job_id": instance.id, "sequence": instance.query, "databases": [database]})
                 )
 
             return response.Response(serializer.data, status=status.HTTP_201_CREATED)

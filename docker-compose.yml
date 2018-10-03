@@ -28,6 +28,8 @@ services:
       PORT: "8000"
       PRODUCER_HOST: "producer"
       PRODUCER_PORT: "8002"
+#    entrypoint: sleep infinity  # if we need to debug
+
 
   postgres:
     restart: always
