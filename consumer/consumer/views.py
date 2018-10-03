@@ -67,7 +67,7 @@ async def nhmmer(sequence, job_id, database):
 
     data = []
     for record in nhmmer_parse(filename=filename):
-        data.push(record)
+        data.append(record)
 
     response_url = "{protocol}://{host}:{port}/{url}/{job_id}/{database}".format(
         protocol=settings.PRODUCER_PROTOCOL,
@@ -78,12 +78,14 @@ async def nhmmer(sequence, job_id, database):
         database=database
     )
 
-    client.request(
+    async with client.request(
         'post',
         response_url,
         data=data,
         headers={'content-type': 'application/json'}
-    )
+    ) as response:
+        assert response.status == 200
+
 
 
     # async with request.app['db'].acquire() as conn:
