@@ -20,17 +20,14 @@ python3 -m consumer.main
 """
 
 
-def create_app(loop):
+def create_app():
     logging.basicConfig(level=logging.DEBUG)
 
     app = web.Application(middlewares=[
         web_middlewares.normalize_path_middleware(append_slash=True),
     ])
 
-    app.update(
-        name='consumer',
-        settings=settings
-    )
+    app.update(name='consumer', settings=settings)
 
     # setup Jinja2 template renderer
     aiohttp_jinja2.setup(app, loader=jinja2.PackageLoader('consumer', 'templates'))
@@ -53,7 +50,7 @@ def create_app(loop):
 
 if __name__ == '__main__':
     loop = asyncio.get_event_loop()
-    app = create_app(loop)
+    app = create_app()
 
     web.run_app(app, host=settings.HOST, port=settings.PORT)
 
