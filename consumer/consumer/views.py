@@ -55,7 +55,7 @@ async def submit_job(request):
 
 def validate_job_data(job_id, databases, sequence):
     """Ad-hoc validator for input JSON data"""
-    if os.path.isfile(settings.RESULTS_DIR / (job_id + '.txt')):
+    if os.path.isfile(settings.RESULTS_DIR / (str(job_id) + '.txt')):
         raise web.HTTPBadRequest(text="job with id '%s' has already been submitted")
 
     for database in databases:
