@@ -35,7 +35,6 @@ class Settings:
 
     Or, passing the custom setting as a keyword argument when initialising settings (useful when testing)
     """
-    ENVIRONMENT = os.getenv('ENVIRONMENT', 'LOCAL')
 
     # consumer folder, where media, static, templates and other subfolders are located
     PROJECT_ROOT = pathlib.Path(__file__).parent
@@ -77,84 +76,16 @@ class Settings:
         "wormbase"
     ]
 
+    ENVIRONMENT = os.getenv('ENVIRONMENT', 'LOCAL')
+
     if ENVIRONMENT == "LOCAL":
-        # full path to results files
-        RESULTS_DIR = PROJECT_ROOT / 'results'
-
-        # full path to query files
-        QUERY_DIR = PROJECT_ROOT / 'queries'
-
-        # hostname to listen on
-        HOST = 'localhost'
-
-        # TCP port for the server to listen on
-        PORT = 8000
-
-        # producer server location
-        PRODUCER_PROTOCOL = 'http'
-        PRODUCER_HOST = 'localhost'
-        PRODUCER_PORT = '8002'
-        PRODUCER_JOB_DONE_URL = 'job-done'
-
+        from .local import *
     elif ENVIRONMENT == "TEST":
-        # in test save queries and results in a temporary folder
-        TMP_DIR = PROJECT_ROOT / '.tmp'
-
-        # full path to query files
-        RESULTS_DIR = PROJECT_ROOT / '.tmp' / 'results'
-
-        # full path to query files
-        QUERY_DIR = PROJECT_ROOT / '.tmp' / 'queries'
-
-        # hostname to listen on
-        HOST = 'localhost'
-
-        # TCP port for the server to listen on
-        PORT = 8000
-
-        # producer server location
-        PRODUCER_PROTOCOL = 'http'
-        PRODUCER_HOST = 'localhost'
-        PRODUCER_PORT = '8002'
-        PRODUCER_JOB_DONE_URL = 'job-done'
-
+        from .test import *
     elif ENVIRONMENT == "DOCKER-COMPOSE":
-        # full path to results files
-        RESULTS_DIR = PROJECT_ROOT / 'results'
-
-        # full path to query files
-        QUERY_DIR = PROJECT_ROOT / 'queries'
-
-        # hostname to listen on
-        HOST = '0.0.0.0'
-
-        # TCP port for the server to listen on
-        PORT = 8000
-
-        # producer server location
-        PRODUCER_PROTOCOL = 'http'
-        PRODUCER_HOST = 'producer'
-        PRODUCER_PORT = '8002'
-        PRODUCER_JOB_DONE_URL = 'job-done'
-
+        from .docker_compose import *
     elif ENVIRONMENT == "PRODUCTION":
-        # hostname to listen on
-        HOST = '0.0.0.0'
-
-        # TCP port for the server to listen on
-        PORT = 8000
-
-        # full path to results files
-        RESULTS_DIR = PROJECT_ROOT / 'results'
-
-        # full path to query files
-        QUERY_DIR = PROJECT_ROOT / 'queries'
-
-        # producer server location
-        PRODUCER_PROTOCOL = 'http'
-        PRODUCER_HOST = '192.168.0.5'
-        PRODUCER_PORT = '8002'
-        PRODUCER_JOB_DONE_URL = 'job-done'
+        from .production import *
 
     def __init__(self, **custom_settings):
         """
