@@ -7,7 +7,7 @@ from aiohttp.test_utils import AioHTTPTestCase, unittest_run_loop
 from aiohttp import web
 
 from ..main import create_app
-from ..settings import settings
+from .consumer_test_case import ConsumerTestCase
 
 
 """
@@ -17,37 +17,7 @@ python -m unittest consumer.tests.test_submit_job
 """
 
 
-TMP_DIR = settings.PROJECT_ROOT / '.tmp'
-RESULTS_DIR = settings.PROJECT_ROOT / '.tmp' / 'results'
-QUERY_DIR = settings.PROJECT_ROOT / '.tmp' / 'queries'
-
-
-def setUpModule():
-    settings.RESULTS_DIR = RESULTS_DIR
-    settings.QUERY_DIR = QUERY_DIR
-
-    # create temporary directories for queries and results
-    try:
-        os.mkdir(TMP_DIR)
-    except FileExistsError:
-        pass
-
-    try:
-        os.mkdir(RESULTS_DIR)
-    except FileExistsError:
-        pass
-
-    try:
-        os.mkdir(QUERY_DIR)
-    except FileExistsError:
-        pass
-
-
-def tearDownModule():
-    shutil.rmtree(TMP_DIR)
-
-
-class SubmitJobTestCase(AioHTTPTestCase):
+class SubmitJobTestCase(ConsumerTestCase):
     async def get_application(self):
         logging.basicConfig(level=logging.ERROR)  # subdue messages like 'DEBUG:asyncio:Using selector: KqueueSelector'
         return create_app()
