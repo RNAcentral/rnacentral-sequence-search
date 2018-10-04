@@ -51,12 +51,12 @@ class ConsumerTestCase(AioHTTPTestCase):
         """Remove temporary directories"""
         shutil.rmtree(TMP_DIR)
 
-    def tearDown(self):
-        """Clear the temporary directories after each unit-test"""
-        super().tearDown()
-
-        for file in os.listdir(QUERY_DIR):
-            os.remove(QUERY_DIR / file)
-
-        for file in os.listdir(RESULTS_DIR):
-            os.remove(RESULTS_DIR / file)
+    # def tearDown(self):
+    #     """Clear the temporary directories after each unit-test"""
+    #     super().tearDown()
+    #
+    #     for file in os.listdir(QUERY_DIR):
+    #         os.remove(QUERY_DIR / file)
+    #
+    #     for file in os.listdir(RESULTS_DIR):
+    #         os.remove(RESULTS_DIR / file)

@@ -33,35 +33,51 @@ python -m unittest consumer.tests.test_submit_job
 class SubmitJobTestCase(ConsumerTestCase):
     async def get_application(self):
         logging.basicConfig(level=logging.ERROR)  # subdue messages like 'DEBUG:asyncio:Using selector: KqueueSelector'
-        return create_app()
+        app = create_app()
+        self.url = app.router["submit-job"].url_for()
+        return app
 
     @unittest_run_loop
     async def test_submit_job_post_success(self):
-        url = self.app.router["submit-job"].url_for()
         data = json.dumps({"job_id": 1, "sequence": "ACGCTCGTAGC", "database": "mirbase"})
-        async with self.client.post(path=url, data=data) as response:
-            if response.status != 200:
-                text = await response.text()
-                import pdb
-                pdb.set_trace()
+        async with self.client.post(path=self.url, data=data) as response:
             assert response.status == 200
             text = await response.text()
             print(text)
 
     @unittest_run_loop
     async def test_submit_job_post_fail_job_id(self):
-        url = self.app.router["submit-job"].url_for()
         data = json.dumps({"job_id": 1, "sequence": "ACGCTCGTAGC", "database": "mirbase"})
-        async with self.client.post(path=url, data=data) as response:
-            assert response.status == 400
+        async with self.client.post(path=self.url, data=data) as response:
+            # assert response.status == 400
             text = await response.text()
-            assert text == ""
+            import pdb
+            pdb.set_trace()
+            print(text)
+
 
 
     @unittest_run_loop
     async def test_submit_job_post_fail_databases(self):
-        pass
+        data = json.dumps({"job_id": 3, "sequence": "ACGCTCGTAGC", "database": "foobase"})
+        async with self.client.post(path=self.url, data=data) as response:
+            assert response.status == 400
+            text = await response.text()
+            assert text == "Database argument is wrong: 'foobase' is not one of RNAcentral databases."
 
     @unittest_run_loop
     async def test_submit_job_post_fail_sequence(self):
-        pass
+        data = json.dumps({"job_id": 4, "sequence": "THIS_IS_NOT_A_PROPER_NUCLEOTIDE_SEQUENCE", "database": "mirbase"})
+        async with self.client.post(path=self.url, data=data) as response:
+            assert response.status == 400
+            text = await response.text()
+            assert text == "Input sequence should be nucleotide sequence and contain only " \
+                           "{ATGCU} characters, found: 'THIS_IS_NOT_A_PROPER_NUCLEOTIDE_SEQUENCE'."
+
+    @unittest_run_loop
+    async def test_sumbit_job_post_fail_not_enough_arguments(self):
+        data = json.dumps({"job_id": 5})
+        async with self.client.post(path=self.url, data=data) as response:
+            assert response.status == 400
+            text = await response.text()
+            assert text == 'Bad input'

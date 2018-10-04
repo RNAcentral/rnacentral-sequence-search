@@ -104,11 +104,6 @@ async def submit_job(request):
         job_id = data['job_id']
         sequence = data['sequence']
         database = data['database']
-        print("job_id = {job_id}, sequence = {sequence}, database = {database}".format(
-            job_id=job_id,
-            database=database,
-            sequence=sequence
-        ))
     except (KeyError, TypeError, ValueError) as e:
         raise web.HTTPBadRequest(text='Bad input') from e
 
