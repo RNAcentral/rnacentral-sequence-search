@@ -47,15 +47,13 @@ class SubmitJobTestCase(ConsumerTestCase):
 
     @unittest_run_loop
     async def test_submit_job_post_fail_job_id(self):
-        data = json.dumps({"job_id": 1, "sequence": "ACGCTCGTAGC", "database": "mirbase"})
+        data = json.dumps({"job_id": 2, "sequence": "ACGCTCGTAGC", "database": "mirbase"})
         async with self.client.post(path=self.url, data=data) as response:
-            # assert response.status == 400
+            assert response.status == 400
             text = await response.text()
             import pdb
             pdb.set_trace()
             print(text)
-
-
 
     @unittest_run_loop
     async def test_submit_job_post_fail_databases(self):

@@ -19,37 +19,29 @@ from aiohttp.test_utils import AioHTTPTestCase
 from ..settings import settings
 
 
-TMP_DIR = settings.PROJECT_ROOT / '.tmp'
-RESULTS_DIR = settings.PROJECT_ROOT / '.tmp' / 'results'
-QUERY_DIR = settings.PROJECT_ROOT / '.tmp' / 'queries'
-
-
 class ConsumerTestCase(AioHTTPTestCase):
     @classmethod
     def setUpClass(cls):
         """Create temporary directories for queries and results"""
-        settings.RESULTS_DIR = RESULTS_DIR
-        settings.QUERY_DIR = QUERY_DIR
-
         try:
-            os.mkdir(TMP_DIR)
+            os.mkdir(settings.TMP_DIR)
         except FileExistsError:
             pass
 
         try:
-            os.mkdir(RESULTS_DIR)
+            os.mkdir(settings.RESULTS_DIR)
         except FileExistsError:
             pass
 
         try:
-            os.mkdir(QUERY_DIR)
+            os.mkdir(settings.QUERY_DIR)
         except FileExistsError:
             pass
 
     @classmethod
     def tearDownClass(cls):
         """Remove temporary directories"""
-        shutil.rmtree(TMP_DIR)
+        shutil.rmtree(settings.TMP_DIR)
 
     # def tearDown(self):
     #     """Clear the temporary directories after each unit-test"""

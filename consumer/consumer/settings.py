@@ -35,27 +35,16 @@ class Settings:
 
     Or, passing the custom setting as a keyword argument when initialising settings (useful when testing)
     """
-
-    # hostname to listen on
-    HOST = 'localhost'
-
-    # TCP port for the server to listen on
-    PORT = 8000
+    ENVIRONMENT = os.getenv('ENVIRONMENT', 'LOCAL')
 
     # consumer folder, where media, static, templates and other subfolders are located
     PROJECT_ROOT = pathlib.Path(__file__).parent
 
-    # full path to results files
-    RESULTS_DIR = PROJECT_ROOT / 'results'
-
-    # full path to query files
-    QUERY_DIR = PROJECT_ROOT / 'queries'
+    # full path to sequence database
+    SEQDATABASES = PROJECT_ROOT / 'databases'
 
     # full path to nhmmer executable
     NHMMER_EXECUTABLE = 'nhmmer'
-
-    # full path to sequence database
-    SEQDATABASES = PROJECT_ROOT / 'databases'
 
     # minimum query sequence length
     MIN_LENGTH = 10
@@ -63,17 +52,11 @@ class Settings:
     # maximum query sequence length
     MAX_LENGTH = 10000
 
-    # Redis results expiration time
+    # results expiration time
     EXPIRATION = 60 * 60 * 24 * 7  # seconds
 
     # maximum time to run nhmmer
     MAX_RUN_TIME = 60 * 60  # seconds
-
-    # producer server location
-    PRODUCER_PROTOCOL = 'http'
-    PRODUCER_HOST = 'localhost'
-    PRODUCER_PORT = '8002'
-    PRODUCER_JOB_DONE_URL = 'job-done'
 
     # list of rnacentral databases
     RNACENTRAL_DATABASES = [
@@ -93,6 +76,85 @@ class Settings:
         "srpdb",
         "wormbase"
     ]
+
+    if ENVIRONMENT == "LOCAL":
+        # full path to results files
+        RESULTS_DIR = PROJECT_ROOT / 'results'
+
+        # full path to query files
+        QUERY_DIR = PROJECT_ROOT / 'queries'
+
+        # hostname to listen on
+        HOST = 'localhost'
+
+        # TCP port for the server to listen on
+        PORT = 8000
+
+        # producer server location
+        PRODUCER_PROTOCOL = 'http'
+        PRODUCER_HOST = 'localhost'
+        PRODUCER_PORT = '8002'
+        PRODUCER_JOB_DONE_URL = 'job-done'
+
+    elif ENVIRONMENT == "TEST":
+        # in test save queries and results in a temporary folder
+        TMP_DIR = PROJECT_ROOT / '.tmp'
+
+        # full path to query files
+        RESULTS_DIR = PROJECT_ROOT / '.tmp' / 'results'
+
+        # full path to query files
+        QUERY_DIR = PROJECT_ROOT / '.tmp' / 'queries'
+
+        # hostname to listen on
+        HOST = 'localhost'
+
+        # TCP port for the server to listen on
+        PORT = 8000
+
+        # producer server location
+        PRODUCER_PROTOCOL = 'http'
+        PRODUCER_HOST = 'localhost'
+        PRODUCER_PORT = '8002'
+        PRODUCER_JOB_DONE_URL = 'job-done'
+
+    elif ENVIRONMENT == "DOCKER-COMPOSE":
+        # full path to results files
+        RESULTS_DIR = PROJECT_ROOT / 'results'
+
+        # full path to query files
+        QUERY_DIR = PROJECT_ROOT / 'queries'
+
+        # hostname to listen on
+        HOST = '0.0.0.0'
+
+        # TCP port for the server to listen on
+        PORT = 8000
+
+        # producer server location
+        PRODUCER_PROTOCOL = 'http'
+        PRODUCER_HOST = 'producer'
+        PRODUCER_PORT = '8002'
+        PRODUCER_JOB_DONE_URL = 'job-done'
+
+    elif ENVIRONMENT == "PRODUCTION":
+        # hostname to listen on
+        HOST = '0.0.0.0'
+
+        # TCP port for the server to listen on
+        PORT = 8000
+
+        # full path to results files
+        RESULTS_DIR = PROJECT_ROOT / 'results'
+
+        # full path to query files
+        QUERY_DIR = PROJECT_ROOT / 'queries'
+
+        # producer server location
+        PRODUCER_PROTOCOL = 'http'
+        PRODUCER_HOST = '192.168.0.5'
+        PRODUCER_PORT = '8002'
+        PRODUCER_JOB_DONE_URL = 'job-done'
 
     def __init__(self, **custom_settings):
         """
