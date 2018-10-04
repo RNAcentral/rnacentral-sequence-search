@@ -38,15 +38,25 @@ class SubmitJobTestCase(ConsumerTestCase):
     @unittest_run_loop
     async def test_submit_job_post_success(self):
         url = self.app.router["submit-job"].url_for()
-        data = json.dumps({"job_id": 1, "sequence": "ACGCTCGTAGC", "databases": ["mirbase"]})
+        data = json.dumps({"job_id": 1, "sequence": "ACGCTCGTAGC", "database": "mirbase"})
         async with self.client.post(path=url, data=data) as response:
+            if response.status != 200:
+                text = await response.text()
+                import pdb
+                pdb.set_trace()
             assert response.status == 200
             text = await response.text()
             print(text)
 
     @unittest_run_loop
     async def test_submit_job_post_fail_job_id(self):
-        pass
+        url = self.app.router["submit-job"].url_for()
+        data = json.dumps({"job_id": 1, "sequence": "ACGCTCGTAGC", "database": "mirbase"})
+        async with self.client.post(path=url, data=data) as response:
+            assert response.status == 400
+            text = await response.text()
+            assert text == ""
+
 
     @unittest_run_loop
     async def test_submit_job_post_fail_databases(self):

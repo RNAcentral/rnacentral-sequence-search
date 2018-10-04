@@ -27,10 +27,10 @@ QUERY_DIR = settings.PROJECT_ROOT / '.tmp' / 'queries'
 class ConsumerTestCase(AioHTTPTestCase):
     @classmethod
     def setUpClass(cls):
+        """Create temporary directories for queries and results"""
         settings.RESULTS_DIR = RESULTS_DIR
         settings.QUERY_DIR = QUERY_DIR
 
-        # create temporary directories for queries and results
         try:
             os.mkdir(TMP_DIR)
         except FileExistsError:
@@ -48,4 +48,15 @@ class ConsumerTestCase(AioHTTPTestCase):
 
     @classmethod
     def tearDownClass(cls):
+        """Remove temporary directories"""
         shutil.rmtree(TMP_DIR)
+
+    def tearDown(self):
+        """Clear the temporary directories after each unit-test"""
+        super().tearDown()
+
+        for file in os.listdir(QUERY_DIR):
+            os.remove(QUERY_DIR / file)
+
+        for file in os.listdir(RESULTS_DIR):
+            os.remove(RESULTS_DIR / file)
