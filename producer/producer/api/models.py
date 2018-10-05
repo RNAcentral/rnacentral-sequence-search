@@ -30,7 +30,7 @@ class JobChunk(models.Model):
         ('failed', 'failed'),
     )
 
+    job_id = models.ForeignKey(Job, related_name="job_chunk")
     database = models.CharField(max_length=255, choices=settings.DATABASE_CHOICES)
-    job = models.ForeignKey(Job, related_name="job_chunk")
     result = models.TextField(null=True)
     status = models.CharField(max_length=255, choices=STATUS_CHOICES, default='started')

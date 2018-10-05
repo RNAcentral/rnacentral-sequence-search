@@ -12,6 +12,7 @@ limitations under the License.
 """
 
 import os
+import json
 
 from aiojobs.aiohttp import spawn
 import aiohttp_jinja2
@@ -79,6 +80,9 @@ async def submit_job(request):
 
         filename = await nhmmer_search(sequence=sequence, job_id=job_id, database=database)
 
+        import pdb
+        pdb.set_trace()
+
         data = []
         for record in nhmmer_parse(filename=filename):
             data.append(record)
@@ -93,12 +97,15 @@ async def submit_job(request):
         )
 
         async with client.request(
-                'post',
-                response_url,
-                data=data,
-                headers={'content-type': 'application/json'}
+            "post",
+            response_url,
+            data=json.dumps(data),
+            headers={'content-type': 'application/json'}
         ) as response:
-            assert response.status == 200
+            if response.status != 200:
+                print(response.status)
+                text = await response.text()
+                print(text)
 
     data = await request.json()
     try:

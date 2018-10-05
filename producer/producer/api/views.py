@@ -32,7 +32,7 @@ class SubmitJob(views.APIView):
             for database in request.data["databases"]:
                 requests.post(
                     url="http://" + settings.CONSUMERS[database] + '/' + settings.CONSUMER_SUBMIT_JOB_URL,
-                    data=json.dumps({"job_id": instance.id, "sequence": instance.query, "databases": [database]})
+                    data=json.dumps({"job_id": instance.id, "sequence": instance.query, "database": database})
                 )
 
             return response.Response(serializer.data, status=status.HTTP_201_CREATED)

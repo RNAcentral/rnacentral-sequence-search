@@ -11,7 +11,7 @@ services:
     volumes:
       - ./producer/producer:/producer
     environment:
-      ENVIRONMENT: "docker-compose"
+      ENVIRONMENT: "DOCKER-COMPOSE"
       POSTGRES_PASSWORD: "example"
 #    entrypoint: sleep infinity  # if we need to debug
 
@@ -24,10 +24,13 @@ services:
     volumes:
       - ./consumer/consumer:/consumer
     environment:
+      ENVIRONMENT: "DOCKER-COMPOSE"
       HOST: "0.0.0.0"
       PORT: "8000"
       PRODUCER_HOST: "producer"
       PRODUCER_PORT: "8002"
+    stdin_open: true
+    tty: true
 #    entrypoint: sleep infinity  # if we need to debug
 
 

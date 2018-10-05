@@ -18,4 +18,4 @@ class JobSerializer(serializers.ModelSerializer):
 class JobChunkSerializer(serializers.ModelSerializer):
     class Meta:
         model = JobChunk
-        fields = '__all__'
+        fields = ('job_id', 'database', 'result')
