@@ -13,11 +13,8 @@ limitations under the License.
 
 import json
 import logging
-import os
-import shutil
 
 from aiohttp.test_utils import unittest_run_loop
-from aiohttp import web
 
 from ..main import create_app
 from .consumer_test_case import ConsumerTestCase
@@ -26,7 +23,7 @@ from .consumer_test_case import ConsumerTestCase
 """
 Run these tests with:
 
-python -m unittest consumer.tests.test_submit_job
+ENVIRONMENT=test python -m unittest consumer.tests.test_submit_job
 """
 
 

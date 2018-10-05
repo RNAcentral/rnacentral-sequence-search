@@ -1,3 +1,5 @@
+from . import PROJECT_ROOT
+
 # hostname to listen on
 HOST = 'localhost'
 

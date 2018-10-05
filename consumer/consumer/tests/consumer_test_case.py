@@ -16,7 +16,7 @@ import shutil
 
 from aiohttp.test_utils import AioHTTPTestCase
 
-from ..settings import settings
+from .. import settings
 
 
 class ConsumerTestCase(AioHTTPTestCase):

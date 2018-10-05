@@ -12,7 +12,7 @@ limitations under the License.
 """
 
 from .views import index, submit_job, result
-from .settings import settings
+from . import settings
 
 
 def setup_routes(app):

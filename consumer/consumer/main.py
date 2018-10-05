@@ -22,7 +22,7 @@ from aiohttp import web, web_middlewares
 # from consumer.db import close_pg, init_pg
 # from consumer.middlewares import setup_middlewares
 from .urls import setup_routes
-from .settings import settings
+from . import settings
 
 """
 Run either of the following commands from the parent of current directory:

@@ -15,7 +15,7 @@ import os
 import shlex
 import asyncio.subprocess
 
-from .settings import settings
+from . import settings
 
 
 class NhmmerError(Exception):

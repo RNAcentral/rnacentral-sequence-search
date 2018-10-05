@@ -19,7 +19,7 @@ from aiohttp import web, client
 
 from .nhmmer_search import nhmmer_search
 from .nhmmer_parse import nhmmer_parse
-from .settings import settings
+from . import settings
 
 
 @aiohttp_jinja2.template('index.html')
