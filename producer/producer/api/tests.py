@@ -25,7 +25,7 @@ class JobDone(APITestCase):
     def test_submit_job_post_success(self):
         c = APIClient()
         url = reverse('submit-job')
-        response = c.post(url, data={"query": "ACGCTGATGCTAGTGCGATGCTA", "databases": ["mirbase"]})
+        response = c.post(url, data={"query": "ACGCTGATGCTAGTGCGATGCTA", "databases": ["mirbase", "pombase"]})
         self.assertEqual(response.status_code, 201)
 
     def test_job_done_post_success(self):

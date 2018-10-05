@@ -30,7 +30,7 @@ class SubmitJob(views.APIView):
         serializer = JobSerializer(data=request.data)
         if serializer.is_valid():
             instance = serializer.save()
-            for database in request.data["databases"]:
+            for database in serializer.data["databases"]:
                 requests.post(
                     url="http://" + settings.CONSUMERS[database] + '/' + settings.CONSUMER_SUBMIT_JOB_URL,
                     data=json.dumps({"job_id": instance.id, "sequence": instance.query, "database": database})
