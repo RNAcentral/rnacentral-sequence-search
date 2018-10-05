@@ -13,12 +13,13 @@ limitations under the License.
 
 import json
 import logging
+import os
 
 from aiohttp.test_utils import unittest_run_loop
 
 from ..main import create_app
 from .consumer_test_case import ConsumerTestCase
-
+from .. import settings
 
 """
 Run these tests with:
@@ -44,13 +45,16 @@ class SubmitJobTestCase(ConsumerTestCase):
 
     @unittest_run_loop
     async def test_submit_job_post_fail_job_id(self):
+        with open(settings.QUERY_DIR / "2.txt", 'w') as file:
+            file.write(">2.txt\nAGCGTGACGTAGCACGATAGCAGCTACGAGC")
+
         data = json.dumps({"job_id": 2, "sequence": "ACGCTCGTAGC", "database": "mirbase"})
         async with self.client.post(path=self.url, data=data) as response:
             assert response.status == 400
             text = await response.text()
-            import pdb
-            pdb.set_trace()
-            print(text)
+            assert text == "job with id '2' has already been submitted"
+
+        os.remove(settings.QUERY_DIR / "2.txt")
 
     @unittest_run_loop
     async def test_submit_job_post_fail_databases(self):
