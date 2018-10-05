@@ -20,6 +20,7 @@ class APIRoot(views.APIView):
         return response.Response({
             'submit-job': reverse.reverse('submit-job', request=request),
             'job-status': reverse.reverse('job-status', request=request),
+            'job-done': reverse.reverse('job-done', request=request),
         })
 
 
@@ -50,6 +51,8 @@ class JobDone(views.APIView):
         if serializer.is_valid():
             serializer.save()
             return response.Response(serializer.data, status=status.HTTP_201_CREATED)
+        else:
+            return response.Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
 class JobStatusViewSet(viewsets.GenericViewSet, mixins.ListModelMixin, mixins.RetrieveModelMixin):

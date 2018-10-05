@@ -83,9 +83,9 @@ async def submit_job(request):
         import pdb
         pdb.set_trace()
 
-        data = []
+        data = {"job_id": job_id, "database": database, "result": ""}
         for record in nhmmer_parse(filename=filename):
-            data.append(record)
+            data["result"] = data["result"] + record
 
         response_url = "{protocol}://{host}:{port}/{url}/{job_id}/{database}".format(
             protocol=settings.PRODUCER_PROTOCOL,

@@ -29,5 +29,5 @@ urlpatterns = [
     url(r'job-status/(?P<job_id>\d+)/?$', JobStatusViewSet.as_view({'get': 'retrieve'}), {}, name='job-status'),
 
     # consumers report job results to this view
-    url(r'job-done/(?P<job_id>\d+)/(?P<database>[a-zA-Z0-9_]+)/?$', JobDone.as_view(), {}, name='job-done'),
+    url(r'job-done/?$', JobDone.as_view(), {}, name='job-done'),
 ]
