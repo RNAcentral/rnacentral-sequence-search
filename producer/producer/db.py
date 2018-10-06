@@ -13,3 +13,20 @@ limitations under the License.
 
 import asyncio
 from aiopg.sa import create_engine
+
+
+async def init_pg():
+    engine = await create_engine(
+        user='aiopg',
+        database='aiopg',
+        host='127.0.0.1',
+        password='passwd'
+    )
+
+    async with engine:
+        async with engine.acquire() as conn:
+            await create_tables(conn)
+            await fill_data(conn)
+            await count(conn)
+            await show_julia(conn)
+            await ave_age(conn)

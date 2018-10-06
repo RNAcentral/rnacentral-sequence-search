@@ -28,7 +28,7 @@ jobs = sa.Table('jobs', metadata,
                  sa.Colum('query', sa.Text),
                  sa.Column('databases', sa.String(255)),  # should be array of Strings with choices=DATABASE_CHOICES
                  sa.Column('submitted', sa.DateTime),
-                 sa.Column('finished', sa.DateTime),
+                 sa.Column('finished', sa.DateTime, nullable),
                  sa.Column('status', sa.String(255)))  # choices=STATUS_CHOICES, default='started'
 
 """Part of the search job, run against a specific database and assigned to a specific consumer"""
@@ -38,3 +38,26 @@ job_chunks = sa.Table('job_chunks', metadata,
                   sa.Column('database', sa.String(255)),
                   sa.Column('result', sa.String(255), nullable=True),
                   sa.Column('status', sa.String(255), nullable=False))  # choices=STATUS_CHOICES, default='started'
+
+
+async def migrate(connection):
+    await connection.execute('DROP TABLE IF EXISTS jobs')
+    await connection.execute('DROP TABLE IF EXISTS job_chunks')
+    await connection.execute('''
+        CREATE TABLE jobs (
+          id serial PRIMARY KEY,
+          query TEXT,
+          databases VARCHAR(255),
+          submitted TIMESTAMP,
+          finished TIMESTAMP,
+          status VARCHAR(255))
+    ''')
+
+    await connection.execute('''
+        CREATE TABLE job_chunks (
+          id serial,
+          job_id int references jobs(id),
+          database VARCHAR(255),
+          result VARCHAR(255)
+          status VARCHAR(255))
+    ''')
