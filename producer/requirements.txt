@@ -1,0 +1,7 @@
+aiohttp
+jinja2
+aiohttp_jinja2
+aiohttp-devtools
+aiojobs
+aiopg
+sqlalchemy
