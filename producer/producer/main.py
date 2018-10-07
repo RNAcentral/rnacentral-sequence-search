@@ -11,7 +11,6 @@ See the License for the specific language governing permissions and
 limitations under the License.
 """
 
-import asyncio
 import logging
 
 import aiohttp_jinja2
@@ -42,7 +41,7 @@ def create_app():
     app.update(name='producer', settings=settings)
 
     # setup Jinja2 template renderer
-    aiohttp_jinja2.setup(app, loader=jinja2.PackageLoader('consumer', 'templates'))
+    aiohttp_jinja2.setup(app, loader=jinja2.PackageLoader('producer', 'templates'))
 
     # create db connection on startup, shutdown on exit
     app.on_startup.append(init_pg)

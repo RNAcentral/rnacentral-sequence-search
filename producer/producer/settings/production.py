@@ -9,9 +9,14 @@ HOST = "0.0.0.0"
 # TCP port for the server to listen on
 PORT = 8002
 
+# postgres database settings
 POSTGRES_HOST = 'postgres'
+POSTGRES_PORT = 5432
+POSTRGES_DATABASE = 'producer'
 POSTGRES_USER = 'docker'
 POSTGRES_PASSWORD = os.getenv('POSTRGES_PASSWORD')
+
+
 CONSUMERS = {
     "greengenes": "192.168.0.7:8000",
     "pdbe": "192.168.0.8:8000",

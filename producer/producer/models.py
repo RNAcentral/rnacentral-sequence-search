@@ -15,18 +15,16 @@ from aiohttp import web
 import sqlalchemy as sa
 from aiopg.sa import create_engine
 
-from .main import create_app
-
 
 # Connection initialization code
 # ------------------------------
 
 async def init_pg(app):
     engine = await create_engine(
-        user=app['POSTGRES_USER'],
-        database=app['POSTGRES_DATABASE'],
-        host=app['POSTGRES_HOST'],
-        password=app['POSTGRES_PASSWORD']
+        user=app['settings'].POSTGRES_USER,
+        database=app['settings'].POSTGRES_DATABASE,
+        host=app['settings'].POSTGRES_HOST,
+        password=app['settings'].POSTGRES_PASSWORD
     )
 
     async with engine:
@@ -49,7 +47,7 @@ STATUS_CHOICES = (
 
 metadata = sa.MetaData()
 
-
+"""A search job that is divided into multiple job chunks per database"""
 jobs = sa.Table('jobs', metadata,
                  sa.Column('id', sa.Integer, primary_key=True),
                  sa.Column('query', sa.Text),
@@ -71,6 +69,8 @@ job_chunks = sa.Table('job_chunks', metadata,
 # ----------
 
 if __name__ == "__main__":
+    from .main import create_app
+
     async def migrate(connection):
         await connection.execute('DROP TABLE IF EXISTS jobs')
         await connection.execute('DROP TABLE IF EXISTS job_chunks')
