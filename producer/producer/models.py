@@ -49,7 +49,7 @@ STATUS_CHOICES = (
 metadata = sa.MetaData()
 
 """A search job that is divided into multiple job chunks per database"""
-jobs = sa.Table('jobs', metadata,
+Job = sa.Table('jobs', metadata,
                  sa.Column('id', sa.Integer, primary_key=True),
                  sa.Column('query', sa.Text),
                  sa.Column('databases', sa.String(255)),  # should be array of Strings with choices=DATABASE_CHOICES
@@ -58,7 +58,7 @@ jobs = sa.Table('jobs', metadata,
                  sa.Column('status', sa.String(255)))  # choices=STATUS_CHOICES, default='started'
 
 """Part of the search job, run against a specific database and assigned to a specific consumer"""
-job_chunks = sa.Table('job_chunks', metadata,
+JobChunk = sa.Table('job_chunks', metadata,
                   sa.Column('id', sa.Integer, primary_key=True),
                   sa.Column('job_id', None, sa.ForeignKey('users.id')),
                   sa.Column('database', sa.String(255)),
@@ -70,6 +70,11 @@ job_chunks = sa.Table('job_chunks', metadata,
 # ----------
 
 if __name__ == "__main__":
+    """
+    To apply this migration to the database, go one directory up and say:
+    
+    python3 -m producer.models
+    """
     from . import settings
 
     async def migrate():

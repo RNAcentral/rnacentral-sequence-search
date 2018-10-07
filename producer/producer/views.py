@@ -13,10 +13,13 @@ limitations under the License.
 
 import os
 import json
+import datetime
 
 from aiojobs.aiohttp import spawn
 import aiohttp_jinja2
 from aiohttp import web, client
+
+from .models import Job, JobChunk
 
 
 @aiohttp_jinja2.template('index.html')
@@ -24,13 +27,26 @@ async def index(request):
     return {}
 
 
-async def submit_job():
+async def submit_job(request):
+    def validate(data):
+        try:
+            query = data['query']
+            databases = data['databases']
+        except (KeyError, TypeError, ValueError) as e:
+            raise web.HTTPBadRequest(text='Bad input') from e
+
+    data = await request.json()
+    validate(data)
+
+    request.app['connection'].scalar(
+        Job.insert().values(query=data['query'], databases=data['databases'], submitted=datetime.datetime.now(), status='started')
+    )
+
+    return web.HTTPCreated()
+
+async def job_status(request):
     pass
 
 
-async def job_status():
-    pass
-
-
-async def job_done():
+async def job_done(request):
     pass
