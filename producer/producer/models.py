@@ -70,29 +70,38 @@ job_chunks = sa.Table('job_chunks', metadata,
 # ----------
 
 if __name__ == "__main__":
-    from .main import create_app
+    from . import settings
 
-    async def migrate(connection):
-        await connection.execute('DROP TABLE IF EXISTS jobs')
-        await connection.execute('DROP TABLE IF EXISTS job_chunks')
-        await connection.execute('''
-            CREATE TABLE jobs (
-              id serial PRIMARY KEY,
-              query TEXT,
-              databases VARCHAR(255),
-              submitted TIMESTAMP,
-              finished TIMESTAMP,
-              status VARCHAR(255))
-        ''')
+    async def migrate():
+        engine = await create_engine(
+            user=settings.POSTGRES_USER,
+            database=settings.POSTGRES_DATABASE,
+            host=settings.POSTGRES_HOST,
+            password=settings.POSTGRES_PASSWORD
+        )
 
-        await connection.execute('''
-            CREATE TABLE job_chunks (
-              id serial,
-              job_id int references jobs(id),
-              database VARCHAR(255),
-              result VARCHAR(255)
-              status VARCHAR(255))
-        ''')
+        async with engine:
+            async with engine.acquire() as connection:
+                await connection.execute('DROP TABLE IF EXISTS job_chunks')
+                await connection.execute('DROP TABLE IF EXISTS jobs')
+                await connection.execute('''
+                    CREATE TABLE jobs (
+                      id serial PRIMARY KEY,
+                      query TEXT,
+                      databases VARCHAR(255),
+                      submitted TIMESTAMP,
+                      finished TIMESTAMP,
+                      status VARCHAR(255))
+                ''')
 
-        app = create_app()
-        web.run_app(app, host=app['settings'].HOST, port=app['settings'].PORT)
+                await connection.execute('''
+                    CREATE TABLE job_chunks (
+                      id serial PRIMARY KEY,
+                      job_id int references jobs(id),
+                      database VARCHAR(255),
+                      result VARCHAR(255),
+                      status VARCHAR(255))
+                ''')
+
+    import asyncio
+    asyncio.get_event_loop().run_until_complete(migrate())

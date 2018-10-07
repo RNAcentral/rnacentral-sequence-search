@@ -80,9 +80,6 @@ async def submit_job(request):
 
         filename = await nhmmer_search(sequence=sequence, job_id=job_id, database=database)
 
-        import pdb
-        pdb.set_trace()
-
         data = {"job_id": job_id, "database": database, "result": ""}
         for record in nhmmer_parse(filename=filename):
             data["result"] = data["result"] + record
