@@ -32,9 +32,9 @@ async def init_pg(app):
             app['connection'] = connection
 
 
-# async def close_pg(app):
-#     app['connection'].close()
-#     await app['connection'].wait_closed()
+async def close_pg(app):
+    app['connection'].close()
+    await app['connection'].wait_closed()
 
 
 # Models schema

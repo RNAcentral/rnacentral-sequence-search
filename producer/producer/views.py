@@ -38,11 +38,14 @@ async def submit_job(request):
     data = await request.json()
     validate(data)
 
-    request.app['connection'].scalar(
+    job_id = await request.app['connection'].scalar(
         Job.insert().values(query=data['query'], databases=data['databases'], submitted=datetime.datetime.now(), status='started')
     )
 
+    print(job_id)
+
     return web.HTTPCreated()
+
 
 async def job_status(request):
     pass
