@@ -19,7 +19,7 @@ from aiojobs.aiohttp import setup as setup_aiojobs
 from aiohttp import web, web_middlewares
 
 from . import settings
-from .models import init_pg, close_pg
+from .models import init_pg
 from .urls import setup_routes
 
 """
@@ -45,7 +45,7 @@ def create_app():
 
     # create db connection on startup, shutdown on exit
     app.on_startup.append(init_pg)
-    app.on_cleanup.append(close_pg)
+    # app.on_cleanup.append(close_pg)
 
     # setup views and routes
     setup_routes(app)

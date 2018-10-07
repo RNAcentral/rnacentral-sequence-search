@@ -28,12 +28,13 @@ async def init_pg(app):
     )
 
     async with engine:
-        app['connection'] = await engine.acquire()
+        async with engine.acquire() as connection:
+            app['connection'] = connection
 
 
-async def close_pg(app):
-    app['connection'].close()
-    await app['connection'].wait_closed()
+# async def close_pg(app):
+#     app['connection'].close()
+#     await app['connection'].wait_closed()
 
 
 # Models schema

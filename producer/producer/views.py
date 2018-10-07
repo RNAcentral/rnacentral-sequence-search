@@ -11,9 +11,17 @@ See the License for the specific language governing permissions and
 limitations under the License.
 """
 
+import os
+import json
 
-async def index():
-    pass
+from aiojobs.aiohttp import spawn
+import aiohttp_jinja2
+from aiohttp import web, client
+
+
+@aiohttp_jinja2.template('index.html')
+async def index(request):
+    return {}
 
 
 async def submit_job():
