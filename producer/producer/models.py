@@ -27,9 +27,7 @@ async def init_pg(app):
         password=app['settings'].POSTGRES_PASSWORD
     )
 
-    async with engine:
-        async with engine.acquire() as connection:
-            app['connection'] = connection
+    app['connection'] = await engine.acquire()
 
 
 async def close_pg(app):
