@@ -29,6 +29,13 @@ async def index(request):
 
 
 async def submit_job(request):
+    """
+    Example:
+    curl -H "Content-Type:application/json" -d "{\"databases\": \"miRBase\", \"query\": \"AGGCTCGGAGTCGTAGCTAT\"}" localhost:8002/submit-job
+
+    :param request:
+    :return:
+    """
     def validate(data):
         try:
             query = data['query']

@@ -7,8 +7,8 @@ HOST = 'localhost'
 PORT = 8002
 
 # postgres database settings
-POSTGRES_HOST = 'postgres'
+POSTGRES_HOST = 'localhost'
 POSTGRES_PORT = 5432
-POSTRGES_DATABASE = 'producer'
-POSTGRES_USER = 'docker'
-POSTGRES_PASSWORD = os.getenv('POSTRGES_PASSWORD')
+POSTGRES_DATABASE = 'test_producer'
+POSTGRES_USER = 'burkov'
+POSTGRES_PASSWORD = 'example'
