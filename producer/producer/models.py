@@ -76,6 +76,11 @@ if __name__ == "__main__":
     from . import settings
 
     async def migrate():
+        print("settings.POSTGRES_USER = %s" % settings.POSTGRES_USER)
+        print("settings.POSTGRES_DATABASE = %s" % settings.POSTGRES_DATABASE)
+        print("settings.POSTGRES_HOST = %s" % settings.POSTGRES_HOST)
+        print("settings.POSTGRES_PASSWORD = %s" % settings.POSTGRES_PASSWORD)
+
         engine = await create_engine(
             user=settings.POSTGRES_USER,
             database=settings.POSTGRES_DATABASE,

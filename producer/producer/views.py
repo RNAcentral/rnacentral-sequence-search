@@ -19,6 +19,7 @@ import requests
 from aiojobs.aiohttp import spawn
 import aiohttp_jinja2
 from aiohttp import web, client
+from sqlalchemy import and_
 
 from .models import Job, JobChunk
 
@@ -59,6 +60,9 @@ async def submit_job(request):
     data = await request.json()
     validate(data)
 
+    import pdb
+    pdb.set_trace()
+
     # write this job and job_chunks to the database
     job_id = await request.app['connection'].scalar(
         Job.insert().values(query=data['query'], submitted=datetime.datetime.now(), status='started')
@@ -72,11 +76,13 @@ async def submit_job(request):
     for database in data["databases"]:
         # TODO: replace requests with async client.request
         requests.post(
-            url="http://" + request.app['settings'].CONSUMERS[database].lower() + '/' + request.app['settings'].CONSUMER_SUBMIT_JOB_URL,
+            url="http://" + request.app['settings'].CONSUMERS[database.lower()] + '/' + request.app['settings'].CONSUMER_SUBMIT_JOB_URL,
             data=json.dumps({"job_id": job_id, "sequence": data['query'], "database": data['databases']})
         )
 
-        JobChunk.update().where(job_id == job_id, database=database).values(status='running')
+        await request.app['connection'].scalar(
+            JobChunk.update().where(and_(job_id == job_id, database == database)).values(status='running')
+        )
 
     return web.HTTPCreated()
 

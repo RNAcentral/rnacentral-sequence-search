@@ -12,8 +12,13 @@ services:
       - ./producer/producer:/producer
     environment:
       ENVIRONMENT: "DOCKER-COMPOSE"
+      POSTGRES_USER: docker
       POSTGRES_PASSWORD: "example"
-#    entrypoint: sleep infinity  # if we need to debug
+    # the following options are used to connect to pdb debugger, running within the container
+    # to connect to it, run 'docker attach sequencesearchdevops_producer_1'
+    stdin_open: true
+    tty: true
+#    entrypoint: sleep infinity  # replace entrypoint with this command, if you need to debug it
 
   consumer:
     restart: always
@@ -39,3 +44,6 @@ services:
     build: ./postgres
     ports:
       - "5432:5432"
+    environment:
+      POSTGRES_USER: docker
+      POSTGRES_PASSWORD: "example"
