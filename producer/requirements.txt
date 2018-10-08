@@ -5,3 +5,4 @@ aiohttp-devtools
 aiojobs
 aiopg
 sqlalchemy
+requests

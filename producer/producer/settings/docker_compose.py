@@ -11,7 +11,7 @@ POSTGRES_HOST = 'postgres'
 POSTGRES_PORT = 5432
 POSTGRES_DATABASE = 'producer'
 POSTGRES_USER = 'docker'
-POSTGRES_PASSWORD = os.getenv('POSTRGES_PASSWORD')
+POSTGRES_PASSWORD = 'example'
 
 CONSUMERS = {
     "greengenes": "consumer:8000",

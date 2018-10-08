@@ -65,7 +65,7 @@ async def submit_job(request):
     )
     for database in data['databases']:
         job_chunk_id = await request.app['connection'].scalar(
-            JobChunk.insert().values(job_id=data['job_id'], database=database, submitted=datetime.datetime.now(), status='started')
+            JobChunk.insert().values(job_id=job_id, database=database, submitted=datetime.datetime.now(), status='started')
         )
 
     # send job chunks to consumers, if sent successfully - write about this to the database
