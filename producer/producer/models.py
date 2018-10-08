@@ -50,7 +50,6 @@ metadata = sa.MetaData()
 Job = sa.Table('jobs', metadata,
                  sa.Column('id', sa.Integer, primary_key=True),
                  sa.Column('query', sa.Text),
-                 sa.Column('databases', sa.String(255)),  # should be array of Strings with choices=DATABASE_CHOICES
                  sa.Column('submitted', sa.DateTime),
                  sa.Column('finished', sa.DateTime, nullable=True),
                  sa.Column('status', sa.String(255)))  # choices=STATUS_CHOICES, default='started'
@@ -92,7 +91,6 @@ if __name__ == "__main__":
                     CREATE TABLE jobs (
                       id serial PRIMARY KEY,
                       query TEXT,
-                      databases VARCHAR(255),
                       submitted TIMESTAMP,
                       finished TIMESTAMP,
                       status VARCHAR(255))

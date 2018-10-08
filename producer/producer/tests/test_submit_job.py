@@ -37,7 +37,7 @@ class SubmitJobTestCase(AioHTTPTestCase):
 
     @unittest_run_loop
     async def test_submit_job_post_fail_query(self):
-        data = json.dumps({"query": "THIS_IS_NOT_A_PROPER_NUCLEOTIDE_SEQUENCE", "databases": "mirbase"})
+        data = json.dumps({"query": "THIS_IS_NOT_A_PROPER_NUCLEOTIDE_SEQUENCE", "databases": ["mirbase"]})
         async with self.client.post(path=self.url, data=data) as response:
             assert response.status == 400
             text = await response.text()
@@ -46,7 +46,7 @@ class SubmitJobTestCase(AioHTTPTestCase):
 
     @unittest_run_loop
     async def test_submit_job_post_fail_databases(self):
-        data = json.dumps({"query": "ACGCTCGTAGC", "databases": "foobase"})
+        data = json.dumps({"query": "ACGCTCGTAGC", "databases": ["foobase"]})
         async with self.client.post(path=self.url, data=data) as response:
             assert response.status == 400
             text = await response.text()

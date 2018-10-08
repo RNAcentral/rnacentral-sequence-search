@@ -52,16 +52,16 @@ async def submit_job(request):
                 )
 
         # validate databases
-        #for database in databases:
-        if databases.lower() not in request.app['settings'].RNACENTRAL_DATABASES:
-            raise web.HTTPBadRequest(text="Database '%s' not in list of RNACentral databases" % databases)
+        for database in databases:
+            if database.lower() not in request.app['settings'].RNACENTRAL_DATABASES:
+                raise web.HTTPBadRequest(text="Database '%s' not in list of RNACentral databases" % database)
 
     data = await request.json()
     validate(data)
 
     # write this job and job_chunks to the database
     job_id = await request.app['connection'].scalar(
-        Job.insert().values(query=data['query'], databases=data['databases'], submitted=datetime.datetime.now(), status='started')
+        Job.insert().values(query=data['query'], submitted=datetime.datetime.now(), status='started')
     )
     for database in data['databases']:
         job_chunk_id = await request.app['connection'].scalar(
