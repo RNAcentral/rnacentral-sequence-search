@@ -47,6 +47,8 @@ RNACENTRAL_DATABASES = [
     "wormbase"
 ]
 
+CONSUMER_SUBMIT_JOB_URL = '/submit-job'
+
 ENVIRONMENT = os.getenv('ENVIRONMENT', 'LOCAL')
 
 # add settings from environment-specific files
