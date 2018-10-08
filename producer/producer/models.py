@@ -60,8 +60,9 @@ JobChunk = sa.Table('job_chunks', metadata,
                   sa.Column('id', sa.Integer, primary_key=True),
                   sa.Column('job_id', None, sa.ForeignKey('users.id')),
                   sa.Column('database', sa.String(255)),
+                  sa.Column('submitted', sa.DateTime),
                   sa.Column('result', sa.String(255), nullable=True),
-                  sa.Column('status', sa.String(255), nullable=False))  # choices=STATUS_CHOICES, default='started'
+                  sa.Column('status', sa.String(255)))  # choices=STATUS_CHOICES, default='started'
 
 
 # Migrations
@@ -102,6 +103,7 @@ if __name__ == "__main__":
                       id serial PRIMARY KEY,
                       job_id int references jobs(id),
                       database VARCHAR(255),
+                      submitted TIMESTAMP,
                       result VARCHAR(255),
                       status VARCHAR(255))
                 ''')

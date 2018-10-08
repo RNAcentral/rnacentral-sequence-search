@@ -59,15 +59,24 @@ async def submit_job(request):
     data = await request.json()
     validate(data)
 
+    # write this job and job_chunks to the database
     job_id = await request.app['connection'].scalar(
         Job.insert().values(query=data['query'], databases=data['databases'], submitted=datetime.datetime.now(), status='started')
     )
+    for database in data['databases']:
+        job_chunk_id = await request.app['connection'].scalar(
+            JobChunk.insert().values(job_id=data['job_id'], database=database, submitted=datetime.datetime.now(), status='started')
+        )
 
-    # for database in data["databases"]:
-    requests.post(
-        url="http://" + request.app['settings'].CONSUMERS[data['databases'].lower()] + '/' + request.app['settings'].CONSUMER_SUBMIT_JOB_URL,
-        data=json.dumps({"job_id": job_id, "sequence": data['query'], "database": data['databases']})
-    )
+    # send job chunks to consumers, if sent successfully - write about this to the database
+    for database in data["databases"]:
+        # TODO: replace requests with async client.request
+        requests.post(
+            url="http://" + request.app['settings'].CONSUMERS[database].lower() + '/' + request.app['settings'].CONSUMER_SUBMIT_JOB_URL,
+            data=json.dumps({"job_id": job_id, "sequence": data['query'], "database": data['databases']})
+        )
+
+        JobChunk.update().where(job_id == job_id, database=database).values(status='running')
 
     return web.HTTPCreated()
 
