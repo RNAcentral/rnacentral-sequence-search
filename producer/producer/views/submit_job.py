@@ -64,8 +64,10 @@ async def save(request, data):
             JobChunk.insert().values(job_id=job_id, database=database, submitted=datetime.datetime.now(), status='started')
         )
 
+    return job_id
 
-async def delegate(request, data):
+
+async def delegate(request, data, job_id):
     """Send job chunks to consumers, if sent successfully - update status of each JobChunk in the database."""
     for database in data["databases"]:
         # TODO: replace requests with async client.request
@@ -91,8 +93,8 @@ async def submit_job(request):
     data = await request.json()
     data = serialize(data)
 
-    await save(request, data)
+    job_id = await save(request, data)
 
-    await delegate(request, data)
+    await delegate(request, data, job_id)
 
     return web.HTTPCreated()

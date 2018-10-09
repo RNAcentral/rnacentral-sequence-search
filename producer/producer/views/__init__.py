@@ -11,8 +11,8 @@ See the License for the specific language governing permissions and
 limitations under the License.
 """
 
-from . import index
-from . import job_chunk_heartbeat
-from . import job_done
-from . import job_status
-from . import submit_job
+from .index import index
+from .job_chunk_heartbeat import job_chunk_heartbeat
+from .job_done import job_done
+from .job_status import job_status
+from .submit_job import submit_job

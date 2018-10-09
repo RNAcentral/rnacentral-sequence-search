@@ -11,7 +11,6 @@ See the License for the specific language governing permissions and
 limitations under the License.
 """
 
-from aiohttp import web
 import sqlalchemy as sa
 from aiopg.sa import create_engine
 
@@ -69,9 +68,12 @@ JobChunk = sa.Table('job_chunks', metadata,
 
 if __name__ == "__main__":
     """
+    This code creates the necessary tables in the database - in django this
+    would've been initial migration.
+
     To apply this migration to the database, go one directory up and say:
-    
-    python3 -m producer.models
+
+    $ python3 -m producer.models
     """
     from . import settings
 
