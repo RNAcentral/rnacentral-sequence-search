@@ -91,7 +91,7 @@ async def submit_job(request):
     """
 
     data = await request.json()
-    data = serialize(data)
+    data = serialize(request, data)
 
     job_id = await save(request, data)
 
