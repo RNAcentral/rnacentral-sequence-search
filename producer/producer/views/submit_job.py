@@ -76,8 +76,12 @@ async def delegate(request, data, job_id):
             data=json.dumps({"job_id": job_id, "sequence": data['query'], "database": database })
         )
 
-        await request.app['connection'].scalar(
-            JobChunk.update().where(and_(job_id == job_id, database == database)).values(status='running')
+        await request.app['connection'].execute(
+            '''
+            UPDATE {job_chunks}
+            SET status = 'running'
+            WHERE job_id={job_id} AND database='{database}';
+            '''.format(job_chunks='job_chunks', job_id=job_id, database=database)
         )
 
 
