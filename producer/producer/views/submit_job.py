@@ -21,49 +21,41 @@ import aiohttp_jinja2
 from aiohttp import web, client
 from sqlalchemy import and_
 
-from .models import Job, JobChunk
+from ..models import Job, JobChunk
 
 
-@aiohttp_jinja2.template('index.html')
-async def index(request):
-    return {}
+def serialize(request, data):
+    """Validates and normalizes input data."""
+    try:
+        query = data['query']
+        databases = data['databases']
+    except (KeyError, TypeError, ValueError) as e:
+        raise web.HTTPBadRequest(text='Bad input') from e
 
+    # validate query
+    for char in data['query']:
+        if char not in ['A', 'T', 'G', 'C', 'U']:
+            raise web.HTTPBadRequest(
+                text="Input query should be a nucleotide sequence"
+                     " and contain only {ATGCU} characters, found: '%s'." % data['query']
+            )
 
-async def submit_job(request):
-    """
-    Example:
-    curl -H "Content-Type:application/json" -d "{\"databases\": [\"miRBase\"], \"query\": \"AGGCTCGGAGTCGTAGCTAT\"}" localhost:8002/submit-job
+    # normalize query: convert nucleotides to RNA
+    data['query'] = data['query'].replace('T', 'U')
 
-    :param request:
-    :return:
-    """
-    def validate(data):
-        try:
-            query = data['query']
-            databases = data['databases']
-        except (KeyError, TypeError, ValueError) as e:
-            raise web.HTTPBadRequest(text='Bad input') from e
-
-        # validate query
-        for char in query:
-            if char not in ['A', 'T', 'G', 'C', 'U']:
-                raise web.HTTPBadRequest(
-                    text="Input query should be a nucleotide sequence"
-                         " and contain only {ATGCU} characters, found: '%s'." % query
-                )
-
-        # validate databases
-        for database in databases:
-            if database.lower() not in request.app['settings'].RNACENTRAL_DATABASES:
-                raise web.HTTPBadRequest(text="Database '%s' not in list of RNACentral databases" % database)
-
-    data = await request.json()
-    validate(data)
+    # validate databases
+    for database in data['databases']:
+        if database.lower() not in request.app['settings'].RNACENTRAL_DATABASES:
+            raise web.HTTPBadRequest(text="Database '%s' not in list of RNACentral databases" % data['database'])
 
     # normalize databases: convert them to lower case
     data['databases'] = [datum.lower() for datum in data['databases']]
 
-    # write this job and job_chunks to the database
+    return data
+
+
+async def save(request, data):
+    """Save metadata about this job and job_chunks to the database."""
     job_id = await request.app['connection'].scalar(
         Job.insert().values(query=data['query'], submitted=datetime.datetime.now(), status='started')
     )
@@ -72,7 +64,9 @@ async def submit_job(request):
             JobChunk.insert().values(job_id=job_id, database=database, submitted=datetime.datetime.now(), status='started')
         )
 
-    # send job chunks to consumers, if sent successfully - write about this to the database
+
+async def delegate(request, data):
+    """Send job chunks to consumers, if sent successfully - update status of each JobChunk in the database."""
     for database in data["databases"]:
         # TODO: replace requests with async client.request
         requests.post(
@@ -84,12 +78,21 @@ async def submit_job(request):
             JobChunk.update().where(and_(job_id == job_id, database == database)).values(status='running')
         )
 
+
+async def submit_job(request):
+    """
+    Example:
+    curl -H "Content-Type:application/json" -d "{\"databases\": [\"miRBase\"], \"query\": \"AGGCTCGGAGTCGTAGCTAT\"}" localhost:8002/submit-job
+
+    :param request:
+    :return:
+    """
+
+    data = await request.json()
+    data = serialize(data)
+
+    await save(request, data)
+
+    await delegate(request, data)
+
     return web.HTTPCreated()
-
-
-async def job_status(request):
-    pass
-
-
-async def job_done(request):
-    pass
