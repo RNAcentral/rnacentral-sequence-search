@@ -38,12 +38,8 @@ services:
     tty: true
 #    entrypoint: sleep infinity  # if we need to debug
 
-
   postgres:
     restart: always
     build: ./postgres
     ports:
       - "5432:5432"
-    environment:
-      POSTGRES_USER: docker
-      POSTGRES_PASSWORD: "example"

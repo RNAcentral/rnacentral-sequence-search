@@ -32,7 +32,7 @@ async def index(request):
 async def submit_job(request):
     """
     Example:
-    curl -H "Content-Type:application/json" -d "{\"databases\": \"miRBase\", \"query\": \"AGGCTCGGAGTCGTAGCTAT\"}" localhost:8002/submit-job
+    curl -H "Content-Type:application/json" -d "{\"databases\": [\"miRBase\"], \"query\": \"AGGCTCGGAGTCGTAGCTAT\"}" localhost:8002/submit-job
 
     :param request:
     :return:
@@ -60,8 +60,8 @@ async def submit_job(request):
     data = await request.json()
     validate(data)
 
-    import pdb
-    pdb.set_trace()
+    # normalize databases: convert them to lower case
+    data['databases'] = [datum.lower() for datum in data['databases']]
 
     # write this job and job_chunks to the database
     job_id = await request.app['connection'].scalar(
@@ -76,8 +76,8 @@ async def submit_job(request):
     for database in data["databases"]:
         # TODO: replace requests with async client.request
         requests.post(
-            url="http://" + request.app['settings'].CONSUMERS[database.lower()] + '/' + request.app['settings'].CONSUMER_SUBMIT_JOB_URL,
-            data=json.dumps({"job_id": job_id, "sequence": data['query'], "database": data['databases']})
+            url="http://" + request.app['settings'].CONSUMERS[database] + '/' + request.app['settings'].CONSUMER_SUBMIT_JOB_URL,
+            data=json.dumps({"job_id": job_id, "sequence": data['query'], "database": database })
         )
 
         await request.app['connection'].scalar(
