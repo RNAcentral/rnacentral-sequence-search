@@ -84,13 +84,11 @@ async def submit_job(request):
         for record in nhmmer_parse(filename=filename):
             data["result"] = data["result"] + record
 
-        response_url = "{protocol}://{host}:{port}/{url}/{job_id}/{database}".format(
+        response_url = "{protocol}://{host}:{port}/{url}".format(
             protocol=settings.PRODUCER_PROTOCOL,
             host=settings.PRODUCER_HOST,
             port=settings.PRODUCER_PORT,
-            url=settings.PRODUCER_JOB_DONE_URL,
-            job_id=job_id,
-            database=database
+            url=settings.PRODUCER_JOB_DONE_URL
         )
 
         async with client.request(
