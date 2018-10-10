@@ -6,7 +6,7 @@ class Header extends React.Component {
       <header id="masthead-black-bar" className="clearfix masthead-black-bar">
         <nav className="row">
           <ul id="global-nav" className="menu">
-            <!-- set active class as appropriate -->
+            {/* set active class as appropriate */}
             <li className="home-mobile"><a href="//www.ebi.ac.uk"></a></li>
             <li className="home active"><a href="//www.ebi.ac.uk">EMBL-EBI</a></li>
             <li className="services"><a href="//www.ebi.ac.uk/services">Services</a></li>
@@ -17,12 +17,12 @@ class Header extends React.Component {
               <a href="#" data-toggle="search-global-dropdown"><span className="show-for-small-only">Search</span></a>
               <div id="search-global-dropdown" className="dropdown-pane" data-dropdown
                    data-options="closeOnClick:true;">
-                <!-- The dropdown menu will be programatically added by script.js -->
+                {/* The dropdown menu will be programatically added by script.js */}
               </div>
             </li>
             <li className="float-right show-for-medium embl-selector">
               <button className="button float-right" type="button" data-toggle="embl-dropdown">Hinxton</button>
-              <!-- The dropdown menu will be programatically added by script.js -->
+              {/* The dropdown menu will be programatically added by script.js */}
             </li>
           </ul>
         </nav>
