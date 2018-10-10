@@ -3,8 +3,6 @@ const webpack = require('webpack');
 
 const HtmlWebpackPlugin = require('html-webpack-plugin');
 const ExtractTextPlugin = require('extract-text-webpack-plugin');
-const nodeExternals = require('webpack-node-externals');
-
 
 module.exports = function(env) {
   // set variables, modifying the config for dev, prod and ssr
@@ -13,48 +11,27 @@ module.exports = function(env) {
   if (env && env.prod) environment = 'production';
   else environment = 'development';
 
-  let target, externals, entry, plugins, publicPath, outputFilename;
-  if (environment === 'production') {
-    target = 'web';
-    externals = [];
-    entry = path.join(__dirname, 'src', 'app.jsx');
-    plugins = [
-      new webpack.HotModuleReplacementPlugin(),
-      new ExtractTextPlugin('app.[hash:7].css'),
-      new HtmlWebpackPlugin({ inject: "body", template: "src/index.html", filename: path.join(__dirname, "index.html") }),
-      new webpack.ProvidePlugin({ $: 'jquery', jQuery: 'jquery', jquery: 'jquery' })
-    ];
-    publicPath = '/dist/';
-    outputFilename = 'app.[hash:7].js';
-
-  } else if (environment === 'development') {
-    target = 'web';
-    externals = [];
-    entry = path.join(__dirname, 'src', 'app.jsx');
-    plugins = [
-      new webpack.HotModuleReplacementPlugin(),
-      new ExtractTextPlugin('app.[hash:7].css'),
-      new HtmlWebpackPlugin({ inject: "body", template: "src/index.html", filename: "index.html" }),
-      new webpack.ProvidePlugin({ $: 'jquery', jQuery: 'jquery', jquery: 'jquery' })
-    ];
-    publicPath = '/';
-    outputFilename = 'app.[hash:7].js';
-
-  }
-
   return {
-    target: target,
-    externals: externals,
-    entry: entry,
+    target: 'web',
+    entry: path.join(__dirname, 'src', 'app.jsx'),
     output: {
       path: path.join(__dirname, 'dist'),
-      publicPath: publicPath,
-      filename: outputFilename
+      publicPath: environment === 'production' ? '/dist/' : '/',
+      filename: 'app.[hash:7].js'
     },
     resolve: {
       modules: [path.join(__dirname, 'src'), path.join(__dirname, 'node_modules')]
     },
-    plugins: plugins,
+    plugins: [
+      new webpack.HotModuleReplacementPlugin(),
+      new ExtractTextPlugin('app.[hash:7].css'),
+      new HtmlWebpackPlugin({
+        inject: "body",
+        template: "src/index.html",
+        filename: environment === 'production' ? path.join(__dirname, dist, "index.html") : "index.html"
+      }),
+      new webpack.ProvidePlugin({ $: 'jquery', jQuery: 'jquery', jquery: 'jquery' })
+    ],
     module: {
       rules: [
         {
