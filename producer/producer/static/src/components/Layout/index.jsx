@@ -2,10 +2,15 @@ import React from 'react';
 import {Route, Link, Redirect, Switch} from 'react-router-dom';
 
 import 'ebi-framework/js/script.js';
-import 'ebi-framework/js/foundationExtendEBI';
+import 'ebi-framework/js/foundationExtendEBI.js';
 import 'foundation-sites/dist/js/foundation.js';
 import 'jquery/dist/jquery.js';
-import 'bootstrap/dist/css/bootstrap.css';
+
+
+import 'foundation-sites/dist/css/foundation.css';
+import 'ebi-framework/css/ebi-global.css';
+import 'ebi-framework/css/theme-light.css';
+// <link rel="stylesheet" href="//www.ebi.ac.uk/web_guidelines/EBI-Icon-fonts/v1.2/fonts.css" type="text/css" media="all" />
 import 'font-awesome/css/font-awesome.css';
 import 'pixeden-stroke-7-icon/pe-icon-7-stroke/dist/pe-icon-7-stroke.min.css';
 import 'animate.css/animate.min.css';
