@@ -17,6 +17,7 @@ import Footer from 'components/Footer/index.jsx';
 import Blog from 'pages/Search/index.jsx';
 import Post from 'pages/Job/index.jsx';
 
+
 // <!-- JavaScript -->
 // <!-- Grab Google CDN's jQuery, with a protocol relative URL; fall back to local if offline -->
 // <!--
@@ -36,6 +37,31 @@ import Post from 'pages/Job/index.jsx';
 // <script src="//www.ebi.ac.uk/web_guidelines/EBI-Framework/v1.2/js/foundationExtendEBI.js"></script>
 // <script type="text/JavaScript">$(document).foundation();</script>
 // <script type="text/JavaScript">$(document).foundationExtendEBI();</script>
+
+
+// <!-- CSS: implied media=all -->
+// <!-- CSS concatenated and minified via ant build script-->
+// <link rel="stylesheet" href="//www.ebi.ac.uk/web_guidelines/EBI-Framework/v1.2/libraries/foundation-6/css/foundation.css" type="text/css" media="all" />
+// <link rel="stylesheet" href="//www.ebi.ac.uk/web_guidelines/EBI-Framework/v1.2/css/ebi-global.css" type="text/css" media="all" />
+// <link rel="stylesheet" href="//www.ebi.ac.uk/web_guidelines/EBI-Icon-fonts/v1.2/fonts.css" type="text/css" media="all" />
+//
+// <!-- Use this CSS file for any custom styling -->
+// <!--
+//   <link rel="stylesheet" href="css/custom.css" type="text/css" media="all" />
+// -->
+//
+// <!-- If you have a custom header image or colour -->
+// <!--
+// <meta name="ebi:masthead-color" content="#000" />
+// <meta name="ebi:masthead-image" content="//www.ebi.ac.uk/web_guidelines/EBI-Framework/images/backgrounds/embl-ebi-background.jpg" />
+// -->
+//
+// <!-- you can replace this with theme-[projectname].css. See http://www.ebi.ac.uk/web/style/colour for details of how to do this -->
+// <!-- also inform ES so we can host your colour palette file -->
+// <link rel="stylesheet" href="//www.ebi.ac.uk/web_guidelines/EBI-Framework/v1.2/css/theme-light.css" type="text/css" media="all" />
+// <link rel="stylesheet" href="dist/gp-style.css" type="text/css" media="all" />
+// <link rel="stylesheet" href="style.css" type="text/css" media="all" />
+// <!-- end CSS-->
 
 
 class Layout extends React.Component {
