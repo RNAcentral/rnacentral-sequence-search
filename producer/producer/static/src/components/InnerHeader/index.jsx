@@ -9,9 +9,7 @@ class InnerHeader extends React.Component {
           {/* local-title */}
           <div className="columns medium-12" id="local-title">
             <h1>
-              <img
-                src="https://raw.githubusercontent.com/ebi-pf-team/genome-properties/master/docs/_static/images/GP_logo.png"/>
-              <a href="#" title="Back to [service-name] homepage">Genome Properties</a>
+              <a href="#" title="Back to [service-name] homepage">RNA sequence search</a>
             </h1>
           </div>
           {/* /local-title */}
