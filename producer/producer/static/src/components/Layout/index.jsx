@@ -1,6 +1,10 @@
 import React from 'react';
 import {Route, Link, Redirect, Switch} from 'react-router-dom';
 
+import 'ebi-framework/js/script.js';
+import 'ebi-framework/js/foundationExtendEBI';
+import 'foundation-sites/dist/js/foundation.js';
+import 'jquery/dist/jquery.js';
 import 'bootstrap/dist/css/bootstrap.css';
 import 'font-awesome/css/font-awesome.css';
 import 'pixeden-stroke-7-icon/pe-icon-7-stroke/dist/pe-icon-7-stroke.min.css';
@@ -14,8 +18,8 @@ import Header from 'components/Header/index.jsx';
 import InnerHeader from 'components/InnerHeader/index.jsx';
 import Footer from 'components/Footer/index.jsx';
 
-import Blog from 'pages/Search/index.jsx';
-import Post from 'pages/Job/index.jsx';
+import Search from 'pages/Search/index.jsx';
+import Job from 'pages/Job/index.jsx';
 
 
 // <!-- JavaScript -->
@@ -74,7 +78,6 @@ class Layout extends React.Component {
 
   render() {
     return [
-      <body className="level2">{/* add any of your classes or IDs */}
         <div id="skip-to">
           <ul>
             <li><a href="#content">Skip to main content</a></li>
@@ -83,7 +86,7 @@ class Layout extends React.Component {
             <li><a href="#global-nav-expanded">Skip to expanded EBI global navigation menu (includes all sub-sections)</a>
             </li>
           </ul>
-        </div>
+        </div>,
 
         <Header key="Header" />,
 
@@ -91,7 +94,7 @@ class Layout extends React.Component {
           <div data-sticky-container>
             <InnerHeader key="InnerHeader" />
           </div>
-          {/* Suggested layout containers */}
+
           <section id="main-content-area" className="row" role="main">
 
             <div className="columns">
@@ -105,16 +108,15 @@ class Layout extends React.Component {
             </div>
 
           </section>
-        </div>
-        {/* End suggested layout containers / #content */}
+        </div>,
 
         <Footer key="Footer" />
-      </body>
     ]
   }
 
   componentDidMount() {
-
+    $(document).foundation();
+    $(document).foundationExtendEBI();
   }
 
 }
