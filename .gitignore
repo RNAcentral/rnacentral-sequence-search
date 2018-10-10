@@ -8,3 +8,5 @@ postrges/local.Dockerfile
 __pycache__/
 *.pyc
 *.pyo
+
+node_modules/
