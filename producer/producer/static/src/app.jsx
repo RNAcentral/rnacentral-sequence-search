@@ -10,5 +10,5 @@ ReactDOM.render(
     <Route path="/" component={Layout} >
     </Route>
   </Router>,
-  document.querySelector('body.level2')
+  document.querySelector('div#main')
 );

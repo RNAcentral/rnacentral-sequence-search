@@ -83,7 +83,7 @@ class Layout extends React.Component {
 
   render() {
     return [
-        <div id="skip-to">
+        <div id="skip-to" key="skip-to">
           <ul>
             <li><a href="#content">Skip to main content</a></li>
             <li><a href="#local-nav">Skip to local navigation</a></li>
@@ -95,7 +95,7 @@ class Layout extends React.Component {
 
         <Header key="Header" />,
 
-        <div id="content">
+        <div id="content" key="content">
           <div data-sticky-container>
             <InnerHeader key="InnerHeader" />
           </div>
