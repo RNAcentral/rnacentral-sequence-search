@@ -14,8 +14,8 @@ limitations under the License.
 import os
 import json
 import datetime
-import requests
 
+import logging
 from aiojobs.aiohttp import spawn
 import aiohttp_jinja2
 from aiohttp import web, client
@@ -70,19 +70,24 @@ async def save(request, data):
 async def delegate(request, data, job_id):
     """Send job chunks to consumers, if sent successfully - update status of each JobChunk in the database."""
     for database in data["databases"]:
-        # TODO: replace requests with async client.request
-        requests.post(
-            url="http://" + request.app['settings'].CONSUMERS[database] + '/' + request.app['settings'].CONSUMER_SUBMIT_JOB_URL,
-            data=json.dumps({"job_id": job_id, "sequence": data['query'], "database": database })
-        )
+        url = "http://" + request.app['settings'].CONSUMERS[database] + '/' + request.app['settings'].CONSUMER_SUBMIT_JOB_URL
+        json_data = json.dumps({"job_id": job_id, "sequence": data['query'], "database": database})
+        headers = {'content-type': 'application/json'}
 
-        await request.app['connection'].execute(
-            '''
-            UPDATE {job_chunks}
-            SET status = 'running'
-            WHERE job_id={job_id} AND database='{database}';
-            '''.format(job_chunks='job_chunks', job_id=job_id, database=database)
-        )
+        logging.debug("Queuing JobChunk to consumer: url = {}, json_data = {}, headers = {}".format(url, json_data, headers))
+
+        async with client.request("post", url, data=json_data, headers=headers) as response:
+            if response.status < 400:
+                await request.app['connection'].execute(
+                    '''
+                    UPDATE {job_chunks}
+                    SET status = 'running'
+                    WHERE job_id={job_id} AND database='{database}';
+                    '''.format(job_chunks='job_chunks', job_id=job_id, database=database)
+                )
+            else:
+                text = await response.text()
+                raise web.HTTPBadRequest(text=text)
 
 
 async def submit_job(request):
