@@ -28,7 +28,7 @@ module.exports = function(env) {
       new HtmlWebpackPlugin({
         inject: "body",
         template: "src/index.html",
-        filename: environment === 'production' ? path.join(__dirname, dist, "index.html") : "index.html"
+        filename: environment === 'production' ? path.join(__dirname, "dist", "index.html") : "index.html"
       }),
       new webpack.ProvidePlugin({ $: 'jquery', jQuery: 'jquery', jquery: 'jquery' })
     ],
