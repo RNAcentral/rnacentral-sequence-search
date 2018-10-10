@@ -69,10 +69,10 @@ class JobDoneTestCase(AioHTTPTestCase):
             # '''.format(job_chunks='job_chunks', job_id=self.job_id))
             # print(job_chunks)
 
-            query = (sa.select([JobChunk.c.job_id])
+            query = (sa.select([JobChunk.c.job_id, JobChunk.c.database, JobChunk.c.result])
                      .where(JobChunk.c.job_id == self.job_id)  # noqa
                     )
             job_chunks = await self.app['connection'].execute(query)
             for row in job_chunks:
-                print("job_id = %s" % row.job_id)
+                print("job_id = %s, database = %s, result = %s" % (row.job_id, row.database, row.result))
 
