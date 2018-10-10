@@ -1,0 +1,36 @@
+{
+  "name": "rna-sequence-search",
+  "version": "2.0.0",
+  "description": "NHMMER-based RNA sequence search developed by RNAcentral consortium.",
+  "scripts": {
+    "clean": "rm -rf dist/*",
+    "build:prod": "node_modules/.bin/webpack -p --env.prod",
+    "build": "npm run build:prod",
+    "profile:build": "node_modules/.bin/webpack -p --env.prod --profile --json > webpack-stats.json",
+    "serve": "node_modules/.bin/webpack-dev-server --progress --colors --history-api-fallback",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/RNAcentral/SequenceSearchDevOps.git"
+  },
+  "keywords": [
+    "RNA",
+    "sequence",
+    "search",
+    "RNAcentral",
+    "ncRNA",
+    "non-coding",
+    "RNA",
+    "bioinformatics"
+  ],
+  "author": "Boris A. Burkov <burkov@ebi.ac.uk>",
+  "license": [{
+    "type": "Apache-2.0",
+    "url": "http://www.apache.org/licenses/LICENSE-2.0"
+  }],
+  "bugs": {
+    "url": "https://github.com/RNAcentral/SequenceSearchDevOps/issues"
+  },
+  "homepage": "https://github.com/RNAcentral/SequenceSearchDevOps#readme"
+}
