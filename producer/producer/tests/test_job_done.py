@@ -18,6 +18,7 @@ import datetime
 
 from aiohttp.test_utils import unittest_run_loop
 from aiohttp.test_utils import AioHTTPTestCase
+import sqlalchemy as sa
 
 from ..main import create_app
 from ..models import Job, JobChunk
@@ -32,13 +33,15 @@ ENVIRONMENT=TEST python -m unittest producer.tests.test_job_done
 
 class JobDoneTestCase(AioHTTPTestCase):
     async def get_application(self):
-        logging.basicConfig(level=logging.ERROR)  # subdue messages like 'DEBUG:asyncio:Using selector: KqueueSelector'
+        logging.basicConfig(level=logging.INFO)  # subdue messages like 'DEBUG:asyncio:Using selector: KqueueSelector'
         app = create_app()
         self.url = app.router["job-done"].url_for()
         return app
 
     async def setUpAsync(self):
         await super().setUpAsync()
+
+        logging.info("settings = %s" % self.app['settings'].__dict__)
 
         self.job_id = await self.app['connection'].scalar(
             Job.insert().values(query='', submitted=datetime.datetime.now(), status='started')
@@ -58,4 +61,18 @@ class JobDoneTestCase(AioHTTPTestCase):
         data = json.dumps({"job_id": self.job_id, "database": 'miRBase', "result": "Scary blob with nhmmer data"})
         async with self.client.post(path=self.url, data=data) as response:
             assert response.status == 200
-            # TODO: more meaningful asserts
+
+            # job_chunks = self.app['connection'].execute('''
+            #   SELECT *
+            #   FROM {job_chunks}
+            #   WHERE id={job_id}
+            # '''.format(job_chunks='job_chunks', job_id=self.job_id))
+            # print(job_chunks)
+
+            query = (sa.select([JobChunk.c.job_id])
+                     .where(JobChunk.c.job_id == self.job_id)  # noqa
+                    )
+            job_chunks = await self.app['connection'].execute(query)
+            for row in job_chunks:
+                print("job_id = %s" % row.job_id)
+
