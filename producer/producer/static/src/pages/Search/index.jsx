@@ -2,6 +2,8 @@ import React from 'react';
 
 import routes from 'services/routes.jsx';
 
+import 'pages/Search/index.scss';
+
 
 class Search extends React.Component {
   constructor(props) {
@@ -40,7 +42,7 @@ class Search extends React.Component {
                 <div className="jd_toolParameterBox">
                   <fieldset>
                     <h4>RNA databases:</h4>
-                    <ul className="vertical menu facets">
+                    <ul id="rnacentralDatabases" className="facets">
                       {this.state.rnacentralDatabases.map(database =>
                         <li key={database}><span className="facet"><input id={database} type="checkbox" /><label htmlFor={database}>{database}</label></span></li>
                       )}
@@ -56,9 +58,9 @@ class Search extends React.Component {
   }
 
   componentDidMount() {
-    fetch(routes.rnacentalDatabases)
+    fetch(routes.rnacentralDatabases)
       .then(response => response.json())
-      .then(data => this.setState({ rnacentralDatabases: data.rnacentralDatabases }));
+      .then(data => this.setState({ rnacentralDatabases: data }));
   }
 
 }

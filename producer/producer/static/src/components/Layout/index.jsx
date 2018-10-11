@@ -1,8 +1,8 @@
 import React from 'react';
 import {Route, Link, Redirect, Switch} from 'react-router-dom';
 import 'ebi-framework/js/script.js';
-import 'ebi-framework/js/foundationExtendEBI.js';
 import 'foundation-sites/dist/js/foundation.js';
+import 'ebi-framework/js/foundationExtendEBI.js';
 import 'jquery/dist/jquery.js';
 
 import 'foundation-sites/dist/css/foundation.css';
