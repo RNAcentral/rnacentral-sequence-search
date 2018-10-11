@@ -1,11 +1,9 @@
 import React from 'react';
 import {Route, Link, Redirect, Switch} from 'react-router-dom';
-
 import 'ebi-framework/js/script.js';
 import 'ebi-framework/js/foundationExtendEBI.js';
 import 'foundation-sites/dist/js/foundation.js';
 import 'jquery/dist/jquery.js';
-
 
 import 'foundation-sites/dist/css/foundation.css';
 import 'ebi-framework/css/ebi-global.css';
@@ -17,7 +15,6 @@ import 'animate.css/animate.min.css';
 import 'flag-icon-css/css/flag-icon.css';
 import 'styles/style.scss';
 
-
 import PropsRoute from 'components/PropsRoute.jsx'
 import Header from 'components/Header/index.jsx';
 import InnerHeader from 'components/InnerHeader/index.jsx';
@@ -25,6 +22,7 @@ import Footer from 'components/Footer/index.jsx';
 
 import Search from 'pages/Search/index.jsx';
 import Job from 'pages/Job/index.jsx';
+import Result from 'pages/Result/index.jsx';
 
 
 // <!-- JavaScript -->
@@ -102,11 +100,12 @@ class Layout extends React.Component {
 
           <section id="main-content-area" className="row" role="main">
 
-            <div className="columns">
+            <div className="columns margin-top-large">
               <section>
                 <Switch>
                   <PropsRoute exact path="/search" component={Search} />
                   <PropsRoute path="/job/:id" component={Job} />
+                  <PropsRoute path="/result/:id" component={Result} />
                   <Redirect to="/search" />
                 </Switch>
               </section>
