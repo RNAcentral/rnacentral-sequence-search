@@ -17,10 +17,10 @@ from . import settings
 
 def setup_routes(app):
     app.router.add_get('/', index, name='index')
-    app.router.add_post('/submit-job', submit_job, name='submit-job')
-    app.router.add_get('/job-status/{job_id}', job_status, name='job-status')
-    app.router.add_post('/job-done', job_done, name='job-done')
-    app.router.add_get('/rnacentral-databases', rnacentral_databases, name='rnacentral-databases')
+    app.router.add_post('/api/submit-job', submit_job, name='submit-job')
+    app.router.add_get('/api/job-status/{job_id}', job_status, name='job-status')
+    app.router.add_post('/api/job-done', job_done, name='job-done')
+    app.router.add_get('/api/rnacentral-databases', rnacentral_databases, name='rnacentral-databases')
     setup_static_routes(app)
 
 

@@ -69,7 +69,13 @@ module.exports = function(env) {
     devServer: {
       publicPath: '/',
       contentBase: './',
-      hot: true
+      hot: true,
+      proxy: {
+        '/api': {
+            target: 'http://localhost:8002',
+            secure: false
+        }
+    }
     },
     devtool: "source-map"
   };

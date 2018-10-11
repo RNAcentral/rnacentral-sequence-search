@@ -1,5 +1,6 @@
 module.exports = {
-  'rnacentalDatabases': '/rnacentral-databases',
-  'search': '',
-  'results': '',
+  'rnacentalDatabases': '/api/rnacentral-databases',
+  'submitJob': '/api/submit-job',
+  'jobStatus': '/api/job-status/:jobId',
+  'jobResult': '/api/job-result/:jobId',
 };
