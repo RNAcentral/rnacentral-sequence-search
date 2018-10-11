@@ -11,7 +11,19 @@ class Search extends React.Component {
 
     this.state = {
       rnacentralDatabases: [],
+      selectedDatabases: {},
+      sequence: ""
     };
+  }
+
+  onSequenceTextareaChange(event) {
+    this.setState({sequence: event.target.value.toUpperCase()});
+  }
+
+  onDatabaseCheckboxToggle(event) {
+    let selectedDatabases = { ...this.state.selectedDatabases };
+    selectedDatabases[event.target.id] = !selectedDatabases[event.target.id];
+    this.setState({ selectedDatabases: selectedDatabases });
   }
 
   render() {
@@ -32,7 +44,7 @@ class Search extends React.Component {
                         Use a <a href="#" id="exampleSeq">example sequence</a> | <a href="#" id="clearSequence">Clear sequence</a> | <a href="#" id="seeMoreExample">See more example inputs</a>
                       </label>
                     </p>
-                    <textarea id="sequence" name="sequence" rows="7"></textarea>
+                    <textarea id="sequence" name="sequence" rows="7" value={this.state.sequence} onChange={(e) => this.onSequenceTextareaChange(e)} />
                     <p>
                       Or upload a file:
                       <input id="upfile" name="upfile" type="file"/>
@@ -44,9 +56,16 @@ class Search extends React.Component {
                     <h4>RNA databases:</h4>
                     <ul id="rnacentralDatabases" className="facets">
                       {this.state.rnacentralDatabases.map(database =>
-                        <li key={database}><span className="facet"><input id={database} type="checkbox" /><label htmlFor={database}>{database}</label></span></li>
+                        <li key={database}><span className="facet"><input id={database} type="checkbox" checked={this.state.selectedDatabases[database]} onChange={(e) => this.onDatabaseCheckboxToggle(e)} /><label htmlFor={database}>{database}</label></span></li>
                       )}
                     </ul>
+                  </fieldset>
+                </div>
+                <div className="jd_toolParameterBox">
+                  <fieldset>
+                    <div id="jd_submitButtonPanel">
+                      <input name="submit" type="submit" value="Submit" className="button" />
+                    </div>
                   </fieldset>
                 </div>
               </form>
@@ -60,7 +79,11 @@ class Search extends React.Component {
   componentDidMount() {
     fetch(routes.rnacentralDatabases)
       .then(response => response.json())
-      .then(data => this.setState({ rnacentralDatabases: data }));
+      .then(data => {
+        let selectedDatabases = {};
+        data.map(database => {selectedDatabases[database] = true});
+        this.setState({ rnacentralDatabases: data, selectedDatabases: selectedDatabases });
+      });
   }
 
 }
