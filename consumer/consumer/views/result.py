@@ -11,16 +11,17 @@ See the License for the specific language governing permissions and
 limitations under the License.
 """
 
-from .views import index, result, submit_job
-from . import settings
+import aiohttp_jinja2
+import os
+from aiohttp import web
+
+from .. import settings
 
 
-def setup_routes(app):
-    app.router.add_get('/', index, name='index')
-    app.router.add_get('/results/{result_id}', result, name='result')
-    app.router.add_post('/submit-job', submit_job, name='submit-job')
-    setup_static_routes(app)
-
-
-def setup_static_routes(app):
-    app.router.add_static('/static/', path=settings.PROJECT_ROOT / 'static', name='static')
+async def result(request):
+    result_id = request.match_info['result_id']
+    filename = settings.RESULTS_DIR / (result_id + ".txt")
+    if os.path.isfile(filename) and os.access(filename, os.R_OK):
+        return web.FileResponse(filename)
+    else:
+        return aiohttp_jinja2.render_template('404.html', request, {})
