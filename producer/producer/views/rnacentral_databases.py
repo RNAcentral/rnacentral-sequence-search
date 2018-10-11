@@ -11,9 +11,8 @@ See the License for the specific language governing permissions and
 limitations under the License.
 """
 
-from .index import index
-from .job_chunk_heartbeat import job_chunk_heartbeat
-from .job_done import job_done
-from .job_status import job_status
-from .submit_job import submit_job
-from .rnacentral_databases import rnacentral_databases
+from aiohttp import web
+
+
+async def rnacentral_databases(request):
+    return web.json_response(request.app['settings'].RNACENTRAL_DATABASES)

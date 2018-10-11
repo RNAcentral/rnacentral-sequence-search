@@ -11,7 +11,7 @@ See the License for the specific language governing permissions and
 limitations under the License.
 """
 
-from .views import index, submit_job, job_status, job_done
+from .views import index, submit_job, job_status, job_done, rnacentral_databases
 from . import settings
 
 
@@ -20,6 +20,7 @@ def setup_routes(app):
     app.router.add_post('/submit-job', submit_job, name='submit-job')
     app.router.add_get('/job-status/{job_id}', job_status, name='job-status')
     app.router.add_post('/job-done', job_done, name='job-done')
+    app.router.add_get('/rnacentral-databases', rnacentral_databases, name='rnacentral-databases')
     setup_static_routes(app)
 
 
