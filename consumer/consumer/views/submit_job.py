@@ -59,32 +59,32 @@ async def nhmmer(job_id, sequence, database):
             print(text)
 
 
+def validate_job_data(job_id, sequence, database):
+    """Ad-hoc validator for input JSON data"""
+    if os.path.isfile(settings.QUERY_DIR / (str(job_id) + '.txt')) or \
+            os.path.isfile(settings.RESULTS_DIR / (str(job_id) + '.txt')):
+        raise web.HTTPBadRequest(text="job with id '%s' has already been submitted" % job_id)
+
+    if database not in settings.RNACENTRAL_DATABASES:
+        raise web.HTTPBadRequest(
+            text="Database argument is wrong: '%s' is not"
+                 " one of RNAcentral databases." % database
+        )
+
+    for char in sequence:
+        if char not in ['A', 'T', 'G', 'C', 'U']:
+            raise web.HTTPBadRequest(
+                text="Input sequence should be nucleotide sequence"
+                     " and contain only {ATGCU} characters, found: '%s'." % sequence
+            )
+
+
 async def submit_job(request):
     """
     For testing purposes, try the following command:
 
     curl -H "Content-Type:application/json" -d "{\"job_id\": 1, \"databases\": [\"miRBase\"], \"sequence\": \"AAAAGGTCGGAGCGAGGCAAAATTGGCTTTCAAACTAGGTTCTGGGTTCACATAAGACCT\"}" localhost:8000/job
     """
-
-    def validate_job_data(job_id, sequence, database):
-        """Ad-hoc validator for input JSON data"""
-        if os.path.isfile(settings.QUERY_DIR / (str(job_id) + '.txt')) or \
-                os.path.isfile(settings.RESULTS_DIR / (str(job_id) + '.txt')):
-            raise web.HTTPBadRequest(text="job with id '%s' has already been submitted" % job_id)
-
-        if database not in settings.RNACENTRAL_DATABASES:
-            raise web.HTTPBadRequest(
-                text="Database argument is wrong: '%s' is not"
-                     " one of RNAcentral databases." % database
-            )
-
-        for char in sequence:
-            if char not in ['A', 'T', 'G', 'C', 'U']:
-                raise web.HTTPBadRequest(
-                    text="Input sequence should be nucleotide sequence"
-                         " and contain only {ATGCU} characters, found: '%s'." % sequence
-                )
-
     data = await request.json()
     try:
         job_id = data['job_id']
