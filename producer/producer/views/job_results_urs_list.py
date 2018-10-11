@@ -11,10 +11,13 @@ See the License for the specific language governing permissions and
 limitations under the License.
 """
 
-from .index import index
-from .job_chunk_heartbeat import job_chunk_heartbeat
-from .job_done import job_done
-from .job_status import job_status
-from .submit_job import submit_job
-from .rnacentral_databases import rnacentral_databases
-from .job_results_urs_list import job_results_urs_list
+from aiohttp import web
+
+
+async def job_results_urs_list(request):
+    return web.Response(text="\n".join([
+        'URS0000759B6D',
+        'URS0000A8D543',
+        'URS00003A3AD6',
+        'URS0000CB1118'
+    ]))
