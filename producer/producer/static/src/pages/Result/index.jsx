@@ -1,6 +1,7 @@
 import React from 'react';
 
 import Facets from 'pages/Result/components/Facets.jsx';
+import Hit from 'pages/Result/components/Hit.jsx';
 
 
 class Result extends React.Component {
@@ -9,8 +10,9 @@ class Result extends React.Component {
       <div className="row">
         <div className="small-12 medium-10 medium-push-2 columns">
           <section>
-            <p>Your results go here in whatever format is most suitable: list, table, tiled images... etc</p>
-            <p>You may wish to precede them with pagination and details of which page out of how many this is.</p>
+            <ul>
+              <Hit></Hit>
+            </ul>
           </section>
           <ul className="pagination" role="navigation" aria-label="Pagination">
             <li className="pagination-previous disabled">Previous <span className="show-for-sr">page</span></li>

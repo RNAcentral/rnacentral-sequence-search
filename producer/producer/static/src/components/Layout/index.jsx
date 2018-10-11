@@ -100,7 +100,7 @@ class Layout extends React.Component {
 
           <section id="main-content-area" className="row" role="main">
 
-            <div className="columns margin-top-large">
+            <div className="columns margin-top-large margin-bottom-large">
               <section>
                 <Switch>
                   <PropsRoute exact path="/search" component={Search} />
