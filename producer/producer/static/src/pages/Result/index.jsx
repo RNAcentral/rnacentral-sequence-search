@@ -3,11 +3,14 @@ import React from 'react';
 import Facets from 'pages/Result/components/Facets.jsx';
 import Hit from 'pages/Result/components/Hit.jsx';
 
+import 'pages/Result/index.scss';
+
 
 class Result extends React.Component {
   render() {
     return (
-      <div className="row">
+      <div className="row" key="results">
+        <h1 className="margin-top-large margin-bottom-large">Results:</h1>
         <div className="small-12 medium-10 medium-push-2 columns">
           <section>
             <ul>
