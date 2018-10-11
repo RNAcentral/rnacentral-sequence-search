@@ -16,6 +16,20 @@ class Search extends React.Component {
     };
   }
 
+  onSubmit(event) {
+    fetch(routes.submitJob, {
+      method: 'post',
+      headers: {
+        'Accept': 'application/json, text/plain, */*',
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({query: this.state.sequence, databases: Object.keys(this.state.selectedDatabases).filter(key => this.state.selectedDatabases[key]) })
+    }).then(result => result.json())
+      .then(result => console.log(result));
+
+    event.preventDefault();
+  }
+
   onSequenceTextareaChange(event) {
     this.setState({sequence: event.target.value.toUpperCase()});
   }
@@ -35,7 +49,7 @@ class Search extends React.Component {
               <h1>Search an RNA sequence in RNA databases</h1>
             </div>
             <div className="panel-body">
-              <form>
+              <form onSubmit={(e) => this.onSubmit(e)}>
                 <div className="jd_toolParameterBox">
                   <fieldset>
                     <h4>RNA sequence:</h4>
