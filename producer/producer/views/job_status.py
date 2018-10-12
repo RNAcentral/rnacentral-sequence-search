@@ -18,24 +18,26 @@ async def job_status(request):
     job_id = request.match_info['job_id']
 
     try:
-        jobs = await request.app['connection'].execute('''
-            SELECT *
+        query = '''
+            SELECT {job}.id, {job_chunks}.status, {job_chunks}.database
             FROM {job}
             JOIN {job_chunks}
             ON {job_chunks}.job_id = job_id
             WHERE {job}.id={job_id}
-        '''.format(job='jobs', job_chunks='job_chunks', job_id='job_id'))
-        print(jobs)
+        '''.format(job='jobs', job_chunks='job_chunks', job_id=int(job_id))
+
+        chunks = []
+        async for row in request.app['connection'].execute(query):
+            status = row.status
+            chunks.append({"database": row.database, "status": row.status})
     except Exception as e:
         raise web.HTTPNotFound() from e
 
-    chunks = []
-    for chunk in jobs.job_chunks:
-        chunks.append({ "database": chunk.database, "status": chunk.status, "result": chunk.result })
+    if 'status' not in locals():
+        raise web.HTTPNotFound(text="Job '%s' not found" % job_id)
 
     return web.json_response({
-        "job_id": jobs.job_id,
-        "status": jobs.status,
-        "result" : jobs.result
+        "job_id": job_id,
+        "status": status,
         "chunks": chunks
     })
