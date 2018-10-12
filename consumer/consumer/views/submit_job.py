@@ -36,9 +36,9 @@ async def nhmmer(job_id, sequence, database):
 
     filename = await nhmmer_search(sequence=sequence, job_id=job_id, database=database)
 
-    data = {"job_id": job_id, "database": database, "result": ""}
+    data = {"job_id": job_id, "database": database, "result": []}
     for record in nhmmer_parse(filename=filename):
-        data["result"] = data["result"] + str(record)
+        data["result"].append(record)
 
     response_url = "{protocol}://{host}:{port}/{url}".format(
         protocol=settings.PRODUCER_PROTOCOL,

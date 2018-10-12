@@ -19,7 +19,7 @@ from sqlalchemy import text
 import aiohttp_jinja2
 from aiohttp import web, client
 
-from ..models import Job, JobChunk
+from ..models import Job, JobChunk, JobChunkResult
 
 
 async def serialize(request, data):
@@ -53,21 +53,28 @@ async def job_done(request):
     data = await request.json()
     data = await serialize(request, data)
 
-    import pdb
-    pdb.set_trace()
-
     query = text('''
-        UPDATE :job_chunks
-        SET status = 'success', result=':result'
-        WHERE job_id=job_id AND database=':database';
+        UPDATE job_chunks
+        SET status = 'success'
+        WHERE job_id=:job_id AND database=:database
+        RETURNING *;
     ''')
-    await request.app['connection'].execute(
+    result = await request.app['connection'].execute(
         query,
-        job_chunks='job_chunks',
         job_id=data['job_id'],
-        database=data['database'],
-        result=data['result']
+        database=data['database']
     )
+    for row in result:
+        print("row = %s" % row)
+        job_chunk_id = row.id
+
+    if 'job_chunk_id' not in locals():
+        raise web.HTTPBadRequest(text="Job chunk, you're trying to update, is non-existent")
+
+    for result in data['result']:
+        job_chunk_id = await request.app['connection'].scalar(
+            JobChunkResult.insert().values(job_chunk_id=job_chunk_id, **result)
+        )
 
     return web.HTTPOk()
 

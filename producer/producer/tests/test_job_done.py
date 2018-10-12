@@ -59,7 +59,53 @@ class JobDoneTestCase(AioHTTPTestCase):
 
     @unittest_run_loop
     async def test_submit_job_post_success(self):
-        data = json.dumps({"job_id": self.job_id, "database": 'miRBase', "result": "Scary blob with nhmmer data"})
+        data = json.dumps({
+            "job_id": self.job_id,
+            "database": 'mirbase',
+            "result": [
+                {
+                    'rnacentral_id': 'URS000075D2D2',
+                    'description': '_10090  Mus musculus miR-1195 stem-loop',
+                    'score': 6.5,
+                    'bias': 0.7,
+                    'e_value': 32.0,
+                    'target_length': 98,
+                    'alignment': 'Query  8 GAGUUUGAGACCAGCCUGGCCA 29\\n         ||||| ||| ||||||||  ||\\nSbjct_10090 22 GAGUUCGAGGCCAGCCUGCUCA 43',
+                    'alignment_length': 22,
+                    'gap_count': 0,
+                    'match_count': 18,
+                    'nts_count1': 22,
+                    'nts_count2': 0,
+                    'identity': 81.81818181818183,
+                    'query_coverage': 73.33333333333333,
+                    'target_coverage': 0.0,
+                    'gaps': 0.0,
+                    'query_length': 30,
+                    'result_id': 1
+                },
+                {
+                    'rnacentral_id': 'URS000075D2D2',
+                    'description': '_10090  Mus musculus miR-1195 stem-loop',
+                    'score': 0.9,
+                    'bias': 0.7,
+                    'e_value': 3400.0,
+                    'target_length': 98,
+                    'alignment': 'Query  7 GGAGUUUGAGACCAGCCUGG 26\\n          |||||  ||  ||||| ||\\nSbjct_10090 50 UGAGUUCUAGGGCAGCCAGG 69',
+                    'alignment_length': 20,
+                    'gap_count': 0,
+                    'match_count': 14,
+                    'nts_count1': 20,
+                    'nts_count2': 0,
+                    'identity': 70.0,
+                    'query_coverage': 66.66666666666666,
+                    'target_coverage': 0.0,
+                    'gaps': 0.0,
+                    'query_length': 30,
+                    'result_id': 2
+                 }
+        ]
+        })
+
         async with self.client.post(path=self.url, data=data) as response:
             assert response.status == 200
 
@@ -74,6 +120,7 @@ class JobDoneTestCase(AioHTTPTestCase):
                      .where(JobChunk.c.job_id == self.job_id)  # noqa
                     )
             job_chunks = await self.app['connection'].execute(query)
+
             for row in job_chunks:
-                print("job_id = %s, database = %s, result = %s" % (row.job_id, row.database, row.result))
+                print("job_id = %s, database = %s" % (row.job_id, row.database))
 
