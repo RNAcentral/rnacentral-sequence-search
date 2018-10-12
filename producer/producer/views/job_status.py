@@ -11,6 +11,31 @@ See the License for the specific language governing permissions and
 limitations under the License.
 """
 
+from aiohttp import web
+
 
 async def job_status(request):
-    pass
+    job_id = request.match_info['job_id']
+
+    try:
+        jobs = await request.app['connection'].execute('''
+            SELECT *
+            FROM {job}
+            JOIN {job_chunks}
+            ON {job_chunks}.job_id = job_id
+            WHERE {job}.id={job_id}
+        '''.format(job='jobs', job_chunks='job_chunks', job_id='job_id'))
+        print(jobs)
+    except Exception as e:
+        raise web.HTTPNotFound() from e
+
+    chunks = []
+    for chunk in jobs.job_chunks:
+        chunks.append({ "database": chunk.database, "status": chunk.status, "result": chunk.result })
+
+    return web.json_response({
+        "job_id": jobs.job_id,
+        "status": jobs.status,
+        "result" : jobs.result
+        "chunks": chunks
+    })
