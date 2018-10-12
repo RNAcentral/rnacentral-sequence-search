@@ -1,4 +1,5 @@
 import React from 'react';
+import { withRouter } from 'react-router-dom';
 
 import routes from 'services/routes.jsx';
 
@@ -12,11 +13,14 @@ class Search extends React.Component {
     this.state = {
       rnacentralDatabases: [],
       selectedDatabases: {},
-      sequence: ""
+      sequence: "",
+      submissionError: ""
     };
   }
 
   onSubmit(event) {
+    event.preventDefault();
+
     fetch(routes.submitJob, {
       method: 'post',
       headers: {
@@ -24,10 +28,22 @@ class Search extends React.Component {
         'Content-Type': 'application/json'
       },
       body: JSON.stringify({query: this.state.sequence, databases: Object.keys(this.state.selectedDatabases).filter(key => this.state.selectedDatabases[key]) })
-    }).then(result => result.json())
-      .then(result => console.log(result));
-
-    event.preventDefault();
+    })
+      .then(function(response) {
+        if (response.ok) {
+          return response.json();
+        } else {
+          throw new Error(response.statusText);
+        }
+      })
+      .then(result => {
+        console.log(result);
+        this.props.history.push(`/job/${result.job_id}`);
+      })
+      .catch(error => {
+        console.log(error);
+        this.setState({submissionError: error.toString()})
+      });
   }
 
   onSequenceTextareaChange(event) {
@@ -50,7 +66,7 @@ class Search extends React.Component {
             </div>
             <div className="panel-body">
               <form onSubmit={(e) => this.onSubmit(e)}>
-                <div className="jd_toolParameterBox">
+                <div>
                   <fieldset>
                     <h4>RNA sequence:</h4>
                     <p>
@@ -65,7 +81,11 @@ class Search extends React.Component {
                     </p>
                   </fieldset>
                 </div>
-                <div className="jd_toolParameterBox">
+                { this.state.submissionError && <div className="callout alert">
+                  <h3>Form submission failed</h3>
+                  { this.state.submissionError }
+                </div>}
+                <div>
                   <fieldset>
                     <h4>RNA databases:</h4>
                     <ul id="rnacentralDatabases" className="facets">
@@ -75,7 +95,7 @@ class Search extends React.Component {
                     </ul>
                   </fieldset>
                 </div>
-                <div className="jd_toolParameterBox">
+                <div>
                   <fieldset>
                     <div id="jd_submitButtonPanel">
                       <input name="submit" type="submit" value="Submit" className="button" />
@@ -102,4 +122,4 @@ class Search extends React.Component {
 
 }
 
-export default Search;
+export default withRouter(Search);
