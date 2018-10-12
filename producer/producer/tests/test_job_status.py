@@ -62,6 +62,7 @@ class SubmitJobTestCase(AioHTTPTestCase):
         )
 
     async def tearDownAsync(self):
+        await self.app['connection'].execute('DELETE FROM job_chunk_results')
         await self.app['connection'].execute('DELETE FROM job_chunks')
         await self.app['connection'].execute('DELETE FROM jobs')
 
