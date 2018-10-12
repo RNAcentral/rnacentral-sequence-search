@@ -38,7 +38,7 @@ async def nhmmer(job_id, sequence, database):
 
     data = {"job_id": job_id, "database": database, "result": ""}
     for record in nhmmer_parse(filename=filename):
-        data["result"] = data["result"] + record
+        data["result"] = data["result"] + str(record)
 
     response_url = "{protocol}://{host}:{port}/{url}".format(
         protocol=settings.PRODUCER_PROTOCOL,

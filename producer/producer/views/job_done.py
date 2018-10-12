@@ -15,6 +15,7 @@ import os
 import json
 import datetime
 
+from sqlalchemy import text
 import aiohttp_jinja2
 from aiohttp import web, client
 
@@ -52,12 +53,17 @@ async def job_done(request):
     data = await request.json()
     data = await serialize(request, data)
 
+    query = text('''
+        UPDATE :job_chunks
+        SET status = 'success', result=':result'
+        WHERE job_id=job_id AND database=':database';
+    ''')
     await request.app['connection'].execute(
-        '''
-        UPDATE {job_chunks}
-        SET status = 'success', result='{result}'
-        WHERE job_id={job_id} AND database='{database}';
-        '''.format(job_chunks='job_chunks', job_id=data['job_id'], database=data['database'], result=data['result'])
+        query,
+        job_chunks='job_chunks',
+        job_id=data['job_id'],
+        database=data['database'],
+        result=str(data['result'])
     )
 
     return web.HTTPOk()

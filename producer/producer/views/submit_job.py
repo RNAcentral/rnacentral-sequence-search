@@ -19,7 +19,6 @@ import logging
 from aiojobs.aiohttp import spawn
 import aiohttp_jinja2
 from aiohttp import web, client
-from sqlalchemy import and_
 
 from ..models import Job, JobChunk
 
@@ -93,7 +92,7 @@ async def delegate(request, data, job_id):
 async def submit_job(request):
     """
     Example:
-    curl -H "Content-Type:application/json" -d "{\"databases\": [\"miRBase\"], \"query\": \"AGGCTCGGAGTCGTAGCTAT\"}" localhost:8002/submit-job
+    curl -H "Content-Type:application/json" -d "{\"databases\": [\"miRBase\"], \"query\": \"AGGUCAGGAGUUUGAGACCAGCCUGGCCAA\"}" localhost:8002/api/submit-job
 
     :param request:
     :return:
