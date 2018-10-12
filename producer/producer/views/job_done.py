@@ -53,6 +53,9 @@ async def job_done(request):
     data = await request.json()
     data = await serialize(request, data)
 
+    import pdb
+    pdb.set_trace()
+
     query = text('''
         UPDATE :job_chunks
         SET status = 'success', result=':result'
@@ -63,7 +66,7 @@ async def job_done(request):
         job_chunks='job_chunks',
         job_id=data['job_id'],
         database=data['database'],
-        result=str(data['result'])
+        result=data['result']
     )
 
     return web.HTTPOk()

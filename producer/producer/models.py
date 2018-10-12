@@ -62,6 +62,27 @@ JobChunk = sa.Table('job_chunks', metadata,
                   sa.Column('result', sa.String(255), nullable=True),
                   sa.Column('status', sa.String(255)))  # choices=STATUS_CHOICES, default='started'
 
+JobChunkResult = sa.Table('job_chunk_results', metadata,
+                  sa.Column('id', sa.Integer, primary_key=True),
+                  sa.Column('job_chunk_id', None, sa.ForeignKey('job_chunks.id')),
+                  sa.Column('rnacentral_id', sa.String(255)),
+                  sa.Column('description', sa.Text, nullable=True),
+                  sa.Column('score', sa.Float),
+                  sa.Column('bias', sa.Float),
+                  sa.Column('e_value', sa.Float),
+                  sa.Column('target_length', sa.Float),
+                  sa.Column('alignment', sa.Text),
+                  sa.Column('alignment_length', sa.Integer),
+                  sa.Column('gap_count', sa.Integer),
+                  sa.Column('match_count', sa.Integer),
+                  sa.Column('nts_count1', sa.Integer),
+                  sa.Column('nts_count2', sa.Integer),
+                  sa.Column('identity', sa.Float),
+                  sa.Column('query_coverage', sa.Float),
+                  sa.Column('target_coverage', sa.Float),
+                  sa.Column('gaps', sa.Float),
+                  sa.Column('query_length', sa.Integer),
+                  sa.Column('result_id', sa.Integer))
 
 # Migrations
 # ----------
@@ -107,6 +128,32 @@ if __name__ == "__main__":
                       result VARCHAR(255),
                       status VARCHAR(255))
                 ''')
+
+                await connection.execute('''
+                    CREATE TABLE job_chunk_results (
+                      id serial PRIMARY KEY,
+                      job_chunk_id int references job_chunks(id),
+                      rnacentral_id VARCHAR(255),
+                      description TEXT,
+                      score FLOAT,
+                      bias FLOAT,
+                      e_value FLOAT,
+                      target_length FLOAT,
+                      alignment TEXT,
+                      alignment_length INTEGER,
+                      gap_count INTEGER,
+                      match_count INTEGER,
+                      nts_count1 INTEGER,
+                      nts_count2 INTEGER,
+                      identity FLOAT,
+                      query_coverage FLOAT,
+                      target_coverage FLOAT,
+                      gaps FLOAT,
+                      query_length INTEGER,
+                      result_id INTEGER
+                    )
+                ''')
+
 
     import asyncio
     asyncio.get_event_loop().run_until_complete(migrate())
