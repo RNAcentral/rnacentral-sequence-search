@@ -108,6 +108,7 @@ if __name__ == "__main__":
 
         async with engine:
             async with engine.acquire() as connection:
+                await connection.execute('DROP TABLE IF EXISTS job_chunk_results')
                 await connection.execute('DROP TABLE IF EXISTS job_chunks')
                 await connection.execute('DROP TABLE IF EXISTS jobs')
                 await connection.execute('''
@@ -133,25 +134,24 @@ if __name__ == "__main__":
                     CREATE TABLE job_chunk_results (
                       id serial PRIMARY KEY,
                       job_chunk_id int references job_chunks(id),
-                      rnacentral_id VARCHAR(255),
+                      rnacentral_id VARCHAR(255) NOT NULL,
                       description TEXT,
-                      score FLOAT,
-                      bias FLOAT,
-                      e_value FLOAT,
-                      target_length FLOAT,
-                      alignment TEXT,
-                      alignment_length INTEGER,
-                      gap_count INTEGER,
-                      match_count INTEGER,
-                      nts_count1 INTEGER,
-                      nts_count2 INTEGER,
-                      identity FLOAT,
-                      query_coverage FLOAT,
-                      target_coverage FLOAT,
-                      gaps FLOAT,
-                      query_length INTEGER,
-                      result_id INTEGER
-                    )
+                      score FLOAT NOT NULL,
+                      bias FLOAT NOT NULL,
+                      e_value FLOAT NOT NULL,
+                      target_length FLOAT NOT NULL,
+                      alignment TEXT NOT NULL,
+                      alignment_length INTEGER NOT NULL,
+                      gap_count INTEGER NOT NULL,
+                      match_count INTEGER NOT NULL,
+                      nts_count1 INTEGER NOT NULL,
+                      nts_count2 INTEGER NOT NULL,
+                      identity FLOAT NOT NULL,
+                      query_coverage FLOAT NOT NULL,
+                      target_coverage FLOAT NOT NULL,
+                      gaps FLOAT NOT NULL,
+                      query_length INTEGER NOT NULL,
+                      result_id INTEGER NOT NULL)
                 ''')
 
 

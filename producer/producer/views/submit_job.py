@@ -45,7 +45,7 @@ def serialize(request, data):
     # validate databases
     for database in data['databases']:
         if database.lower() not in request.app['settings'].RNACENTRAL_DATABASES:
-            raise web.HTTPBadRequest(text="Database '%s' not in list of RNACentral databases" % data['database'])
+            raise web.HTTPBadRequest(text="Database '%s' not in list of RNAcentral databases" % database)
 
     # normalize databases: convert them to lower case
     data['databases'] = [datum.lower() for datum in data['databases']]

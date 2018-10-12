@@ -50,4 +50,4 @@ class SubmitJobTestCase(AioHTTPTestCase):
         async with self.client.post(path=self.url, data=data) as response:
             assert response.status == 400
             text = await response.text()
-            assert text == "Database 'foobase' not in list of RNACentral databases"
+            assert text == "Database 'foobase' not in list of RNAcentral databases"
