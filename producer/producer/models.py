@@ -56,7 +56,7 @@ Job = sa.Table('jobs', metadata,
 """Part of the search job, run against a specific database and assigned to a specific consumer"""
 JobChunk = sa.Table('job_chunks', metadata,
                   sa.Column('id', sa.Integer, primary_key=True),
-                  sa.Column('job_id', None, sa.ForeignKey('users.id')),
+                  sa.Column('job_id', None, sa.ForeignKey('jobs.id')),
                   sa.Column('database', sa.String(255)),
                   sa.Column('submitted', sa.DateTime),
                   sa.Column('result', sa.String(255), nullable=True),

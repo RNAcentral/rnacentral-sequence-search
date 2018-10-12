@@ -36,7 +36,6 @@ async def serialize(request, data):
         FROM {job}
         WHERE id={job_id}
     '''.format(job='jobs', job_id=data['job_id']))
-    print(jobs)
 
     if data['database'].lower() not in request.app['settings'].RNACENTRAL_DATABASES:
         raise web.HTTPBadRequest(text="Database '%s' not in list of RNACentral databases" % data['database'])
@@ -53,6 +52,7 @@ async def job_done(request):
     data = await request.json()
     data = await serialize(request, data)
 
+    # update job_chunks
     query = text('''
         UPDATE job_chunks
         SET status = 'success'
@@ -64,13 +64,14 @@ async def job_done(request):
         job_id=data['job_id'],
         database=data['database']
     )
-    for row in result:
-        print("row = %s" % row)
-        job_chunk_id = row.id
 
+    # get job_chunk_id from update query response
+    for row in result:
+        job_chunk_id = row.id
     if 'job_chunk_id' not in locals():
         raise web.HTTPBadRequest(text="Job chunk, you're trying to update, is non-existent")
 
+    # save job chunk results
     for result in data['result']:
         job_chunk_id = await request.app['connection'].scalar(
             JobChunkResult.insert().values(job_chunk_id=job_chunk_id, **result)
