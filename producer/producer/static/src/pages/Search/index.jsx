@@ -21,7 +21,7 @@ class Search extends React.Component {
   onSubmit(event) {
     event.preventDefault();
 
-    fetch(routes.submitJob, {
+    fetch(routes.submitJob(), {
       method: 'post',
       headers: {
         'Accept': 'application/json, text/plain, */*',
@@ -111,7 +111,7 @@ class Search extends React.Component {
   }
 
   componentDidMount() {
-    fetch(routes.rnacentralDatabases)
+    fetch(routes.rnacentralDatabases())
       .then(response => response.json())
       .then(data => {
         let selectedDatabases = {};
