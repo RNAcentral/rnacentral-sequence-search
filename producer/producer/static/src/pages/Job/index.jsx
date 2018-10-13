@@ -41,10 +41,24 @@ class Job extends React.Component {
         <div className="col-lg-12">
           <div className="hpanel">
             <div className="panel-heading">
-              <h1>Job { this.props.match.params.jobId } { this.displayStatusIcon(this.state.status) }</h1>
+              <h1>Job { this.props.match.params.jobId } <small>{ this.displayStatusIcon(this.state.status) } { this.state.status }</small></h1>
             </div>
             <div className="panel-body">
-              { this.state.chunks.map((chunk, index) => (<div key={index}> { chunk.database }: { this.displayStatusIcon(chunk.status) }</div>)) }
+              <table className="responsive-table">
+                <thead>
+                  <tr>
+                    <th>Database</th>
+                    <th>Status</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  { this.state.chunks.map((chunk, index) => (
+                    <tr key={index}>
+                      <td>{ chunk.database }</td>
+                      <td>{ this.displayStatusIcon(chunk.status) } { chunk.status }</td>
+                    </tr>)) }
+                </tbody>
+              </table>
             </div>
           </div>
         </div>
