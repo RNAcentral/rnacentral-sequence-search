@@ -4,9 +4,29 @@ import Facets from 'pages/Result/components/Facets.jsx';
 import Hit from 'pages/Result/components/Hit.jsx';
 
 import 'pages/Result/index.scss';
+import routes from 'services/routes.jsx';
 
 
 class Result extends React.Component {
+  constructor(props) {
+    super(props);
+
+    this.state = {
+      results: [],
+      facets: []
+    };
+  }
+
+  fetchFacets() {
+
+  }
+
+  componentDidMount() {
+    fetch(routes.jobResult(this.props.match.params.resultId))
+      .then(response => response.json())
+      .then(data => this.setState({results: data}))
+  }
+
   render() {
     return (
       <div className="row" key="results">

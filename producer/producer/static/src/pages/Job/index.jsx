@@ -28,8 +28,6 @@ class Job extends React.Component {
           this.setState(data);
         }
       });
-
-
   }
 
   displayStatusIcon(status) {
