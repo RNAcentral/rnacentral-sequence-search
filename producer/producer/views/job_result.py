@@ -21,14 +21,22 @@ async def job_result(request):
     job_id = request.match_info['job_id']
 
     try:
-        query = (sa.select([Job.c.id, JobChunk.c.job_id, JobChunk.c.database, JobChunkResult.c.rnacentral_id])
-            .select_from(sa.join(Job, JobChunk, Job.c.id == JobChunk.c.job_id))  # noqa
-            .select_from(sa.join(JobChunk, JobChunkResult, JobChunk.id == JobChunkResult.c.job_chunk_id))  # noqa
-            .where(Job.c.id == job_id)
-            .apply_labels())  # noqa
+        # query = (sa.select([Job.c.id, JobChunk.c.job_id, JobChunk.c.database, JobChunkResult.c.rnacentral_id])
+        #     .select_from(Job)
+        #     .where(Job.c.id == job_id)
+        #     .join(JobChunk, Job.c.id == JobChunk.c.job_id)  # noqa
+        #     .join(JobChunk, JobChunkResult, JobChunk.c.id == JobChunkResult.c.job_chunk_id))  # noqa
+
+        query = '''
+            SELECT job.id, job_chunks.job_id, job_chunks.database, job_chunk_results.rnacentral_id
+            FROM jobs
+            JOIN job_chunks ON jobs.id=jon_chunks.job_id
+            JOIN job_chunk_results ON job_chunks.id=job_chunks_results.job_chunk_id
+            WHERE jobs.id = :job_id
+        '''
 
         results = []
-        async for row in request.app['connection'].execute(query):
+        async for row in request.app['connection'].execute(query, job_id=job_id):
             import pdb
             pdb.set_trace()
             print(row)
