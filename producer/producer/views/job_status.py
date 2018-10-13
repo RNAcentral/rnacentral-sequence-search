@@ -12,24 +12,27 @@ limitations under the License.
 """
 
 from aiohttp import web
+import sqlalchemy as sa
+
+from ..models import Job, JobChunk
 
 
 async def job_status(request):
     job_id = request.match_info['job_id']
 
     try:
-        query = '''
-            SELECT {job}.id, {job_chunks}.status, {job_chunks}.database
-            FROM {job}
-            JOIN {job_chunks}
-            ON {job_chunks}.job_id = job_id
-            WHERE {job}.id={job_id}
-        '''.format(job='jobs', job_chunks='job_chunks', job_id=int(job_id))
+        query = (sa.select([Job.c.id, Job.c.status, JobChunk.c.job_id, JobChunk.c.database, JobChunk.c.status])
+            .select_from(sa.join(Job, JobChunk, Job.c.id == JobChunk.c.job_id))  # noqa
+            .where(Job.c.id == job_id)
+            .apply_labels())  # noqa
 
         chunks = []
         async for row in request.app['connection'].execute(query):
-            status = row.status
-            chunks.append({"database": row.database, "status": row.status})
+            status = row[1]  # this is Job.c.status
+            chunks.append({
+                "database": row[3],  # JobChunk.c.database
+                "status": row[4]  # JobChunk.c.status
+            })
     except Exception as e:
         raise web.HTTPNotFound() from e
 
