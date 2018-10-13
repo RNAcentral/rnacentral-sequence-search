@@ -20,7 +20,16 @@ class Job extends React.Component {
   getStatus() {
     fetch(routes.jobStatus(this.props.match.params.jobId))
       .then(response => response.json())
-      .then(data => this.setState(data));
+      .then(data => {
+        if (data.status === 'success') {
+          window.clearTimeout(this.statusTimeout);
+          this.props.history.push(`/result/${this.props.match.params.jobId}`);
+        } else {
+          this.setState(data);
+        }
+      });
+
+
   }
 
   displayStatusIcon(status) {
@@ -30,9 +39,7 @@ class Job extends React.Component {
   }
 
   componentDidMount() {
-    this.setState({
-      status: this.getStatus()
-    })
+    this.statusTimeout = setTimeout(this.getStatus, 5);
   }
 
   render() {
