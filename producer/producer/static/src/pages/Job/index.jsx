@@ -1,10 +1,14 @@
 import React from 'react';
 
+import routes from 'services/routes.jsx';
+
+
 class Job extends React.Component {
   constructor(props) {
     super(props);
 
     this.state = {
+        job_id: "",
         status: "",
         chunks: []
     };
@@ -13,13 +17,9 @@ class Job extends React.Component {
   }
 
   getStatus() {
-    fetch(routes.jobStatus(this.props.jobId))
-      .then( (response) => {
-        return response.json()
-      })
-      .then( (json) => {
-        return json; // setState in here with your ajax request**strong text**
-      });
+    fetch(routes.jobStatus(this.props.match.params.jobId))
+      .then(response => response.json())
+      .then(data => this.setState(data));
   }
 
   componentDidMount() {
@@ -34,10 +34,10 @@ class Job extends React.Component {
         <div className="col-lg-12">
           <div className="hpanel">
             <div className="panel-heading">
-              <h1>Home</h1>
+              <h1>Job {this.props.match.params.jobId}</h1>
             </div>
             <div className="panel-body">
-              <p>Content of search page.</p>
+              {this.state.status}
             </div>
           </div>
         </div>

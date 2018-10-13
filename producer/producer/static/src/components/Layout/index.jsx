@@ -58,8 +58,8 @@ class Layout extends React.Component {
               <section>
                 <Switch>
                   <PropsRoute exact path="/search" component={Search} />
-                  <PropsRoute path="/job/:id" component={Job} />
-                  <PropsRoute path="/result/:id" component={Result} />
+                  <PropsRoute path="/job/:jobId" component={Job} />
+                  <PropsRoute path="/result/:resultId" component={Result} />
                   <Redirect to="/search" />
                 </Switch>
               </section>
