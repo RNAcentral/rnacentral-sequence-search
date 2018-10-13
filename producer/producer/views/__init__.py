@@ -15,6 +15,7 @@ from .index import index
 from .job_chunk_heartbeat import job_chunk_heartbeat
 from .job_done import job_done
 from .job_status import job_status
+from .job_result import job_result
 from .submit_job import submit_job
 from .rnacentral_databases import rnacentral_databases
 from .job_results_urs_list import job_results_urs_list

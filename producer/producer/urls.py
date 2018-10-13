@@ -11,7 +11,7 @@ See the License for the specific language governing permissions and
 limitations under the License.
 """
 
-from .views import index, submit_job, job_status, job_done, rnacentral_databases, job_results_urs_list
+from .views import index, submit_job, job_status, job_result, job_done, rnacentral_databases, job_results_urs_list
 from . import settings
 
 
@@ -19,6 +19,7 @@ def setup_routes(app):
     app.router.add_get('/', index, name='index')
     app.router.add_post('/api/submit-job', submit_job, name='submit-job')
     app.router.add_get('/api/job-status/{job_id}', job_status, name='job-status')
+    app.router.add_get('/api/job-result/{job_id}', job_result, name='job-result')
     app.router.add_post('/api/job-done', job_done, name='job-done')
     app.router.add_get('/api/rnacentral-databases', rnacentral_databases, name='rnacentral-databases')
     app.router.add_get('/api/job-results-urs-list/{job_id}', job_results_urs_list, name='job-results-urs-list')
