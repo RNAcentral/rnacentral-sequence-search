@@ -25,6 +25,7 @@ class Job extends React.Component {
           window.clearTimeout(this.statusTimeout);
           this.props.history.push(`/result/${this.props.match.params.jobId}`);
         } else {
+          this.statusTimeout = setTimeout(this.getStatus, 1000);
           this.setState(data);
         }
       });
@@ -38,7 +39,7 @@ class Job extends React.Component {
   }
 
   componentDidMount() {
-    this.statusTimeout = setTimeout(this.getStatus, 5);
+    this.getStatus();
   }
 
   render() {
