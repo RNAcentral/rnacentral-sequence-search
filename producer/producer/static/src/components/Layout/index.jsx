@@ -20,6 +20,8 @@ import Footer from 'components/Footer/index.jsx';
 import Search from 'pages/Search/index.jsx';
 import Job from 'pages/Job/index.jsx';
 import Result from 'pages/Result/index.jsx';
+import Documentation from 'pages/Documentation/index.jsx';
+import About from 'pages/About/index.jsx';
 
 
 class Layout extends React.Component {
@@ -57,6 +59,8 @@ class Layout extends React.Component {
                   <PropsRoute exact path="/search" component={Search} />
                   <PropsRoute path="/job/:jobId" component={Job} />
                   <PropsRoute path="/result/:resultId" component={Result} />
+                  <PropsRoute path="/documentation" component={Documentation} />
+                  <PropsRoute path="/about" component={About} />
                   <Redirect to="/search" />
                 </Switch>
               </section>
