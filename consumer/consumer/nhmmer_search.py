@@ -11,11 +11,11 @@ See the License for the specific language governing permissions and
 limitations under the License.
 """
 
-import os
 import shlex
 import asyncio.subprocess
 
 from . import settings
+from .filenames import query_file_path, result_file_path
 
 
 class NhmmerError(Exception):
@@ -40,8 +40,8 @@ async def nhmmer_search(sequence, job_id, database):
         e_value = pow(10, -2)
 
     params = {
-        'query': os.path.join(settings.QUERY_DIR, '%s.fasta' % job_id),
-        'output': os.path.join(settings.RESULTS_DIR, '%s.txt' % job_id),
+        'query': query_file_path(job_id, database),
+        'output': result_file_path(job_id, database),
         'nhmmer': settings.NHMMER_EXECUTABLE,
         'db': settings.SEQDATABASES / (database + '.fasta'),
         'cpu': 4,
