@@ -80,7 +80,7 @@ async def delegate(request, data, job_id):
                 await request.app['connection'].execute(
                     '''
                     UPDATE {job_chunks}
-                    SET status = 'running'
+                    SET status = 'pending'
                     WHERE job_id={job_id} AND database='{database}';
                     '''.format(job_chunks='job_chunks', job_id=job_id, database=database)
                 )

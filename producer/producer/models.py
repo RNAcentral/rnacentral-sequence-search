@@ -38,6 +38,7 @@ async def close_pg(app):
 # -------------
 
 STATUS_CHOICES = (
+    ('pending', 'pendind'),
     ('started', 'started'),
     ('success', 'success'),
     ('failed', 'failed'),
