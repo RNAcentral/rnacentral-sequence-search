@@ -70,7 +70,7 @@ JobChunkResult = sa.Table('job_chunk_results', metadata,
                   sa.Column('score', sa.Float),
                   sa.Column('bias', sa.Float),
                   sa.Column('e_value', sa.Float),
-                  sa.Column('target_length', sa.Float),
+                  sa.Column('target_length', sa.Integer),
                   sa.Column('alignment', sa.Text),
                   sa.Column('alignment_length', sa.Integer),
                   sa.Column('gap_count', sa.Integer),
@@ -123,7 +123,7 @@ if __name__ == "__main__":
                 await connection.execute('''
                     CREATE TABLE job_chunks (
                       id serial PRIMARY KEY,
-                      job_id int references jobs(id),
+                      job_id INT references jobs(id),
                       database VARCHAR(255),
                       submitted TIMESTAMP,
                       result VARCHAR(255),
@@ -133,13 +133,13 @@ if __name__ == "__main__":
                 await connection.execute('''
                     CREATE TABLE job_chunk_results (
                       id serial PRIMARY KEY,
-                      job_chunk_id int references job_chunks(id),
+                      job_chunk_id INT references job_chunks(id),
                       rnacentral_id VARCHAR(255) NOT NULL,
                       description TEXT,
                       score FLOAT NOT NULL,
                       bias FLOAT NOT NULL,
                       e_value FLOAT NOT NULL,
-                      target_length FLOAT NOT NULL,
+                      target_length INTEGER NOT NULL,
                       alignment TEXT NOT NULL,
                       alignment_length INTEGER NOT NULL,
                       gap_count INTEGER NOT NULL,

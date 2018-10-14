@@ -98,4 +98,26 @@ class SubmitJobTestCase(AioHTTPTestCase):
         async with self.client.get(path=url) as response:
             assert response.status == 200
             data = await response.json()
-            print(data)
+
+            print(data[0])
+
+            assert data[0] == {
+                "rnacentral_id": 'URS000075D2D2',
+                "description": '_10090 Mus musculus miR - 1195 stem - loop',
+                "score": 6.5,
+                "bias": 0.7,
+                "e_value": 32.0,
+                "target_length": 98,
+                "alignment": "Query  8 GAGUUUGAGACCAGCCUGGCCA 29\n| | | | | | | | | | | | | | | | | |\nSbjct_10090\n22\nGAGUUCGAGGCCAGCCUGCUCA\n43",
+                "alignment_length": 22,
+                "gap_count": 0,
+                "match_count": 18,
+                "nts_count1": 22,
+                "nts_count2": 0,
+                "identity": 81.8181818181818,  # conversion to float in DB trims some digits
+                "query_coverage": 73.3333333333333,  # converstion to float in DB trims some digits
+                "target_coverage": 0.0,
+                "gaps": 0.0,
+                "query_length": 30,
+                "result_id": 1
+            }
