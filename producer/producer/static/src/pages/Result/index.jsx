@@ -24,7 +24,7 @@ class Result extends React.Component {
   componentDidMount() {
     fetch(routes.jobResult(this.props.match.params.resultId))
       .then(response => response.json())
-      .then(data => this.setState({results: data}))
+      .then(data => { this.setState({results: data}); console.log(data); })
   }
 
   render() {
@@ -33,9 +33,9 @@ class Result extends React.Component {
         <h1 className="margin-top-large margin-bottom-large">Results:</h1>
         <div className="small-12 medium-10 medium-push-2 columns">
           <section>
-            <ul>
-              <Hit></Hit>
-            </ul>
+            { this.state.results.map(result => (
+            <ul key={result}><Hit result={result} /></ul>
+            )) }
           </section>
           <ul className="pagination" role="navigation" aria-label="Pagination">
             <li className="pagination-previous disabled">Previous <span className="show-for-sr">page</span></li>
