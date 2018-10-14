@@ -19,3 +19,4 @@ from .job_result import job_result
 from .submit_job import submit_job
 from .rnacentral_databases import rnacentral_databases
 from .job_results_urs_list import job_results_urs_list
+from .facets import facets
