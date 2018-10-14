@@ -11,12 +11,7 @@ See the License for the specific language governing permissions and
 limitations under the License.
 """
 
-import os
-import json
-import datetime
-
-from sqlalchemy import text
-import aiohttp_jinja2
+import sqlalchemy as sa
 from aiohttp import web, client
 
 from ..models import Job, JobChunk, JobChunkResult
@@ -53,7 +48,7 @@ async def job_done(request):
     data = await serialize(request, data)
 
     # update job_chunks
-    query = text('''
+    query = sa.text('''
         UPDATE job_chunks
         SET status = 'success'
         WHERE job_id=:job_id AND database=:database
@@ -76,6 +71,21 @@ async def job_done(request):
         job_chunk_id = await request.app['connection'].scalar(
             JobChunkResult.insert().values(job_chunk_id=job_chunk_id, **result)
         )
+
+    # check, if all other job chunks are also done - then the whole job is done
+    query = (sa.select([Job.c.id, JobChunk.c.job_id, JobChunk.c.status])
+             .select_from(sa.join(Job, JobChunk, Job.c.id == JobChunk.c.job_id))  # noqa
+             .where(Job.c.id == data['job_id']))  # noqa
+
+    all_job_chunks_success = True
+    async for row in request.app['connection'].execute(query):
+        if row.status != 'success':
+            all_job_chunks_success = False
+            break
+
+    if all_job_chunks_success:
+        query = sa.text('''UPDATE jobs SET status = 'success' WHERE id=:job_id''')
+        result = await request.app['connection'].execute(query, job_id=data['job_id'])
 
     return web.HTTPOk()
 
