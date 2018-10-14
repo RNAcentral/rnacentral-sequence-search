@@ -36,9 +36,9 @@ class Search extends React.Component {
           throw new Error(response.statusText);
         }
       })
-      .then(result => {
-        console.log(result);
-        this.props.history.push(`/job/${result.job_id}`);
+      .then(data => {
+        console.log(data);
+        this.props.history.push(`/job/${data.job_id}`);
       })
       .catch(error => {
         console.log(error);

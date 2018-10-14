@@ -105,4 +105,4 @@ async def submit_job(request):
 
     await delegate(request, data, job_id)
 
-    return web.HTTPCreated()
+    return web.json_response({"job_id": job_id}, status=201)
