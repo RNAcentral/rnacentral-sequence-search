@@ -16,6 +16,9 @@ class Search extends React.Component {
       sequence: "",
       submissionError: ""
     };
+
+    this.onSelectAllDatabases = this.onSelectAllDatabases.bind(this);
+    this.onDeselectAllDatabases = this.onDeselectAllDatabases.bind(this);
   }
 
   onSubmit(event) {
@@ -56,6 +59,18 @@ class Search extends React.Component {
     this.setState({ selectedDatabases: selectedDatabases });
   }
 
+  onSelectAllDatabases(event) {
+    let selectedDatabases = {};
+    this.state.rnacentralDatabases.map(db => { selectedDatabases[db] = true; });
+    this.setState({ selectedDatabases: selectedDatabases });
+  }
+
+  onDeselectAllDatabases(event) {
+    let selectedDatabases = {};
+    this.state.rnacentralDatabases.map(db => { selectedDatabases[db] = false; });
+    this.setState({ selectedDatabases: selectedDatabases });
+  }
+
   render() {
     return (
       <div className="row">
@@ -93,6 +108,11 @@ class Search extends React.Component {
                         <li key={database}><span className="facet"><input id={database} type="checkbox" checked={this.state.selectedDatabases[database]} onChange={(e) => this.onDatabaseCheckboxToggle(e)} /><label htmlFor={database}>{database}</label></span></li>
                       )}
                     </ul>
+                    <p>
+                      <label>
+                        <a id="selectAllDatabases" onClick={this.onSelectAllDatabases}>Select all</a> | <a id="deselectAllDatabases" onClick={this.onDeselectAllDatabases}>Deselect all</a>
+                      </label>
+                    </p>
                   </fieldset>
                 </div>
                 <div>
