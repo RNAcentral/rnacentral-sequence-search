@@ -19,6 +19,8 @@ class Search extends React.Component {
 
     this.onSelectAllDatabases = this.onSelectAllDatabases.bind(this);
     this.onDeselectAllDatabases = this.onDeselectAllDatabases.bind(this);
+    this.onExampleSequence = this.onExampleSequence.bind(this);
+    this.onClearSequence = this.onClearSequence.bind(this);
   }
 
   onSubmit(event) {
@@ -39,14 +41,8 @@ class Search extends React.Component {
           throw new Error(response.statusText);
         }
       })
-      .then(data => {
-        console.log(data);
-        this.props.history.push(`/job/${data.job_id}`);
-      })
-      .catch(error => {
-        console.log(error);
-        this.setState({submissionError: error.toString()})
-      });
+      .then(data => this.props.history.push(`/job/${data.job_id}`))
+      .catch(error => this.setState({ submissionError: error.toString() }));
   }
 
   onSequenceTextareaChange(event) {
@@ -71,6 +67,17 @@ class Search extends React.Component {
     this.setState({ selectedDatabases: selectedDatabases });
   }
 
+  onExampleSequence(event) {
+    this.setState({sequence: "UUAUGGAUCCUCUUUCAAUGAAUUUAGUAUGCCCAAACUCGAAGGAGUU" +
+      "UCACCUCCAUAAGAGCGACAGUCCUGGAGAAGUUAUCAGAGCCAAAAAAAUUCAUAUGAUGAUGCAUUUUCC" +
+      "GUCUCUGAAAACGUCUUCAGCAGAAGUUGUUUUUAGCGAAGUGAAACUCAUUCGAUUUUGAUCAUACUAACG" +
+      "ACAUUGGAUGCUUGGAUCGGCA"});
+  }
+
+  onClearSequence(event) {
+    this.setState({sequence: ""});
+  }
+
   render() {
     return (
       <div className="row">
@@ -86,7 +93,7 @@ class Search extends React.Component {
                     <h4>RNA sequence:</h4>
                     <p>
                       <label>
-                        Use a <a href="#" id="exampleSeq">example sequence</a> | <a href="#" id="clearSequence">Clear sequence</a> | <a href="#" id="seeMoreExample">See more example inputs</a>
+                        Use a <a id="exampleSeq" onClick={ this.onExampleSequence }>Example sequence</a> | <a id="clearSequence" onClick={ this.onClearSequence }>Clear sequence</a>
                       </label>
                     </p>
                     <textarea id="sequence" name="sequence" rows="7" value={this.state.sequence} onChange={(e) => this.onSequenceTextareaChange(e)} />

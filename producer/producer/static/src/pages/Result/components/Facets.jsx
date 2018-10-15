@@ -17,7 +17,7 @@ class Result extends React.Component {
   componentDidMount() {
     fetch(routes.facets(this.props.resultId))
       .then(response => response.json())
-      .then(data => { this.setState({facets: data.facets}); console.log(data); });
+      .then(data => { this.setState({facets: data.facets}); });
 
   }
 
