@@ -14,8 +14,27 @@ class Hit extends React.Component {
             <li>{this.props.result.target_length} nucleotides</li>
             <li></li>
           </ul>
-          <div className="callout alignment" data-closable>
-            <button className="close-button" data-close>&times;</button>
+          <div className="callout alignment">
+            <table className="responsive-table">
+              <thead>
+                <tr>
+                  <th>E-value</th>
+                  <th>Identity</th>
+                  <th>Query coverage</th>
+                  <th>Target coverage</th>
+                  <th>Gaps</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td>{ this.props.result.e_value }</td>
+                  <td>{ this.props.result.identity }</td>
+                  <td>{ this.props.result.query_coverage }</td>
+                  <td>{ this.props.result.target_coverage }</td>
+                  <td>{ this.props.result.gaps }</td>
+                </tr>
+              </tbody>
+            </table>
             <p>{this.props.result.alignment}</p>
           </div>
         </div>

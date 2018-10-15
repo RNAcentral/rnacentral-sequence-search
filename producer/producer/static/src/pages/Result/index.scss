@@ -11,7 +11,7 @@
   white-space: pre;
   margin-left: 10px;
   margin-bottom: 0;
-  font-size: smaller;
+  //font-size: smaller;
   line-height: 1.42857143;
   color: #333;
   word-break: break-all;
@@ -21,4 +21,8 @@
   text-align: left;
   text-indent: 0;
   box-sizing: border-box;
+}
+
+.alignment table {
+  font-size: small;
 }
