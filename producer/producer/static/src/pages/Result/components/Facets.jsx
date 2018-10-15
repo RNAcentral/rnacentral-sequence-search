@@ -1,6 +1,6 @@
 import React from 'react';
 
-import Facets from 'pages/Result/components/Facets.jsx';
+import routes from 'services/routes.jsx';
 
 
 class Result extends React.Component {
@@ -8,20 +8,26 @@ class Result extends React.Component {
     super(props);
 
     this.state = {
-        job_id: "",
-        facets: [],
-        results: []
+      facets: []
     };
 
     this.renderFacet = this.renderFacet.bind(this);
   }
 
+  componentDidMount() {
+    fetch(routes.facets(this.props.resultId))
+      .then(response => response.json())
+      .then(data => { this.setState({facets: data.facets}); console.log(data); });
+
+  }
+
   renderFacet(facet) {
     return ([
-      <legend><h5>{ facet.label }</h5></legend>,
+      <legend key={facet.id}><h5 style={{color: 'rgb(0,124,130)' }}>{ facet.label }</h5></legend>,
       facet.facetValues.map(facetValue => (
-        <li><span className="facet"><input id="checkbox12" type="checkbox" /><label htmlFor="checkbox12">{ facetValue }</label></span></li>
-      ))
+        <li key={`li ${facetValue.label}`}><span className="facet"><input id="checkbox12" type="checkbox" /><label htmlFor="checkbox12">{ facetValue.label }</label></span></li>
+      )),
+      <br key={`br ${facet.id}`} />
     ]);
   }
 
@@ -32,11 +38,10 @@ class Result extends React.Component {
           <div>
             <ul className="vertical menu facets">
               {
-                this.state.facets.map(facet => renderFacet(facet))
+                this.state.facets.map(facet => this.renderFacet(facet))
               }
             </ul>
           </div>
-          <hr />
           <small className="text-muted">
             Powered by <a href="http://www.ebi.ac.uk/ebisearch/" target="_blank">EBI Search</a>
           </small>

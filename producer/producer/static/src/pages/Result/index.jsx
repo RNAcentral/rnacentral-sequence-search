@@ -17,14 +17,10 @@ class Result extends React.Component {
     };
   }
 
-  fetchFacets() {
-
-  }
-
   componentDidMount() {
     fetch(routes.jobResult(this.props.match.params.resultId))
       .then(response => response.json())
-      .then(data => { this.setState({results: data}); console.log(data); })
+      .then(data => { this.setState({results: data}); console.log(data); });
   }
 
   render() {
@@ -50,7 +46,7 @@ class Result extends React.Component {
               className="show-for-sr">page</span></a></li>
           </ul>
         </div>
-        <Facets></Facets>
+        <Facets resultId={this.props.match.params.resultId}></Facets>
       </div>
     )
   }
