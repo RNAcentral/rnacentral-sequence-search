@@ -36,7 +36,7 @@ def create_app():
 
     app = web.Application(middlewares=[
         web_middlewares.normalize_path_middleware(append_slash=True),
-    ])
+    ], client_max_size=2048**2)
 
     app.update(name='producer', settings=settings)
 
