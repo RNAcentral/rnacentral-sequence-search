@@ -68,7 +68,7 @@ async def job_done(request):
 
     # save job chunk results
     for result in data['result']:
-        job_chunk_id = await request.app['connection'].scalar(
+        await request.app['connection'].scalar(
             JobChunkResult.insert().values(job_chunk_id=job_chunk_id, **result)
         )
 
