@@ -10,15 +10,14 @@ class Hit extends React.Component {
             <a href={`https://rnacentral.org/rna/${ this.props.result.rnacentral_id }`}>{ this.props.result.description }</a>
           </h4>
           <small className="text-muted">{ this.props.result.rnacentral_id }</small>
-          <div className="small">
-            <span>
-              <em>Product:</em> <span>microRNA <span className="text-search-highlights">hsa-mir-126</span> precursor</span>
-            </span>
-          </div>
           <ul className="menu small">
             <li>{this.props.result.target_length} nucleotides</li>
             <li></li>
           </ul>
+          <div className="callout alignment" data-closable>
+            <button className="close-button" data-close>&times;</button>
+            <p>{this.props.result.alignment}</p>
+          </div>
         </div>
       </li>
     )
