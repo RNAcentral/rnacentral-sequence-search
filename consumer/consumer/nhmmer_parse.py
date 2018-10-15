@@ -44,7 +44,7 @@ score  bias    Evalue   hmmfrom    hmm to     alifrom    ali to      envfrom    
     """
     def parse_first_line(line):
         """Get URS id and description."""
-        match = re.search(r'URS[0-9A-Fa-f]{10}', line)
+        match = re.search(r'URS[0-9A-Fa-f]{10}(_\d+)?', line)
         return {
             'rnacentral_id': match.group(),
             'description': line.replace(match.group(), '').replace(';', '').strip(),
