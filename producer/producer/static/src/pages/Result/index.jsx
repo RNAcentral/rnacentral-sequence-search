@@ -26,7 +26,7 @@ class Result extends React.Component {
   render() {
     return (
       <div className="row" key="results">
-        <h1 className="margin-top-large margin-bottom-large">Results:</h1>
+        <h1 className="margin-top-large margin-bottom-large">Results: <small>{ this.state.results.length } total</small></h1>
         <div className="small-12 medium-10 medium-push-2 columns">
           <section>
             { this.state.results.map(result => (
