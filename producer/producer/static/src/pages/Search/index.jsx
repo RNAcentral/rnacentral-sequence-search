@@ -21,6 +21,7 @@ class Search extends React.Component {
     this.onDeselectAllDatabases = this.onDeselectAllDatabases.bind(this);
     this.onExampleSequence = this.onExampleSequence.bind(this);
     this.onClearSequence = this.onClearSequence.bind(this);
+    this.onFileUpload = this.onFileUpload.bind(this);
   }
 
   onSubmit(event) {
@@ -78,6 +79,21 @@ class Search extends React.Component {
     this.setState({sequence: ""});
   }
 
+  onFileUpload(event) {
+    // TODO: fasta parsing
+    // TODO: exception handling - user closed the dialog
+    // TODO: exception handling - this is not a proper fasta file
+
+    let fileReader = new FileReader();
+
+    fileReader.onloadend = (event) => {
+      let fileContent = event.target.result;
+      this.setState({sequence: fileContent});
+    };
+
+    fileReader.readAsText(event.target.files[0]);
+  }
+
   render() {
     return (
       <div className="row">
@@ -99,7 +115,7 @@ class Search extends React.Component {
                     <textarea id="sequence" name="sequence" rows="7" value={this.state.sequence} onChange={(e) => this.onSequenceTextareaChange(e)} />
                     <p>
                       Or upload a file:
-                      <input id="upfile" name="upfile" type="file"/>
+                      <input id="sequence-file" name="sequence-file" type="file" accept=".fasta" onChange={this.onFileUpload} />
                     </p>
                   </fieldset>
                 </div>
