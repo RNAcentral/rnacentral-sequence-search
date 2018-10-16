@@ -2,6 +2,7 @@ aiohttp
 jinja2
 aiohttp_jinja2
 aiohttp-devtools
+aiohttp-swagger
 aiojobs
 aiopg
 sqlalchemy
