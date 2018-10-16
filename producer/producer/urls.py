@@ -19,13 +19,13 @@ from . import settings
 def setup_routes(app):
     app.router.add_get('/', index, name='index')
     app.router.add_post('/api/submit-job', submit_job, name='submit-job')
-    app.router.add_get('/api/job-status/{job_id}', job_status, name='job-status')
-    app.router.add_get('/api/job-result/{job_id}', job_result, name='job-result')
+    app.router.add_get('/api/job-status/{job_id:\d+}', job_status, name='job-status')
+    app.router.add_get('/api/job-result/{job_id:\d+}', job_result, name='job-result')
     app.router.add_post('/api/job-done', job_done, name='job-done')
     app.router.add_get('/api/rnacentral-databases', rnacentral_databases, name='rnacentral-databases')
-    app.router.add_get('/api/job-results-urs-list/{job_id}', job_results_urs_list, name='job-results-urs-list')
-    app.router.add_get('/api/facets/{job_id}', facets, name='facets')
-    app.router.add_get('/api/facets-search/{job_id}', facets_search, name='facets-search')
+    app.router.add_get('/api/job-results-urs-list/{job_id:\d+}', job_results_urs_list, name='job-results-urs-list')
+    app.router.add_get('/api/facets/{job_id:\d+}', facets, name='facets')
+    app.router.add_get('/api/facets-search/{job_id:\d+}', facets_search, name='facets-search')
     setup_static_routes(app)
 
 
