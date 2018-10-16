@@ -12,7 +12,7 @@ limitations under the License.
 """
 
 from .views import index, submit_job, job_status, job_result, job_done, rnacentral_databases, job_results_urs_list, \
-    facets
+    facets, facets_search
 from . import settings
 
 
@@ -25,6 +25,7 @@ def setup_routes(app):
     app.router.add_get('/api/rnacentral-databases', rnacentral_databases, name='rnacentral-databases')
     app.router.add_get('/api/job-results-urs-list/{job_id}', job_results_urs_list, name='job-results-urs-list')
     app.router.add_get('/api/facets/{job_id}', facets, name='facets')
+    app.router.add_get('/api/facets-search/{job_id}', facets_search, name='facets-search')
     setup_static_routes(app)
 
 

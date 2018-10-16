@@ -61,6 +61,8 @@ elif ENVIRONMENT == "DOCKER-COMPOSE":
 elif ENVIRONMENT == "PRODUCTION":
     from .production import *
 
+EBI_SEARCH_PROXY_URL = 'http://localhost:8003/post'
+
 
 def substitute_environment_variables():
     """

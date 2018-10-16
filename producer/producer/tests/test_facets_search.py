@@ -11,13 +11,25 @@ See the License for the specific language governing permissions and
 limitations under the License.
 """
 
-from .index import index
-from .job_chunk_heartbeat import job_chunk_heartbeat
-from .job_done import job_done
-from .job_status import job_status
-from .job_result import job_result
-from .submit_job import submit_job
-from .rnacentral_databases import rnacentral_databases
-from .job_results_urs_list import job_results_urs_list
-from .facets import facets
-from .facets_search import facets_search
+import json
+import logging
+import os
+import datetime
+
+from aiohttp.test_utils import unittest_run_loop
+from aiohttp.test_utils import AioHTTPTestCase
+import sqlalchemy as sa
+
+from ..main import create_app
+from ..models import Job, JobChunk
+
+
+"""
+Run these tests with:
+
+ENVIRONMENT=TEST python -m unittest producer.tests.test_job_done
+"""
+
+
+class EBISearchProxyTestCase(AioHTTPTestCase):
+    pass
