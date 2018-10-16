@@ -40,7 +40,7 @@ class SubmitJobTestCase(AioHTTPTestCase):
 
         logging.info("settings = %s" % self.app['settings'].__dict__)
 
-        async with self.app['engine'].acquire as connection:
+        async with self.app['engine'].acquire() as connection:
             self.job_id = await connection.scalar(
                 Job.insert().values(query='', submitted=datetime.datetime.now(), status='started')
             )
@@ -87,7 +87,7 @@ class SubmitJobTestCase(AioHTTPTestCase):
             )
 
     async def tearDownAsync(self):
-        async with self.app['engine'].acquire as connection:
+        async with self.app['engine'].acquire() as connection:
             await connection.execute('DELETE FROM job_chunk_results')
             await connection.execute('DELETE FROM job_chunks')
             await connection.execute('DELETE FROM jobs')
