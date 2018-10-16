@@ -11,10 +11,8 @@ class Documentation extends React.Component {
               <h1>Documentation</h1>
             </div>
             <div className="panel-body">
-              <div>TO BE DONE.</div>
               <p>
-                This page is supposed to contain API documentation that will be generated with Swagger-aiohttp.
-                API design will be established by RNAcentral team and consortium member database authors.
+                <a href="/api/doc">API documentation</a>
               </p>
             </div>
           </div>

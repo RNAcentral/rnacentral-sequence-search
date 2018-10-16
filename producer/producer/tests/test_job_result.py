@@ -66,7 +66,7 @@ class SubmitJobTestCase(AioHTTPTestCase):
                 JobChunkResult.insert().values(
                     job_chunk_id=self.job_chunk_id1,
                     rnacentral_id='URS000075D2D2',
-                    description='_10090 Mus musculus miR - 1195 stem - loop',
+                    description='Mus musculus miR - 1195 stem - loop',
                     score=6.5,
                     bias=0.7,
                     e_value=32,
@@ -105,7 +105,7 @@ class SubmitJobTestCase(AioHTTPTestCase):
 
             assert data[0] == {
                 "rnacentral_id": 'URS000075D2D2',
-                "description": '_10090 Mus musculus miR - 1195 stem - loop',
+                "description": 'Mus musculus miR - 1195 stem - loop',
                 "score": 6.5,
                 "bias": 0.7,
                 "e_value": 32.0,

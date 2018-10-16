@@ -18,6 +18,37 @@ from ..models import Job, JobChunk
 
 
 async def job_status(request):
+    """
+    ---
+    tags:
+    - jobs
+    summary: Shows the status of a job and its chunks
+    parameters:
+    - name: job_id
+      in: path
+      description: ID of job to display status for
+      required: true
+      schema:
+        type: integer
+    responses:
+      '200':
+        description: Successfully returns results
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                job_id:
+                  type: integer
+                status:
+                  type: string
+                chunks:
+                  type: array
+            example:
+              {job_id: 1, status: "started", chunks: [{'database': 'mirbase', 'status': 'started'}, {'database': 'pombase', 'status': 'started'}]}
+      '404':
+        description: No status for given job_id (probably, job with this job_id doesn't exist)
+    """
     job_id = request.match_info['job_id']
 
     try:

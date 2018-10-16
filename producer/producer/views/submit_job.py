@@ -94,8 +94,41 @@ async def submit_job(request):
     Example:
     curl -H "Content-Type:application/json" -d "{\"databases\": [\"miRBase\"], \"query\": \"AGGUCAGGAGUUUGAGACCAGCCUGGCCAA\"}" localhost:8002/api/submit-job
 
-    :param request:
-    :return:
+    ---
+    tags:
+    - jobs
+    summary: Accepts a job for execution
+    requestBody:
+      content:
+        application/json:
+          schema:
+            type: object
+            required:
+             - query
+             - databases
+            properties:
+              query:
+                description: Nucleotide sequence to search for
+                type: string
+              databases:
+                description: List of RNAcentral member databases to search the query sequence against
+                type: array
+                items:
+                  type: string
+          examples:
+            mirBase:
+              summary: Search a miRNA against mirbase
+              value:
+                databases:
+                 - miRBase
+                query: 'AGGUCAGGAGUUUGAGACCAGCCUGGCCAA'
+    responses:
+      '201':
+        description: Job accepted.
+        content:
+          application/json: {}
+      '400':
+        description: Invalid input (either query is not a nucleotide sequence, or databases not in RNAcentral)
     """
 
     data = await request.json()

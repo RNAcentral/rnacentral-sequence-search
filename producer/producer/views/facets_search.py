@@ -18,6 +18,28 @@ from ..models import Job, JobChunk, JobChunkResult
 
 
 async def facets_search(request):
+    """
+    ---
+    tags:
+    - facets
+    summary: Runs EBI text search for the results of sequence search and accompanies them with facets
+    parameters:
+    - name: job_id
+      in: path
+      description: ID of job to display results for
+      required: true
+      schema:
+        type: integer
+    responses:
+      '200':
+        description: Successfully returns results
+        content:
+          'application/json': {results: [...], facets: [...]}
+      '404':
+        description: No results for given job_id
+      '502':
+        description: Could not connect to EBI search proxy
+    """
     job_id = request.match_info['job_id']
 
     # get sequence search results from the database
