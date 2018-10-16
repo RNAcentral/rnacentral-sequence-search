@@ -13,8 +13,16 @@ class Result extends React.Component {
 
     this.state = {
       results: [],
-      facets: []
+      facets: [],
+      alignmentsCollapsed: true
     };
+
+    this.onToggleAlignmentsCollapsed = this.onToggleAlignmentsCollapsed.bind(this);
+  }
+
+  onToggleAlignmentsCollapsed() {
+    $('.alignment').toggleClass('alignment-collapsed');
+    this.setState({ alignmentsCollapsed: !this.state.alignmentsCollapsed });
   }
 
   componentDidMount() {
@@ -30,7 +38,7 @@ class Result extends React.Component {
         <div className="small-12 medium-10 medium-push-2 columns">
           <section>
             { this.state.results.map(result => (
-            <ul key={result}><Hit result={result} /></ul>
+            <ul key={result}><Hit result={result} alignmentsCollapsed={this.state.alignmentsCollapsed} onToggleAlignmentsCollapsed={ this.onToggleAlignmentsCollapsed } /></ul>
             )) }
           </section>
           <ul className="pagination" role="navigation" aria-label="Pagination">

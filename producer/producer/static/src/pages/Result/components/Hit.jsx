@@ -14,8 +14,12 @@ class Hit extends React.Component {
             <li>{this.props.result.target_length} nucleotides</li>
             <li></li>
           </ul>
-          <small><a onClick={ (e) => { $('.alignment').toggleClass('alignment-hidden') } }><i className="icon icon-functional" data-icon=">" /> show/hide alignments</a></small>
-          <div className="callout alignment">
+          <small>
+            <a onClick={ this.props.onToggleAlignmentsCollapsed }>
+              { this.props.alignmentsCollapsed ? <span><i className="icon icon-functional" data-icon="9" /> show alignments</span> : <span><i className="icon icon-functional" data-icon="8"/> hide alignments</span> }
+            </a>
+          </small>
+          <div className="callout alignment alignment-collapsed">
             <table className="responsive-table">
               <thead>
                 <tr>
