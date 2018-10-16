@@ -53,20 +53,20 @@ def serialize(request, data):
     return data
 
 
-async def save(request, data):
+async def save(connection, request, data):
     """Save metadata about this job and job_chunks to the database."""
-    job_id = await request.app['connection'].scalar(
+    job_id = await connection.scalar(
         Job.insert().values(query=data['query'], submitted=datetime.datetime.now(), status='started')
     )
     for database in data['databases']:
-        job_chunk_id = await request.app['connection'].scalar(
+        job_chunk_id = await connection.scalar(
             JobChunk.insert().values(job_id=job_id, database=database, submitted=datetime.datetime.now(), status='pending')
         )
 
     return job_id
 
 
-async def delegate(request, data, job_id):
+async def delegate(connection, request, data, job_id):
     """Send job chunks to consumers, if sent successfully - update status of each JobChunk in the database."""
     for database in data["databases"]:
         url = "http://" + request.app['settings'].CONSUMERS[database] + '/' + request.app['settings'].CONSUMER_SUBMIT_JOB_URL
@@ -77,7 +77,7 @@ async def delegate(request, data, job_id):
 
         async with client.request("post", url, data=json_data, headers=headers) as response:
             if response.status < 400:
-                await request.app['connection'].execute(
+                await connection.execute(
                     '''
                     UPDATE {job_chunks}
                     SET status = 'started'
@@ -101,8 +101,8 @@ async def submit_job(request):
     data = await request.json()
     data = serialize(request, data)
 
-    job_id = await save(request, data)
-
-    await delegate(request, data, job_id)
+    async with request.app['engine'].acquire() as connection:
+        job_id = await save(connection, request, data)
+        await delegate(connection, request, data, job_id)
 
     return web.json_response({"job_id": job_id}, status=201)

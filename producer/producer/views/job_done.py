@@ -17,7 +17,7 @@ from aiohttp import web, client
 from ..models import Job, JobChunk, JobChunkResult
 
 
-async def serialize(request, data):
+async def serialize(connection, request, data):
     """Expected data: {"job_id": job_id, "database": database, "result": ""}"""
     try:
         job_id = data['job_id']
@@ -26,7 +26,7 @@ async def serialize(request, data):
     except (KeyError, TypeError, ValueError) as e:
         raise web.HTTPBadRequest(text='Bad input') from e
 
-    jobs = await request.app['connection'].execute('''
+    jobs = await connection.execute('''
         SELECT *
         FROM {job}
         WHERE id={job_id}
@@ -45,47 +45,48 @@ async def job_done(request):
     aggregates the results from all job chunks into job.
     """
     data = await request.json()
-    data = await serialize(request, data)
 
-    # update job_chunks
-    query = sa.text('''
-        UPDATE job_chunks
-        SET status = 'success'
-        WHERE job_id=:job_id AND database=:database
-        RETURNING *;
-    ''')
-    result = await request.app['connection'].execute(
-        query,
-        job_id=data['job_id'],
-        database=data['database']
-    )
+    async with request.app['engine'].acquire() as connection:
+        data = await serialize(connection, request, data)
 
-    # get job_chunk_id from update query response
-    for row in result:
-        job_chunk_id = row.id
-    if 'job_chunk_id' not in locals():
-        raise web.HTTPBadRequest(text="Job chunk, you're trying to update, is non-existent")
-
-    # save job chunk results
-    for result in data['result']:
-        await request.app['connection'].scalar(
-            JobChunkResult.insert().values(job_chunk_id=job_chunk_id, **result)
+        # update job_chunks
+        query = sa.text('''
+            UPDATE job_chunks
+            SET status = 'success'
+            WHERE job_id=:job_id AND database=:database
+            RETURNING *;
+        ''')
+        result = await connection.execute(
+            query,
+            job_id=data['job_id'],
+            database=data['database']
         )
 
-    # check, if all other job chunks are also done - then the whole job is done
-    query = (sa.select([Job.c.id, JobChunk.c.job_id, JobChunk.c.status])
-             .select_from(sa.join(Job, JobChunk, Job.c.id == JobChunk.c.job_id))  # noqa
-             .where(Job.c.id == data['job_id']))  # noqa
+        # get job_chunk_id from update query response
+        for row in result:
+            job_chunk_id = row.id
+        if 'job_chunk_id' not in locals():
+            raise web.HTTPBadRequest(text="Job chunk, you're trying to update, is non-existent")
 
-    all_job_chunks_success = True
-    async for row in request.app['connection'].execute(query):
-        if row.status != 'success':
-            all_job_chunks_success = False
-            break
+        # save job chunk results
+        for result in data['result']:
+            await connection.scalar(
+                JobChunkResult.insert().values(job_chunk_id=job_chunk_id, **result)
+            )
 
-    if all_job_chunks_success:
-        query = sa.text('''UPDATE jobs SET status = 'success' WHERE id=:job_id''')
-        result = await request.app['connection'].execute(query, job_id=data['job_id'])
+        # check, if all other job chunks are also done - then the whole job is done
+        query = (sa.select([Job.c.id, JobChunk.c.job_id, JobChunk.c.status])
+                 .select_from(sa.join(Job, JobChunk, Job.c.id == JobChunk.c.job_id))  # noqa
+                 .where(Job.c.id == data['job_id']))  # noqa
 
-    return web.HTTPOk()
+        all_job_chunks_success = True
+        async for row in connection.execute(query):
+            if row.status != 'success':
+                all_job_chunks_success = False
+                break
 
+        if all_job_chunks_success:
+            query = sa.text('''UPDATE jobs SET status = 'success' WHERE id=:job_id''')
+            result = await connection.execute(query, job_id=data['job_id'])
+
+        return web.HTTPOk()

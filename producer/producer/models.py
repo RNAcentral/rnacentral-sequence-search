@@ -19,19 +19,12 @@ from aiopg.sa import create_engine
 # ------------------------------
 
 async def init_pg(app):
-    engine = await create_engine(
+    app['engine'] = await create_engine(
         user=app['settings'].POSTGRES_USER,
         database=app['settings'].POSTGRES_DATABASE,
         host=app['settings'].POSTGRES_HOST,
         password=app['settings'].POSTGRES_PASSWORD
     )
-
-    app['connection'] = await engine.acquire()
-
-
-async def close_pg(app):
-    app['connection'].close()
-    await app['connection'].wait_closed()
 
 
 # Models schema

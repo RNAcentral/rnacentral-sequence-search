@@ -40,31 +40,33 @@ class SubmitJobTestCase(AioHTTPTestCase):
 
         logging.info("settings = %s" % self.app['settings'].__dict__)
 
-        self.job_id = await self.app['connection'].scalar(
-            Job.insert().values(query='', submitted=datetime.datetime.now(), status='started')
-        )
+        async with self.app['engine'].acquire() as connection:
+            self.job_id = await connection.scalar(
+                Job.insert().values(query='', submitted=datetime.datetime.now(), status='started')
+            )
 
-        await self.app['connection'].scalar(
-            JobChunk.insert().values(
-                job_id=self.job_id,
-                database='mirbase',
-                submitted=datetime.datetime.now(),
-                status='started'
+            await connection.scalar(
+                JobChunk.insert().values(
+                    job_id=self.job_id,
+                    database='mirbase',
+                    submitted=datetime.datetime.now(),
+                    status='started'
+                )
             )
-        )
-        await self.app['connection'].scalar(
-            JobChunk.insert().values(
-                job_id=self.job_id,
-                database='pombase',
-                submitted=datetime.datetime.now(),
-                status='started'
+            await connection.scalar(
+                JobChunk.insert().values(
+                    job_id=self.job_id,
+                    database='pombase',
+                    submitted=datetime.datetime.now(),
+                    status='started'
+                )
             )
-        )
 
     async def tearDownAsync(self):
-        await self.app['connection'].execute('DELETE FROM job_chunk_results')
-        await self.app['connection'].execute('DELETE FROM job_chunks')
-        await self.app['connection'].execute('DELETE FROM jobs')
+        async with self.app['engine'].acquire() as connection:
+            await connection.execute('DELETE FROM job_chunk_results')
+            await connection.execute('DELETE FROM job_chunks')
+            await connection.execute('DELETE FROM jobs')
 
         await super().tearDownAsync()
 

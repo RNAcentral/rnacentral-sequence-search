@@ -40,57 +40,59 @@ class SubmitJobTestCase(AioHTTPTestCase):
 
         logging.info("settings = %s" % self.app['settings'].__dict__)
 
-        self.job_id = await self.app['connection'].scalar(
-            Job.insert().values(query='', submitted=datetime.datetime.now(), status='started')
-        )
+        async with self.app['engine'].acquire as connection:
+            self.job_id = await connection.scalar(
+                Job.insert().values(query='', submitted=datetime.datetime.now(), status='started')
+            )
 
-        self.job_chunk_id1 = await self.app['connection'].scalar(
-            JobChunk.insert().values(
-                job_id=self.job_id,
-                database='mirbase',
-                submitted=datetime.datetime.now(),
-                status='started'
+            self.job_chunk_id1 = await connection.scalar(
+                JobChunk.insert().values(
+                    job_id=self.job_id,
+                    database='mirbase',
+                    submitted=datetime.datetime.now(),
+                    status='started'
+                )
             )
-        )
-        await self.app['connection'].scalar(
-            JobChunk.insert().values(
-                job_id=self.job_id,
-                database='pombase',
-                submitted=datetime.datetime.now(),
-                status='started'
+            await connection.scalar(
+                JobChunk.insert().values(
+                    job_id=self.job_id,
+                    database='pombase',
+                    submitted=datetime.datetime.now(),
+                    status='started'
+                )
             )
-        )
 
-        await self.app['connection'].scalar(
-            JobChunkResult.insert().values(
-                job_chunk_id=self.job_chunk_id1,
-                rnacentral_id='URS000075D2D2',
-                description='_10090 Mus musculus miR - 1195 stem - loop',
-                score=6.5,
-                bias=0.7,
-                e_value=32,
-                target_length=98,
-                alignment="Query  8 GAGUUUGAGACCAGCCUGGCCA 29\n| | | | | | | | | | | | | | | | | |\nSbjct_10090\n22\nGAGUUCGAGGCCAGCCUGCUCA\n43",
-                alignment_length=22,
-                gap_count=0,
-                match_count=18,
-                nts_count1=22,
-                nts_count2=0,
-                identity=81.81818181818183,
-                query_coverage=73.33333333333333,
-                target_coverage=0,
-                gaps=0,
-                query_length=30,
-                result_id=1
+            await connection.scalar(
+                JobChunkResult.insert().values(
+                    job_chunk_id=self.job_chunk_id1,
+                    rnacentral_id='URS000075D2D2',
+                    description='_10090 Mus musculus miR - 1195 stem - loop',
+                    score=6.5,
+                    bias=0.7,
+                    e_value=32,
+                    target_length=98,
+                    alignment="Query  8 GAGUUUGAGACCAGCCUGGCCA 29\n| | | | | | | | | | | | | | | | | |\nSbjct_10090\n22\nGAGUUCGAGGCCAGCCUGCUCA\n43",
+                    alignment_length=22,
+                    gap_count=0,
+                    match_count=18,
+                    nts_count1=22,
+                    nts_count2=0,
+                    identity=81.81818181818183,
+                    query_coverage=73.33333333333333,
+                    target_coverage=0,
+                    gaps=0,
+                    query_length=30,
+                    result_id=1
+                )
             )
-        )
 
     async def tearDownAsync(self):
-        await self.app['connection'].execute('DELETE FROM job_chunk_results')
-        await self.app['connection'].execute('DELETE FROM job_chunks')
-        await self.app['connection'].execute('DELETE FROM jobs')
+        async with self.app['engine'].acquire as connection:
+            await connection.execute('DELETE FROM job_chunk_results')
+            await connection.execute('DELETE FROM job_chunks')
+            await connection.execute('DELETE FROM jobs')
 
-        await super().tearDownAsync()
+            await super().tearDownAsync()
 
     @unittest_run_loop
     async def test_job_status_success(self):

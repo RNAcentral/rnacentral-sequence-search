@@ -43,17 +43,19 @@ class JobDoneTestCase(AioHTTPTestCase):
 
         logging.info("settings = %s" % self.app['settings'].__dict__)
 
-        self.job_id = await self.app['connection'].scalar(
-            Job.insert().values(query='', submitted=datetime.datetime.now(), status='started')
-        )
-        self.job_chunk_id = await self.app['connection'].scalar(
-            JobChunk.insert().values(job_id=self.job_id, database='mirbase', submitted=datetime.datetime.now(), status='started')
-        )
+        async with self.app['engine'].acquire() as connection:
+            self.job_id = await connection.scalar(
+                Job.insert().values(query='', submitted=datetime.datetime.now(), status='started')
+            )
+            self.job_chunk_id = await connection.scalar(
+                JobChunk.insert().values(job_id=self.job_id, database='mirbase', submitted=datetime.datetime.now(), status='started')
+            )
 
     async def tearDownAsync(self):
-        await self.app['connection'].execute('DELETE FROM job_chunk_results')
-        await self.app['connection'].execute('DELETE FROM job_chunks')
-        await self.app['connection'].execute('DELETE FROM jobs')
+        async with self.app['engine'].acquire() as connection:
+            await connection.execute('DELETE FROM job_chunk_results')
+            await connection.execute('DELETE FROM job_chunks')
+            await connection.execute('DELETE FROM jobs')
 
         await super().tearDownAsync()
 
@@ -109,18 +111,19 @@ class JobDoneTestCase(AioHTTPTestCase):
         async with self.client.post(path=self.url, data=data) as response:
             assert response.status == 200
 
-            # job_chunks = self.app['connection'].execute('''
-            #   SELECT *
-            #   FROM {job_chunks}
-            #   WHERE id={job_id}
-            # '''.format(job_chunks='job_chunks', job_id=self.job_id))
-            # print(job_chunks)
+            async with self.app['engine'].acquire() as connection:
+                # job_chunks = connection.execute('''
+                #   SELECT *
+                #   FROM {job_chunks}
+                #   WHERE id={job_id}
+                # '''.format(job_chunks='job_chunks', job_id=self.job_id))
+                # print(job_chunks)
 
-            query = (sa.select([JobChunk.c.job_id, JobChunk.c.database, JobChunk.c.result])
-                     .where(JobChunk.c.job_id == self.job_id)  # noqa
-                    )
-            job_chunks = await self.app['connection'].execute(query)
+                query = (sa.select([JobChunk.c.job_id, JobChunk.c.database, JobChunk.c.result])
+                         .where(JobChunk.c.job_id == self.job_id)  # noqa
+                        )
+                job_chunks = await connection.execute(query)
 
-            for row in job_chunks:
-                print("job_id = %s, database = %s" % (row.job_id, row.database))
+                for row in job_chunks:
+                    print("job_id = %s, database = %s" % (row.job_id, row.database))
 
