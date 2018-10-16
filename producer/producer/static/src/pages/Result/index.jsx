@@ -12,6 +12,7 @@ class Result extends React.Component {
     super(props);
 
     this.state = {
+      status: "loading",
       results: [],
       facets: [],
       alignmentsCollapsed: true
@@ -28,13 +29,13 @@ class Result extends React.Component {
   componentDidMount() {
     fetch(routes.jobResult(this.props.match.params.resultId))
       .then(response => response.json())
-      .then(data => { this.setState({results: data}); console.log(data); });
+      .then(data => { this.setState({results: data, status: "success"}); console.log(data); });
   }
 
   render() {
     return (
       <div className="row" key="results">
-        <h1 className="margin-top-large margin-bottom-large">Results: <small>{ this.state.results.length } total</small></h1>
+        <h1 className="margin-top-large margin-bottom-large">Results: { this.state.status === "loading" ? <i className="icon icon-functional spin" data-icon="s"/> : <small>{ this.state.results.length } total</small> }</h1>
         <div className="small-12 medium-10 medium-push-2 columns">
           <section>
             { this.state.results.map(result => (
