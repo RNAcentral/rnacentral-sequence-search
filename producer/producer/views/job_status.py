@@ -34,7 +34,7 @@ async def job_status(request):
                 "status": row[4]  # JobChunk.c.status
             })
     except Exception as e:
-        raise web.HTTPNotFound() from e
+        raise web.HTTPNotFound(text=str(e)) from e
 
     if 'status' not in locals():
         raise web.HTTPNotFound(text="Job '%s' not found" % job_id)

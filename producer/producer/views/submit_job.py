@@ -60,7 +60,7 @@ async def save(request, data):
     )
     for database in data['databases']:
         job_chunk_id = await request.app['connection'].scalar(
-            JobChunk.insert().values(job_id=job_id, database=database, submitted=datetime.datetime.now(), status='started')
+            JobChunk.insert().values(job_id=job_id, database=database, submitted=datetime.datetime.now(), status='pending')
         )
 
     return job_id
@@ -80,7 +80,7 @@ async def delegate(request, data, job_id):
                 await request.app['connection'].execute(
                     '''
                     UPDATE {job_chunks}
-                    SET status = 'pending'
+                    SET status = 'started'
                     WHERE job_id={job_id} AND database='{database}';
                     '''.format(job_chunks='job_chunks', job_id=job_id, database=database)
                 )
