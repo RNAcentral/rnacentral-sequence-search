@@ -21,15 +21,83 @@ from aiohttp.test_utils import AioHTTPTestCase
 import sqlalchemy as sa
 
 from ..main import create_app
-from ..models import Job, JobChunk
+from ..models import Job, JobChunk, JobChunkResult
 
 
 """
 Run these tests with:
 
-ENVIRONMENT=TEST python -m unittest producer.tests.test_job_done
+ENVIRONMENT=TEST python -m unittest producer.tests.test_facets_search
 """
 
 
 class EBISearchProxyTestCase(AioHTTPTestCase):
-    pass
+    async def get_application(self):
+        logging.basicConfig(level=logging.ERROR)  # subdue messages like 'DEBUG:asyncio:Using selector: KqueueSelector'
+        app = create_app()
+        return app
+
+    async def setUpAsync(self):
+        await super().setUpAsync()
+
+        logging.info("settings = %s" % self.app['settings'].__dict__)
+
+        async with self.app['engine'].acquire() as connection:
+            self.job_id = await connection.scalar(
+                Job.insert().values(query='', submitted=datetime.datetime.now(), status='started')
+            )
+
+            self.job_chunk_id1 = await connection.scalar(
+                JobChunk.insert().values(
+                    job_id=self.job_id,
+                    database='mirbase',
+                    submitted=datetime.datetime.now(),
+                    status='started'
+                )
+            )
+            await connection.scalar(
+                JobChunk.insert().values(
+                    job_id=self.job_id,
+                    database='pombase',
+                    submitted=datetime.datetime.now(),
+                    status='started'
+                )
+            )
+
+            await connection.scalar(
+                JobChunkResult.insert().values(
+                    job_chunk_id=self.job_chunk_id1,
+                    rnacentral_id='URS000075D2D2',
+                    description='Mus musculus miR - 1195 stem - loop',
+                    score=6.5,
+                    bias=0.7,
+                    e_value=32,
+                    target_length=98,
+                    alignment="Query  8 GAGUUUGAGACCAGCCUGGCCA 29\n| | | | | | | | | | | | | | | | | |\nSbjct_10090\n22\nGAGUUCGAGGCCAGCCUGCUCA\n43",
+                    alignment_length=22,
+                    gap_count=0,
+                    match_count=18,
+                    nts_count1=22,
+                    nts_count2=0,
+                    identity=81.81818181818183,
+                    query_coverage=73.33333333333333,
+                    target_coverage=0,
+                    gaps=0,
+                    query_length=30,
+                    result_id=1
+                )
+            )
+
+    async def tearDownAsync(self):
+        async with self.app['engine'].acquire() as connection:
+            await connection.execute('DELETE FROM job_chunk_results')
+            await connection.execute('DELETE FROM job_chunks')
+            await connection.execute('DELETE FROM jobs')
+
+            await super().tearDownAsync()
+
+    @unittest_run_loop
+    async def test_job_status_success(self):
+        url = self.app.router["facets-search"].url_for(job_id=str(self.job_id))
+        async with self.client.get(path=url) as response:
+            assert response.status == 200

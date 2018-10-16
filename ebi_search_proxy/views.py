@@ -12,19 +12,23 @@ limitations under the License.
 """
 
 import os
+import pathlib
 
 from aiohttp import web
 
 
 def file_path(job_id):
-    return os.path.join('cache', job_id)
+    basedir = pathlib.Path(__file__).parent
+    return os.path.join(basedir, 'cache', job_id)
 
 
 async def get(request):
     job_id = request.match_info['job_id']
 
     try:
-        return web.Response(open(file_path(job_id)).read())
+        file = open(file_path(job_id))
+        data = file.read()
+        return web.Response(text=data)
     except Exception as e:
         return web.HTTPNotFound(text=str(e))
 
@@ -37,7 +41,9 @@ async def post(request):
 
     try:
         file = open(file_path(job_id), 'wb')
-        file.write(request.content)
+        data = await request.content.read()
+        file.write(data)
+        file.flush()
         return web.HTTPCreated()
     except Exception as e:
         return web.HTTPBadRequest(text=str(e))

@@ -20,7 +20,7 @@ from .urls import setup_routes
 """
 Run either of the following commands from the parent of current directory:
 
-python3 -m proxy.main
+python3 -m ebi_search_proxy.main
 """
 
 
