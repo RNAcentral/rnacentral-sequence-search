@@ -28,5 +28,5 @@ CONSUMERS = {
     "rdp": "consumer:8000",
     "rgd": "consumer:8000",
     "srpdb": "consumer:8000",
-    "wormbase": "consume:8000"
+    "wormbase": "consumer:8000"
 }
