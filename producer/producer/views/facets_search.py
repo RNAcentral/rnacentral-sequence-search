@@ -106,57 +106,55 @@ async def facets_search(request):
         if response.status >= 400:
             raise web.HTTPBadGateway(text="Couldn't connect to text search proxy")
 
-    return web.HTTPOk()
+    # request facets from ebi text search
+    fields = [
+        'active',
+        'author',
+        'common_name',
+        'description',
+        'expert_db',
+        'function',
+        'gene',
+        'gene_synonym',
+        'has_genomic_coordinates',
+        'length',
+        'locus_tag',
+        'organelle',
+        'pub_title',
+        'product',
+        'qc_warning_found',
+        'qc_warning',
+        'rna_type',
+        'standard_name',
+        'tax_string'
+    ]
 
-    # # request facets from ebi text search
-    # fields = [
-    #     'active',
-    #     'author',
-    #     'common_name',
-    #     'description',
-    #     'expert_db',
-    #     'function',
-    #     'gene',
-    #     'gene_synonym',
-    #     'has_genomic_coordinates',
-    #     'length',
-    #     'locus_tag',
-    #     'organelle',
-    #     'pub_title',
-    #     'product',
-    #     'qc_warning_found',
-    #     'qc_warning',
-    #     'rna_type',
-    #     'standard_name',
-    #     'tax_string'
-    # ]
-    #
-    # facetfields = [
-    #     'length',
-    #     'rna_type',
-    #     'TAXONOMY',
-    #     'expert_db',
-    #     'qc_warning_found',
-    #     'has_genomic_coordinates',
-    #     'popular_species'
-    # ]
-    #
-    # url = "http://wp-p3s-f8:9050/ebisearch/ws/rest/rnacentral/seqtoolresults/" \
-    #       "?toolid=rnacentral" \
-    #       "&jobid={job_id}" \
-    #       "&query={query}" \
-    #       "&format=json&fields={fields}" \
-    #       "&facetcount={facetcount}" \
-    #       "&facetfields={facetfields}" \
-    #       "&size={pagesize}" \
-    #       "&start={start}"\
-    #     .format(job_id=job_id, query="*", fields=fields, facetcount=30, facetfields=facetfields, pagesize=20, start=1)
-    #
-    # async with client.request("get", url) as response:
-    #     if response.status >= 400:
-    #         raise web.HTTPBadGateway(text="Couldn't connect to text search proxy")
-    #     else:
-    #         # TODO: merge results with facets data
-    #         facets = await response.json()
-    #         return web.json_response({results: results, facets: facets})
+    facetfields = [
+        'length',
+        'rna_type',
+        'TAXONOMY',
+        'expert_db',
+        'qc_warning_found',
+        'has_genomic_coordinates',
+        'popular_species'
+    ]
+
+    url = "http://wp-p3s-f8:9050/ebisearch/ws/rest/rnacentral/seqtoolresults/" \
+          "?toolid=nhmmer_dummy" \
+          "&jobid={job_id}" \
+          "&query={query}" \
+          "&format=json&fields={fields}" \
+          "&facetcount={facetcount}" \
+          "&facetfields={facetfields}" \
+          "&size={pagesize}" \
+          "&start={start}"\
+        .format(job_id=job_id, query="rna", fields=','.join(fields), facetcount=30, facetfields=','.join(facetfields), pagesize=20, start=1)
+
+    async with client.request("get", url) as response:
+        if response.status >= 400:
+            raise web.HTTPBadGateway(text="Couldn't connect to text search proxy")
+        else:
+            # TODO: merge results with facets data
+            facets = await response.json()
+            return web.json_response({results: results, facets: facets})
 

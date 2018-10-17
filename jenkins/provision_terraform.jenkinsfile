@@ -33,8 +33,7 @@ pipeline {
             steps {
                 sh '''
                 dir('../ansible') {
-                    sh '''
-                        ansible-playbook -i hosts broker.yml --tags "kafka"
+                    sh '''                        ansible-playbook -i hosts broker.yml --tags "kafka"
                     '''
                 }
                 '''
