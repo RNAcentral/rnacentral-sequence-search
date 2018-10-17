@@ -1,35 +1,35 @@
-resource "openstack_compute_keypair_v2" "SequenceSearch" {
-  name = "SequenceSearch"
+resource "openstack_compute_keypair_v2" "sequence_search" {
+  name = "sequence_search"
   public_key = "${file("${var.ssh_key_file}.pub")}"
 }
 
-resource "openstack_networking_network_v2" "SequenceSearch" {
-  name = "SequenceSearch"
+resource "openstack_networking_network_v2" "sequence_search" {
+  name = "sequence_search"
   admin_state_up = "true"
 }
 
-resource "openstack_networking_subnet_v2" "SequenceSearch" {
-  name = "SequenceSearch"
-  network_id = "${openstack_networking_network_v2.SequenceSearch.id}"
+resource "openstack_networking_subnet_v2" "sequence_search" {
+  name = "sequence_search"
+  network_id = "${openstack_networking_network_v2.sequence_search.id}"
   cidr = "192.168.0.0/24"
   ip_version = 4
   dns_nameservers = ["8.8.8.8"]
 }
 
-resource "openstack_networking_router_v2" "SequenceSearch" {
-  name = "SequenceSearch"
+resource "openstack_networking_router_v2" "sequence_search" {
+  name = "sequence_search"
   admin_state_up = "true"
   external_network_id = "${var.external_network_id}"
 }
 
-resource "openstack_networking_router_interface_v2" "SequenceSearch" {
-  router_id = "${openstack_networking_router_v2.SequenceSearch.id}"
-  subnet_id = "${openstack_networking_subnet_v2.SequenceSearch.id}"
+resource "openstack_networking_router_interface_v2" "sequence_search" {
+  router_id = "${openstack_networking_router_v2.sequence_search.id}"
+  subnet_id = "${openstack_networking_subnet_v2.sequence_search.id}"
 }
 
-resource "openstack_compute_secgroup_v2" "SequenceSearch" {
-  name = "SequenceSearch"
-  description = "Security group for the SequenceSearch instances"
+resource "openstack_compute_secgroup_v2" "sequence_search" {
+  name = "sequence_search"
+  description = "Security group for the sequence_search instances"
   rule {
     from_port = 22
     to_port = 22
@@ -60,27 +60,27 @@ resource "openstack_compute_secgroup_v2" "SequenceSearch" {
 }
 
 resource "openstack_compute_instance_v2" "producer" {
-  depends_on = ["openstack_compute_keypair_v2.SequenceSearch"]
+  depends_on = ["openstack_compute_keypair_v2.sequence_search"]
   name = "producer"
   image_name = "${var.image}"
   flavor_name = "${var.flavor}"
-  key_pair = "${openstack_compute_keypair_v2.SequenceSearch.name}"
-  security_groups = [ "${openstack_compute_secgroup_v2.SequenceSearch.name}" ]
+  key_pair = "${openstack_compute_keypair_v2.sequence_search.name}"
+  security_groups = [ "${openstack_compute_secgroup_v2.sequence_search.name}" ]
   network {
-    uuid = "${openstack_networking_network_v2.SequenceSearch.id}"
+    uuid = "${openstack_networking_network_v2.sequence_search.id}"
     fixed_ip_v4 = "192.168.0.5"
   }
 }
 
 resource "openstack_compute_instance_v2" "postgres" {
-  depends_on = ["openstack_compute_keypair_v2.SequenceSearch"]
+  depends_on = ["openstack_compute_keypair_v2.sequence_search"]
   name = "postgres"
   image_name = "${var.image}"
   flavor_name = "${var.flavor}"
-  key_pair = "${openstack_compute_keypair_v2.SequenceSearch.name}"
-  security_groups = [ "${openstack_compute_secgroup_v2.SequenceSearch.name}" ]
+  key_pair = "${openstack_compute_keypair_v2.sequence_search.name}"
+  security_groups = [ "${openstack_compute_secgroup_v2.sequence_search.name}" ]
   network {
-    uuid = "${openstack_networking_network_v2.SequenceSearch.id}"
+    uuid = "${openstack_networking_network_v2.sequence_search.id}"
     fixed_ip_v4 = "192.168.0.6"
   }
 
@@ -89,7 +89,7 @@ resource "openstack_compute_instance_v2" "postgres" {
 #      type = "ssh"
 #      user = "${var.ssh_user_name}"
 #      host = "${var.floating_ip}"
-#      private_key = "${openstack_compute_keypair_v2.SequenceSearch.private_key}"
+#      private_key = "${openstack_compute_keypair_v2.sequence_search.private_key}"
 #    }
 #
 #    inline = [
@@ -100,26 +100,26 @@ resource "openstack_compute_instance_v2" "postgres" {
 
 resource "openstack_compute_instance_v2" "consumer" {
   count = 10
-  depends_on = ["openstack_compute_keypair_v2.SequenceSearch"]
+  depends_on = ["openstack_compute_keypair_v2.sequence_search"]
   name = "consumer-${count.index + 1}"
   image_name = "${var.image}"
   flavor_name = "${var.flavor}"
-  key_pair = "${openstack_compute_keypair_v2.SequenceSearch.name}"
-  security_groups = [ "${openstack_compute_secgroup_v2.SequenceSearch.name}" ]
+  key_pair = "${openstack_compute_keypair_v2.sequence_search.name}"
+  security_groups = [ "${openstack_compute_secgroup_v2.sequence_search.name}" ]
   network {
-    uuid = "${openstack_networking_network_v2.SequenceSearch.id}"
+    uuid = "${openstack_networking_network_v2.sequence_search.id}"
     fixed_ip_v4 = "192.168.0.${count.index + 7}"
   }
 }
 
-resource "openstack_compute_floatingip_associate_v2" "SequenceSearch" {
-  depends_on = ["openstack_compute_instance_v2.producer", "openstack_networking_router_interface_v2.SequenceSearch"]
+resource "openstack_compute_floatingip_associate_v2" "sequence_search" {
+  depends_on = ["openstack_compute_instance_v2.producer", "openstack_networking_router_interface_v2.sequence_search"]
   floating_ip = "${var.floating_ip}"
   instance_id = "${openstack_compute_instance_v2.producer.id}"
   # fixed_ip = "${openstack_compute_instance_v2.multi-net.network.1.fixed_ip_v4}"
 }
 
 #resource "local_file" "private_key" {
-#  content = "${openstack_compute_keypair_v2.SequenceSearch.private_key}"
+#  content = "${openstack_compute_keypair_v2.sequence_search.private_key}"
 #  filename = "production_rsa"
 #}

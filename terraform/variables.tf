@@ -7,7 +7,7 @@ variable "flavor" {
 }
 
 variable "ssh_key_file" {
-  default = "SequenceSearch_rsa"
+  default = "sequence_search_rsa"
 }
 
 variable "ssh_user_name" {
