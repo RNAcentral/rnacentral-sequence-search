@@ -1,8 +1,0 @@
----
-- hosts: kafka
-  gather_facts: No
-  remote_user: centos
-  become: true
-  become_method: sudo
-  roles:
-    - {role: kafka, tags: 'kafka'}
