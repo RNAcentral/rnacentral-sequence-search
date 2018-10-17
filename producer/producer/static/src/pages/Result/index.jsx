@@ -20,11 +20,11 @@ class Result extends React.Component {
     };
 
     this.onToggleAlignmentsCollapsed = this.onToggleAlignmentsCollapsed.bind(this);
-    this.onToggleFacet = this.onToggleFacet.bind(this)
+    this.toggleFacet = this.toggleFacet.bind(this)
   }
 
   buildQuery() {
-    let outputText = "";
+    let outputText;
     let outputClauses = [];
 
     Object.keys(this.state.selectedFacets).map(facetId => {
@@ -40,7 +40,7 @@ class Result extends React.Component {
     return outputText;
   }
 
-  onToggleFacet(facetId, facetValue) {
+  toggleFacet(facetId, facetValue) {
     let selectedFacets = { ...this.state.selectedFacets };
 
     if (Object.keys(this.state.selectedFacets).indexOf(facetId) === -1) {
@@ -81,7 +81,7 @@ class Result extends React.Component {
             )) }
           </section>
         </div>
-        <Facets resultId={this.props.match.params.resultId}></Facets>
+        <Facets resultId={this.props.match.params.resultId} selectedFacets={ this.state.selectedFacets } toggleFacet={ this.toggleFacet } />
       </div>
     )
   }

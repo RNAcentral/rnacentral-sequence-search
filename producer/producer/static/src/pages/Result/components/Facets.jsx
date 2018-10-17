@@ -25,7 +25,7 @@ class Result extends React.Component {
     return ([
       <legend key={facet.id}><h5 style={{color: 'rgb(0,124,130)' }}>{ facet.label }</h5></legend>,
       facet.facetValues.map(facetValue => (
-        <li key={`li ${facetValue.label}`}><span className="facet"><input id="checkbox12" type="checkbox" /><label htmlFor="checkbox12">{ facetValue.label }</label></span></li>
+        <li key={`li ${facetValue.label}`}><span className="facet"><input id="checkbox12" type="checkbox" checked={this.props.selectedFacets.hasOwnProperty(facet.id) && this.props.selectedFacets[facet.id].indexOf(facetValue) !== -1 } onChange={(e) => this.props.toggleFacet(facet.id, facetValue)} /><label htmlFor="checkbox12">{ facetValue.label }</label></span></li>
       )),
       <br key={`br ${facet.id}`} />
     ]);
