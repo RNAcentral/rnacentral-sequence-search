@@ -29,7 +29,7 @@ resource "openstack_networking_router_interface_v2" "SequenceSearch" {
 
 resource "openstack_compute_secgroup_v2" "SequenceSearch" {
   name = "SequenceSearch"
-  description = "Security group for the Terraform example instances"
+  description = "Security group for the SequenceSearch instances"
   rule {
     from_port = 22
     to_port = 22
