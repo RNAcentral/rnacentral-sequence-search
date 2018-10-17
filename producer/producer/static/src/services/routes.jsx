@@ -3,7 +3,8 @@ module.exports = {
   submitJob:           () => `/api/submit-job`,
   jobStatus:           (jobId) => `/api/job-status/${jobId}`,
   jobResult:           (resultId) => `/api/job-result/${resultId}`,
-  facets:              (resultId) => `/api/facets/${resultId}`
+  facets:              (resultId) => `/api/facets/${resultId}`,
+  facetsSearch:        (resultId, query, page, pageSize) => `/api/facets/${resultId}?query=${query}&page=${page}&pageSize=${pageSize}`
   // ebiSearch:           (jobId, query, fields, facetcount, facetfields, pagesize, start) =>
   //   `http://wp-p3s-f8:9050/ebisearch/ws/rest/rnacentral/seqtoolresults` +
   //   `?query=${query}` +

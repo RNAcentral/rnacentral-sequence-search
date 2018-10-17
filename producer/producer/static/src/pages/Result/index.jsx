@@ -15,10 +15,48 @@ class Result extends React.Component {
       status: "loading",
       results: [],
       facets: [],
+      selectedFacets: {},  // e.g. { facetId1: [facetValue1, facetValue2], facetId2: [facetValue3] }
       alignmentsCollapsed: true
     };
 
     this.onToggleAlignmentsCollapsed = this.onToggleAlignmentsCollapsed.bind(this);
+    this.onToggleFacet = this.onToggleFacet.bind(this)
+  }
+
+  buildQuery() {
+    let outputText = "";
+    let outputClauses = [];
+
+    Object.keys(this.state.selectedFacets).map(facetId => {
+      let facetText = "";
+      let facetClauses = [];
+      this.state.selectedFacets[facetId].map(facetValue => facetClauses.push(`${facetId}: ${facetValue}`));
+      facetText = facetClauses.join(" OR ");
+
+      outputClauses.push(facetText);
+    });
+
+    outputText = outputClauses.join(" AND ");
+    return outputText;
+  }
+
+  onToggleFacet(facetId, facetValue) {
+    let selectedFacets = { ...this.state.selectedFacets };
+
+    if (Object.keys(this.state.selectedFacets).indexOf(facetId) === -1) {
+      selectedFacets[facetId] = [facetValue];
+    } else {
+      let index = this.state.selectedFacets[facetId].indexOf(facetValue);
+      if (index === -1) {
+        selectedFacets[facetId].push(facetValue);
+      } else {
+        selectedFacets[facetId].splice(index, 1);
+      }
+    }
+
+    fetch(routes.facetsSearch(this.props.match.params.resultId, this.buildQuery()))
+      .then(response => response.json())
+      .then(data => { this.setState({selectedFacets: selectedFacets, facets: data.facets, result: data.items, status: "success"}); });
   }
 
   onToggleAlignmentsCollapsed() {
