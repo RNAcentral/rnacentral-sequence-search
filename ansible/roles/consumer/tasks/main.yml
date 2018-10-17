@@ -53,4 +53,4 @@
   - name: Install pip3 requirements
     shell: pip3 install -r requirements.txt
     args:
-      chdir: /srv/producer
+      chdir: /srv/consumer

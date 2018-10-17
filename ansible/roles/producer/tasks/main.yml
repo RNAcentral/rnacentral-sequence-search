@@ -9,11 +9,30 @@
       description: epel repostiory
       gpgcheck: no
 
-  - name: Install pip
+  - name: Install yum dependencies
     yum:
-      name: python-pip
+      name:
+      - curl
+      - gcc
+      - git
+      - libaio
+      - "nc.x86_64"
+      - openssl
+      - openssl-devel
+      - tar
+      - unzip
+      - wget
+      - zlib-devel
+      - gcc-c++
+      - make
+      - python36
+      - python36-devel
+      - python36-setuptools
 
-  - name: Copy django code
+  - name: Install pip3
+    shell: easy_install-3.6 pip
+
+  - name: Copy aiohttp code
     copy:
       src: ../../../producer
       dest: /srv
