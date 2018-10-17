@@ -88,6 +88,30 @@ class EBISearchProxyTestCase(AioHTTPTestCase):
                 )
             )
 
+            await connection.scalar(
+                JobChunkResult.insert().values(
+                    job_chunk_id=self.job_chunk_id1,
+                    rnacentral_id='URS000004F5D8',
+                    description='Mus musculus miR - 1195 stem - loop',
+                    score=6.5,
+                    bias=0.7,
+                    e_value=32,
+                    target_length=98,
+                    alignment="Query  8 GAGUUUGAGACCAGCCUGGCCA 29\n| | | | | | | | | | | | | | | | | |\nSbjct_10090\n22\nGAGUUCGAGGCCAGCCUGCUCA\n43",
+                    alignment_length=22,
+                    gap_count=0,
+                    match_count=18,
+                    nts_count1=22,
+                    nts_count2=0,
+                    identity=81.81818181818183,
+                    query_coverage=73.33333333333333,
+                    target_coverage=0,
+                    gaps=0,
+                    query_length=30,
+                    result_id=1
+                )
+            )
+
     async def tearDownAsync(self):
         async with self.app['engine'].acquire() as connection:
             await connection.execute('DELETE FROM job_chunk_results')
