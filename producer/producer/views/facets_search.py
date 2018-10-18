@@ -42,10 +42,14 @@ async def facets_search(request):
     """
     job_id = request.match_info['job_id']
 
+    query = request.query['query']
+    page = request.query['page']
+    page_size = request.query['page_size']
+
     # get sequence search results from the database
     try:
         async with request.app['engine'].acquire() as connection:
-            query = (sa.select([
+            sql = (sa.select([
                     JobChunk.c.job_id,
                     JobChunk.c.database,
                     JobChunkResult.c.rnacentral_id,
@@ -71,7 +75,7 @@ async def facets_search(request):
                 .where(JobChunk.c.job_id == job_id))  # noqa
 
             results = []
-            async for row in connection.execute(query):
+            async for row in connection.execute(sql):
                 results.append({
                     'rnacentral_id': row[2],
                     'description': row[3],
@@ -146,9 +150,9 @@ async def facets_search(request):
           "&format=json&fields={fields}" \
           "&facetcount={facetcount}" \
           "&facetfields={facetfields}" \
-          "&size={pagesize}" \
-          "&start={start}"\
-        .format(job_id=job_id, query="rna", fields=','.join(fields), facetcount=30, facetfields=','.join(facetfields), pagesize=20, start=1)
+          "&size={page_size}" \
+          "&start={page}"\
+        .format(job_id=job_id, query=query, fields=','.join(fields), facetcount=30, facetfields=','.join(facetfields), page=page, page_size=page_size)
 
     async with client.request("get", url) as response:
         if response.status >= 400:

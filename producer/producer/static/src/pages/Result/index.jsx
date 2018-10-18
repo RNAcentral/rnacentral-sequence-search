@@ -24,16 +24,14 @@ class Result extends React.Component {
   }
 
   buildQuery() {
-    let outputText;
-    let outputClauses = [];
+    let outputText, outputClauses = [];
 
     Object.keys(this.state.selectedFacets).map(facetId => {
-      let facetText = "";
-      let facetClauses = [];
+      let facetText, facetClauses = [];
       this.state.selectedFacets[facetId].map(facetValue => facetClauses.push(`${facetId}: ${facetValue}`));
       facetText = facetClauses.join(" OR ");
 
-      outputClauses.push(facetText);
+      outputClauses.push("(" + facetText + ")");
     });
 
     outputText = outputClauses.join(" AND ");
@@ -54,7 +52,7 @@ class Result extends React.Component {
       }
     }
 
-    fetch(routes.facetsSearch(this.props.match.params.resultId, this.buildQuery()))
+    fetch(routes.facetsSearch(this.props.match.params.resultId, this.buildQuery(), 1, 20))
       .then(response => response.json())
       .then(data => { this.setState({selectedFacets: selectedFacets, facets: data.facets, result: data.items, status: "success"}); });
   }
