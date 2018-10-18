@@ -23,6 +23,10 @@ class Result extends React.Component {
     this.toggleFacet = this.toggleFacet.bind(this)
   }
 
+  /**
+   * Builds text query for sending to text search backend from this.state.selectedFacets
+   * @returns {string | *}
+   */
   buildQuery() {
     let outputText, outputClauses = [];
 
@@ -38,6 +42,11 @@ class Result extends React.Component {
     return outputText;
   }
 
+  /**
+   * Should be invoked, when user checks/unchecks a text search facet
+   * @param facetId
+   * @param facetValue
+   */
   toggleFacet(facetId, facetValue) {
     let selectedFacets = { ...this.state.selectedFacets };
 
@@ -54,9 +63,14 @@ class Result extends React.Component {
 
     fetch(routes.facetsSearch(this.props.match.params.resultId, this.buildQuery(), 1, 20))
       .then(response => response.json())
-      .then(data => { this.setState({selectedFacets: selectedFacets, facets: data.facets, result: data.items, status: "success"}); });
+      .then(data => {
+        this.setState({selectedFacets: selectedFacets, facets: data.facets, result: data.items, status: "success"});
+      });
   }
 
+  /**
+   * Collapses/displays alignments in search results
+   */
   onToggleAlignmentsCollapsed() {
     $('.alignment').toggleClass('alignment-collapsed');
     this.setState({ alignmentsCollapsed: !this.state.alignmentsCollapsed });
