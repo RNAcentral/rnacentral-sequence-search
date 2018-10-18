@@ -13,14 +13,32 @@ class Result extends React.Component {
 
     this.state = {
       status: "loading",
-      results: [],
+      entries: [],
       facets: [],
+      hitCount: 0,
+      page_size: 20,
+      page: 1,
       selectedFacets: {},  // e.g. { facetId1: [facetValue1, facetValue2], facetId2: [facetValue3] }
       alignmentsCollapsed: true
     };
 
     this.onToggleAlignmentsCollapsed = this.onToggleAlignmentsCollapsed.bind(this);
     this.toggleFacet = this.toggleFacet.bind(this)
+  }
+
+  /**
+   * Returns a promise of sequences search results, passed to text search and accompanied with facets.
+   * See example of server response: https://www.ebi.ac.uk/ebisearch/swagger.ebi
+   *
+   * @param resultId - id of this sequence search
+   * @param query - lucene query string, constructed from selectedFacets
+   * @param page - number of page, starting from 1
+   * @param page_size - number of entries per page
+   * @returns {Promise<any>}
+   */
+  fetchSearchResults(resultId, query, page, page_size) {
+    return fetch(routes.facetsSearch(resultId, query, page, page_size))
+      .then(response => response.json());
   }
 
   /**
@@ -61,11 +79,13 @@ class Result extends React.Component {
       }
     }
 
-    fetch(routes.facetsSearch(this.props.match.params.resultId, this.buildQuery(), 1, 20))
-      .then(response => response.json())
+    // start loading from the first page again
+    this.setState({ page : 1 });
+    this.fetchSearchResults(this.props.match.params.resultId, this.buildQuery(), 1, this.state.page_size)
       .then(data => {
-        this.setState({selectedFacets: selectedFacets, facets: data.facets, result: data.items, status: "success"});
-      });
+        this.setState({selectedFacets: selectedFacets, facets: data.facets, result: data.entries, status: "success"});
+      })
+      .catch(reason => this.setState({ status: "error" }));
   }
 
   /**
@@ -79,16 +99,29 @@ class Result extends React.Component {
   componentDidMount() {
     fetch(routes.jobResult(this.props.match.params.resultId))
       .then(response => response.json())
-      .then(data => { this.setState({results: data, status: "success"}); console.log(data); });
+      .then(data => { this.setState({entries: data, status: "success"}); console.log(data); });
+
+    // When user scrolls down to the bottom of the component, load more entries, if available.
+    window.onscroll = () => {
+      // Checks that the page has scrolled to the bottom
+      if (window.innerHeight + document.documentElement.scrollTop === document.documentElement.offsetHeight) {
+        if (this.state.status === "success" && this.state.entries < this.state.hitCount) {
+          this.setState({page: this.state.page + 1, status: "loading"});
+          this.fetchSearchResults(this.props.match.resultId, this.buildQuery(), this.state.page, this.state.page_size)
+            .then(data => { this.setState({entries: [...this.state.entries, ...data.entries], status: "success"}) })
+            .catch(reason => this.setState({ status: "error" }));
+        }
+      }
+    };
   }
 
   render() {
     return (
-      <div className="row" key="results">
-        <h1 className="margin-top-large margin-bottom-large">Results: { this.state.status === "loading" ? <i className="icon icon-functional spin" data-icon="s"/> : <small>{ this.state.results.length } total</small> }</h1>
+      <div className="row">
+        <h1 className="margin-top-large margin-bottom-large">Results: { this.state.status === "loading" ? <i className="icon icon-functional spin" data-icon="s"/> : <small>{ this.state.entries.length } total</small> }</h1>
         <div className="small-12 medium-10 medium-push-2 columns">
           <section>
-            { this.state.results.map((result, index) => (
+            { this.state.entries.map((result, index) => (
             <ul key={`${result}_${index}`}><Hit result={result} alignmentsCollapsed={this.state.alignmentsCollapsed} onToggleAlignmentsCollapsed={ this.onToggleAlignmentsCollapsed } /></ul>
             )) }
           </section>
