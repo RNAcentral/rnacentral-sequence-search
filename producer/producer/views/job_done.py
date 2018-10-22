@@ -12,7 +12,7 @@ limitations under the License.
 """
 
 import sqlalchemy as sa
-from aiohttp import web, client
+from aiohttp import web
 
 from ..models import Job, JobChunk, JobChunkResult
 

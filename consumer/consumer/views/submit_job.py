@@ -13,7 +13,8 @@ limitations under the License.
 
 import json
 import os
-from aiohttp import web, client
+import aiohttp
+from aiohttp import web
 from aiojobs.aiohttp import spawn
 
 from .. import settings
@@ -48,16 +49,17 @@ async def nhmmer(job_id, sequence, database):
         url=settings.PRODUCER_JOB_DONE_URL
     )
 
-    async with client.request(
-            "post",
-            response_url,
-            data=json.dumps(data),
-            headers={'content-type': 'application/json'}
-    ) as response:
-        if response.status != 200:
-            print(response.status)
-            text = await response.text()
-            print(text)
+    headers = {'content-type': 'application/json'}
+
+    try:
+        async with aiohttp.ClientSession() as session:
+            async with session.post(response_url, data=json.dumps(data), headers=headers) as response:
+                if response.status != 200:
+                    print(response.status)
+                    text = await response.text()
+                    print(text)
+    except Exception as e:
+        return web.HTTPBadGateway(text=str(e))
 
 
 def validate_job_data(job_id, sequence, database):

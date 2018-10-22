@@ -16,9 +16,8 @@ import json
 import datetime
 
 import logging
-from aiojobs.aiohttp import spawn
-import aiohttp_jinja2
-from aiohttp import web, client
+import aiohttp
+from aiohttp import web
 
 from ..models import Job, JobChunk
 
@@ -75,18 +74,22 @@ async def delegate(connection, request, data, job_id):
 
         logging.debug("Queuing JobChunk to consumer: url = {}, json_data = {}, headers = {}".format(url, json_data, headers))
 
-        async with client.request("post", url, data=json_data, headers=headers) as response:
-            if response.status < 400:
-                await connection.execute(
-                    '''
-                    UPDATE {job_chunks}
-                    SET status = 'started'
-                    WHERE job_id={job_id} AND database='{database}';
-                    '''.format(job_chunks='job_chunks', job_id=job_id, database=database)
-                )
-            else:
-                text = await response.text()
-                raise web.HTTPBadRequest(text=text)
+        try:
+            async with aiohttp.ClientSession() as session:
+                async with session.post(url, data=json_data, headers=headers) as response:
+                    if response.status < 400:
+                        await connection.execute(
+                            '''
+                            UPDATE {job_chunks}
+                            SET status = 'started'
+                            WHERE job_id={job_id} AND database='{database}';
+                            '''.format(job_chunks='job_chunks', job_id=job_id, database=database)
+                        )
+                    else:
+                        text = await response.text()
+                        raise web.HTTPBadRequest(text=text)
+        except Exception as e:
+            return web.HTTPBadGateway(text=str(e))
 
 
 async def submit_job(request):
