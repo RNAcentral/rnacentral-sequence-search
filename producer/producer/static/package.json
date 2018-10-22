@@ -25,12 +25,7 @@
     "bioinformatics"
   ],
   "author": "Boris A. Burkov <burkov@ebi.ac.uk>",
-  "license": [
-    {
-      "type": "Apache-2.0",
-      "url": "http://www.apache.org/licenses/LICENSE-2.0"
-    }
-  ],
+  "license": "Apache-2.0",
   "bugs": {
     "url": "https://github.com/RNAcentral/SequenceSearchDevOps/issues"
   },
