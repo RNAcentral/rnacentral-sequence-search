@@ -11,7 +11,8 @@ See the License for the specific language governing permissions and
 limitations under the License.
 """
 
-from aiohttp import web, client
+import aiohttp
+from aiohttp import web
 import sqlalchemy as sa
 
 from ..models import Job, JobChunk, JobChunkResult
@@ -42,9 +43,9 @@ async def facets_search(request):
     """
     job_id = request.match_info['job_id']
 
-    query = request.query['query']
-    page = request.query['page']
-    page_size = request.query['page_size']
+    query = request.query['query'] if 'query' in request.query else 'rna'
+    page = request.query['page'] if 'page' in request.query else 1
+    page_size = request.query['page_size'] if 'page_size' in request.query else 20
 
     # get sequence search results from the database
     try:
@@ -106,9 +107,13 @@ async def facets_search(request):
     rnacentral_ids = "\n".join([result['rnacentral_id'] for result in results])
     url = request.app['settings'].EBI_SEARCH_PROXY_URL + '/' + job_id
     headers = {'content-type': 'text/plain'}
-    async with client.request("post", url, data=rnacentral_ids, headers=headers) as response:
-        if response.status >= 400:
-            raise web.HTTPBadGateway(text="Couldn't connect to text search proxy")
+    try:
+        async with aiohttp.ClientSession() as session:
+            async with session.post(url, data=rnacentral_ids, headers=headers) as response:
+                if response.status >= 400:
+                    raise web.HTTPBadGateway(text="Couldn't connect to text search proxy")
+    except Exception as e:
+        return web.HTTPBadGateway(text=str(e))
 
     # request facets from ebi text search
     fields = [
@@ -154,11 +159,14 @@ async def facets_search(request):
           "&start={page}"\
         .format(job_id=job_id, query=query, fields=','.join(fields), facetcount=30, facetfields=','.join(facetfields), page=page, page_size=page_size)
 
-    async with client.request("get", url) as response:
-        if response.status >= 400:
-            raise web.HTTPBadGateway(text="Couldn't connect to text search proxy")
-        else:
-            # TODO: merge results with facets data
-            facets = await response.json()
-            return web.json_response({results: results, facets: facets})
-
+    try:
+        async with aiohttp.ClientSession() as session:
+            async with session.get(url) as response:
+                if response.status >= 400:
+                    raise web.HTTPBadGateway(text=response.status)
+                else:
+                    # TODO: merge results with facets data
+                    facets = await response.json()
+                    return web.json_response({results: results, facets: facets})
+    except Exception as e:
+        return web.HTTPBadGateway(text=str(e))
