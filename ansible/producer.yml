@@ -1,5 +1,5 @@
 ---
-- hosts: api
+- hosts: producer
   gather_facts: Yes
   remote_user: centos
   become: true
