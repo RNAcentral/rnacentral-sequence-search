@@ -38,7 +38,7 @@ To run a development server with auto-reload, run the following command from roo
 
 To run a development aiohttp server, run the following command from root of this directory:
 
-python3 -m consumer.main`
+`python3 -m consumer.main`
 
 To run a production server with gunicorn, see gunicorn.py in consumer directory
 
@@ -46,3 +46,16 @@ To run a production server with gunicorn, see gunicorn.py in consumer directory
 
  - http://edmundmartin.com/aiohttp-background-tasks/ - this is a demo on how to run background tasks with aiohttp
  - https://github.com/aio-libs/aiohttp-demos/tree/master/demos - several sample aiohttp projects, layed out like django
+
+## How to generate an ISO image with databases
+
+To generate an ISO on MacOS:
+
+ `hdiutil makehybrid -o ~/Desktop/image.iso ~/path/to/folder/to/be/converted -iso -joliet`
+
+To generate an ISO on Linux (Debian):
+
+ `genisoimage -o output_image.iso directory_name`
+
+ - https://matt.berther.io/2008/12/14/creating-iso-images-from-a-folder-in-osx/
+ - https://unix.stackexchange.com/questions/90793/create-iso-image-from-folder-via-terminal-commands
