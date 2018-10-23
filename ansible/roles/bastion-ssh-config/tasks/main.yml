@@ -12,6 +12,6 @@
   - name: Copy private key to your users ssh configuration directory
     become: false
     copy:
-      src: "../terraform/SequenceSearch_rsa"
+      src: "../terraform/sequence_search_rsa"
       dest: "~/.ssh/id_rsa"
       mode: 0400
