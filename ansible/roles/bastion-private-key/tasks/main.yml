@@ -1,7 +1,7 @@
 ---
   - name: Install ssh key
     copy:
-      src: ../terraform/SequenceSearch_rsa
+      src: ../terraform/sequence_search_rsa
       dest: /home/centos/.ssh/id_rsa
       owner: centos
       group: centos
