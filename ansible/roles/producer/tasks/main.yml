@@ -16,7 +16,6 @@
       - gcc
       - git
       - libaio
-#      - "nc.x86_64"
       - openssl
       - openssl-devel
       - tar
@@ -31,14 +30,6 @@
 
   - name: Install pip3
     shell: easy_install-3.6 pip
-
-#  - name: Copy aiohttp code
-#    copy:
-#      src: ../../../producer
-#      dest: /srv
-#      owner: centos
-#      group: centos
-#      mode: 0644
 
   - name: Rsync aiohttp code
     synchronize:
