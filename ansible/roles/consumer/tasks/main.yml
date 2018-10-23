@@ -16,7 +16,7 @@
       - gcc
       - git
       - libaio
-      - "nc.x86_64"
+#      - "nc.x86_64"
       - openssl
       - openssl-devel
       - tar

@@ -8,5 +8,5 @@
     ansible_ssh_private_key_file: "../terraform/terraform_rsa"
   roles:
     - {role: 'bastion-private-key', tags: 'bastion'}
-    - {role: 'docker', tags: 'docker'}
+#    - {role: 'docker', tags: 'docker'}
     - {role: 'producer', tags: 'producer'}
