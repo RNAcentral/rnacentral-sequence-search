@@ -148,8 +148,8 @@ async def facets_search(request):
         'popular_species'
     ]
 
-    url = "http://wp-p3s-f8:9050/ebisearch/ws/rest/rnacentral/seqtoolresults/" \
-          "?toolid=nhmmer_dummy" \
+    url = "http://wwwdev.ebi.ac.uk/ebisearch/ws/rest/rnacentral/seqtoolresults/" \
+          "?toolid=rnac_nhmmer" \
           "&jobid={job_id}" \
           "&query={query}" \
           "&format=json&fields={fields}" \
@@ -165,8 +165,7 @@ async def facets_search(request):
                 if response.status >= 400:
                     raise web.HTTPBadGateway(text=response.status)
                 else:
-                    # TODO: merge results with facets data
                     facets = await response.json()
-                    return web.json_response({results: results, facets: facets})
+                    return web.json_response(facets)
     except Exception as e:
         return web.HTTPBadGateway(text=str(e))
