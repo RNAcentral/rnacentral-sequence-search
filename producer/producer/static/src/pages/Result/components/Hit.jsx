@@ -7,11 +7,11 @@ class Hit extends React.Component {
       <li className="result">
         <div className="text-search-result">
           <h4>
-            <a href={`https://rnacentral.org/rna/${ this.props.result.rnacentral_id }`}>{ this.props.result.description }</a>
+            <a href={`https://rnacentral.org/rna/${ this.props.entry.rnacentral_id }`}>{ this.props.entry.description }</a>
           </h4>
-          <small className="text-muted">{ this.props.result.rnacentral_id }</small>
+          <small className="text-muted">{ this.props.entry.rnacentral_id }</small>
           <ul className="menu small">
-            <li>{this.props.result.target_length} nucleotides</li>
+            <li>{this.props.entry.target_length} nucleotides</li>
             <li></li>
           </ul>
           <small>
@@ -32,15 +32,15 @@ class Hit extends React.Component {
               </thead>
               <tbody>
                 <tr>
-                  <td>{ this.props.result.e_value }</td>
-                  <td>{ this.props.result.identity }</td>
-                  <td>{ this.props.result.query_coverage }</td>
-                  <td>{ this.props.result.target_coverage }</td>
-                  <td>{ this.props.result.gaps }</td>
+                  <td>{ this.props.entry.e_value }</td>
+                  <td>{ this.props.entry.identity }</td>
+                  <td>{ this.props.entry.query_coverage }</td>
+                  <td>{ this.props.entry.target_coverage }</td>
+                  <td>{ this.props.entry.gaps }</td>
                 </tr>
               </tbody>
             </table>
-            <p>{this.props.result.alignment}</p>
+            <p>{this.props.entry.alignment}</p>
           </div>
         </div>
       </li>

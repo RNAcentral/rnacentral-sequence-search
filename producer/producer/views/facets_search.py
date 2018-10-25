@@ -156,7 +156,7 @@ async def facets_search(request):
           "&facetcount={facetcount}" \
           "&facetfields={facetfields}" \
           "&size={page_size}" \
-          "&start={page}"\
+          "&start={page}" \
         .format(job_id=job_id, query=query, fields=','.join(fields), facetcount=30, facetfields=','.join(facetfields), page=page, page_size=page_size)
 
     try:

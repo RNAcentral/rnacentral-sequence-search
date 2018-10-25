@@ -96,23 +96,42 @@ class Result extends React.Component {
     this.setState({ alignmentsCollapsed: !this.state.alignmentsCollapsed });
   }
 
+  /**
+   * Checks that the page was scrolled down to the bottom.
+   * Load more entries, if available then.
+   */
+  onScroll() {
+    // Checks that the page has scrolled to the bottom
+    if (window.innerHeight + document.documentElement.scrollTop === document.documentElement.offsetHeight) {
+      if (this.state.status === "success" && this.state.entries < this.state.hitCount) {
+        this.setState({page: this.state.page + 1, status: "loading"});
+        this.fetchSearchResults(this.props.match.resultId, this.buildQuery(), this.state.page, this.state.page_size)
+          .then(data => { this.setState({entries: [...this.state.entries, ...data.entries], status: "success"}) })
+          .catch(reason => this.setState({ status: "error" }));
+      }
+    }
+  }
+
   componentDidMount() {
-    fetch(routes.jobResult(this.props.match.params.resultId))
-      .then(response => response.json())
-      .then(data => { this.setState({entries: data, status: "success"}); console.log(data); });
+    this.fetchSearchResults(this.props.match.params.resultId, this.buildQuery(), 1, this.state.page_size)
+      .then(data => {
+        console.log(data);
+
+        let selectedFacets = {};
+        data.facets.map((facet) => { selectedFacets[facet.id] = []; });
+
+        this.setState({
+          status: "success",
+          entries: [...data.entries],
+          facets: [...data.facets],
+          hitCount: 0,
+          selectedFacets: selectedFacets,
+        })
+      })
+      .catch(reason => this.setState({ status: "error" }));
 
     // When user scrolls down to the bottom of the component, load more entries, if available.
-    window.onscroll = () => {
-      // Checks that the page has scrolled to the bottom
-      if (window.innerHeight + document.documentElement.scrollTop === document.documentElement.offsetHeight) {
-        if (this.state.status === "success" && this.state.entries < this.state.hitCount) {
-          this.setState({page: this.state.page + 1, status: "loading"});
-          this.fetchSearchResults(this.props.match.resultId, this.buildQuery(), this.state.page, this.state.page_size)
-            .then(data => { this.setState({entries: [...this.state.entries, ...data.entries], status: "success"}) })
-            .catch(reason => this.setState({ status: "error" }));
-        }
-      }
-    };
+    window.onscroll = this.onScroll;
   }
 
   render() {
@@ -121,12 +140,12 @@ class Result extends React.Component {
         <h1 className="margin-top-large margin-bottom-large">Results: { this.state.status === "loading" ? <i className="icon icon-functional spin" data-icon="s"/> : <small>{ this.state.entries.length } total</small> }</h1>
         <div className="small-12 medium-10 medium-push-2 columns">
           <section>
-            { this.state.entries.map((result, index) => (
-            <ul key={`${result}_${index}`}><Hit result={result} alignmentsCollapsed={this.state.alignmentsCollapsed} onToggleAlignmentsCollapsed={ this.onToggleAlignmentsCollapsed } /></ul>
+            { this.state.entries.map((entry, index) => (
+            <ul key={`${entry}_${index}`}><Hit entry={entry} alignmentsCollapsed={this.state.alignmentsCollapsed} onToggleAlignmentsCollapsed={ this.onToggleAlignmentsCollapsed } /></ul>
             )) }
           </section>
         </div>
-        <Facets resultId={this.props.match.params.resultId} selectedFacets={ this.state.selectedFacets } toggleFacet={ this.toggleFacet } />
+        <Facets facets={ this.state.facets } selectedFacets={ this.state.selectedFacets } toggleFacet={ this.toggleFacet } />
       </div>
     )
   }
