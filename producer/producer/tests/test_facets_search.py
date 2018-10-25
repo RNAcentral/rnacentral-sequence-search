@@ -67,7 +67,7 @@ class EBISearchProxyTestCase(AioHTTPTestCase):
             await connection.scalar(
                 JobChunkResult.insert().values(
                     job_chunk_id=self.job_chunk_id1,
-                    rnacentral_id='URS000075D2D2',
+                    rnacentral_id='URS000075D2D2_10090',
                     description='Mus musculus miR - 1195 stem - loop',
                     score=6.5,
                     bias=0.7,
@@ -91,7 +91,7 @@ class EBISearchProxyTestCase(AioHTTPTestCase):
             await connection.scalar(
                 JobChunkResult.insert().values(
                     job_chunk_id=self.job_chunk_id1,
-                    rnacentral_id='URS000004F5D8',
+                    rnacentral_id='URS000004F5D8_10090',
                     description='Mus musculus miR - 1195 stem - loop',
                     score=6.5,
                     bias=0.7,
