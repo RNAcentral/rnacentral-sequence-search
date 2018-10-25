@@ -165,7 +165,14 @@ async def facets_search(request):
                 if response.status >= 400:
                     raise web.HTTPBadGateway(text=response.status)
                 else:
-                    facets = await response.json()
-                    return web.json_response(facets)
+                    text_search_data = await response.json()
+
+                    # inject sequence search data into text_search_data
+                    for entry in text_search_data['entries']:
+                        for result in results:
+                            if result['rnacentral_id'] == entry['id']:
+                                entry.update(result)
+
+                    return web.json_response(text_search_data)
     except Exception as e:
         return web.HTTPBadGateway(text=str(e))
