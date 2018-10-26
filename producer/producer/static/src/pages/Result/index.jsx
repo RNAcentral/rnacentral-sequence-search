@@ -23,6 +23,7 @@ class Result extends React.Component {
     };
 
     this.onToggleAlignmentsCollapsed = this.onToggleAlignmentsCollapsed.bind(this);
+    this.onScroll = this.onScroll.bind(this);
     this.toggleFacet = this.toggleFacet.bind(this);
   }
 
@@ -96,13 +97,15 @@ class Result extends React.Component {
   /**
    * Checks that the page was scrolled down to the bottom.
    * Load more entries, if available then.
+   *
+   * Mostly stolen from: https://alligator.io/react/react-infinite-scroll/
    */
   onScroll() {
     // Checks that the page has scrolled to the bottom
-    if (window.innerHeight + document.documentElement.scrollTop === document.documentElement.offsetHeight) {
-      if (this.state.status === "success" && this.state.entries < this.state.hitCount) {
+    if (window.innerHeight + document.documentElement.scrollTop + 10 >= document.documentElement.offsetHeight) {
+      if (this.state.status === "success" && this.state.entries.length < this.state.hitCount) {
         this.setState({page: this.state.page + 1, status: "loading"});
-        this.fetchSearchResults(this.props.match.resultId, this.buildQuery(), this.state.page, this.state.page_size)
+        this.fetchSearchResults(this.props.match.params.resultId, this.buildQuery(), this.state.page, this.state.page_size)
           .then(data => { this.setState({entries: [...this.state.entries, ...data.entries], status: "success"}) })
           .catch(reason => this.setState({ status: "error" }));
       }
@@ -119,14 +122,14 @@ class Result extends React.Component {
           status: "success",
           entries: [...data.entries],
           facets: [...data.facets],
-          hitCount: 0,
+          hitCount: data.hitCount,
           selectedFacets: selectedFacets,
-        })
+        });
       })
       .catch(reason => this.setState({ status: "error" }));
 
     // When user scrolls down to the bottom of the component, load more entries, if available.
-    // window.onscroll = this.onScroll;
+    window.onscroll = this.onScroll;
   }
 
   render() {
