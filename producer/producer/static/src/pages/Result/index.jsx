@@ -104,10 +104,14 @@ class Result extends React.Component {
     // Checks that the page has scrolled to the bottom
     if (window.innerHeight + document.documentElement.scrollTop + 10 >= document.documentElement.offsetHeight) {
       if (this.state.status === "success" && this.state.entries.length < this.state.hitCount) {
-        this.setState({page: this.state.page + 1, status: "loading"});
-        this.fetchSearchResults(this.props.match.params.resultId, this.buildQuery(), this.state.page, this.state.page_size)
-          .then(data => { this.setState({entries: [...this.state.entries, ...data.entries], status: "success"}) })
-          .catch(reason => this.setState({ status: "error" }));
+        this.setState(
+          (state, props) => (state.page === this.state.page ? { page: this.state.page + 1, status: "loading" } : { status: "loading" }),
+          () => {
+            this.fetchSearchResults(this.props.match.params.resultId, this.buildQuery(), this.state.page, this.state.page_size)
+              .then(data => { this.setState({entries: [...this.state.entries, ...data.entries], status: "success"}) })
+              .catch(reason => this.setState({ status: "error" }));
+          }
+        );
       }
     }
   }
