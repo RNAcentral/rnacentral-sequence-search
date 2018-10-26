@@ -18,12 +18,12 @@ class Result extends React.Component {
       hitCount: 0,
       page_size: 20,
       page: 1,
-      selectedFacets: {},  // e.g. { facetId1: [facetValue1, facetValue2], facetId2: [facetValue3] }
+      selectedFacets: {},  // e.g. { facetId1: [facetValue1.value, facetValue2.value], facetId2: [facetValue3.value] }
       alignmentsCollapsed: true
     };
 
     this.onToggleAlignmentsCollapsed = this.onToggleAlignmentsCollapsed.bind(this);
-    this.toggleFacet = this.toggleFacet.bind(this)
+    this.toggleFacet = this.toggleFacet.bind(this);
   }
 
   /**
@@ -50,10 +50,10 @@ class Result extends React.Component {
 
     Object.keys(this.state.selectedFacets).map(facetId => {
       let facetText, facetClauses = [];
-      this.state.selectedFacets[facetId].map(facetValue => facetClauses.push(`${facetId}: ${facetValue}`));
+      this.state.selectedFacets[facetId].map(facetValueValue => facetClauses.push(`${facetId}: ${facetValueValue}`));
       facetText = facetClauses.join(" OR ");
 
-      outputClauses.push("(" + facetText + ")");
+      if (facetText !== "") outputClauses.push("(" + facetText + ")");
     });
 
     outputText = outputClauses.join(" AND ");
@@ -63,20 +63,17 @@ class Result extends React.Component {
   /**
    * Should be invoked, when user checks/unchecks a text search facet
    * @param facetId
-   * @param facetValue
+   * @param facetValueValue - facetValue.value
    */
-  toggleFacet(facetId, facetValue) {
+  toggleFacet(facetId, facetValueValue) {
     let selectedFacets = { ...this.state.selectedFacets };
 
-    if (Object.keys(this.state.selectedFacets).indexOf(facetId) === -1) {
-      selectedFacets[facetId] = [facetValue];
+    if (!this.state.selectedFacets.hasOwnProperty(facetId)) {  // all values in clicked facet are unchecked
+      selectedFacets[facetId] = [facetValueValue];
     } else {
-      let index = this.state.selectedFacets[facetId].indexOf(facetValue);
-      if (index === -1) {
-        selectedFacets[facetId].push(facetValue);
-      } else {
-        selectedFacets[facetId].splice(index, 1);
-      }
+      let index = this.state.selectedFacets[facetId].indexOf(facetValueValue);
+      if (index === -1) { selectedFacets[facetId].push(facetValueValue); }  // this value is not checked, check it
+      else { selectedFacets[facetId].splice(index, 1); }  // this value is checked, uncheck it
     }
 
     // start loading from the first page again
@@ -115,8 +112,6 @@ class Result extends React.Component {
   componentDidMount() {
     this.fetchSearchResults(this.props.match.params.resultId, this.buildQuery(), 1, this.state.page_size)
       .then(data => {
-        console.log(data);
-
         let selectedFacets = {};
         data.facets.map((facet) => { selectedFacets[facet.id] = []; });
 
@@ -131,7 +126,7 @@ class Result extends React.Component {
       .catch(reason => this.setState({ status: "error" }));
 
     // When user scrolls down to the bottom of the component, load more entries, if available.
-    window.onscroll = this.onScroll;
+    // window.onscroll = this.onScroll;
   }
 
   render() {
