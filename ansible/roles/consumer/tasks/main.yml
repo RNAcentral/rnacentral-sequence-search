@@ -45,6 +45,11 @@
     synchronize:
       src: ../../../consumer
       dest: /srv
+      rsync_opts:
+        - "--exclude=databases"
+        - "--exclude=databases.iso"
+        - "--exclude=queries/*.fasta"
+        - "--exclude=results/*.fasta"
 
   - name: Chown aiohttp code
     file:
@@ -57,3 +62,8 @@
     shell: /usr/local/bin/pip install -r requirements.txt
     args:
       chdir: /srv/consumer
+
+  - name: Mount volume with databases
+    shell: |
+      mkdir /srv/consumer/databases
+      sudo mount /dev/vdb /srv/consumer/databases
