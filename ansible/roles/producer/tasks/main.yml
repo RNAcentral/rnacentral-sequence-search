@@ -48,6 +48,11 @@
     args:
       chdir: /srv/producer
 
+  - name: Run producer service
+    shell:
+      chdir: /srv/producer
+      cmd: nohup python36 -m producer.main &
+
 #  - name: Install lvm2
 #    yum:
 #      name: lvm2

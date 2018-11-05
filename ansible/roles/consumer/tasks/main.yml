@@ -67,3 +67,8 @@
     shell: |
       mkdir /srv/consumer/databases
       sudo mount /dev/vdb /srv/consumer/databases
+
+  - name: Run consumer service
+    shell:
+      chdir: /srv/consumer
+      cmd: nohup python36 -m consumer.main &
