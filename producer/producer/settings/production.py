@@ -10,7 +10,7 @@ HOST = "0.0.0.0"
 PORT = 8002
 
 # postgres database settings
-POSTGRES_HOST = 'postgres'
+POSTGRES_HOST = '192.168.0.6'
 POSTGRES_PORT = 5432
 POSTGRES_DATABASE = 'producer'
 POSTGRES_USER = 'docker'

@@ -51,7 +51,7 @@
   - name: Run producer service
     shell:
       chdir: /srv/producer
-      cmd: nohup python36 -m producer.main &
+      cmd: ENVIRONMENT=PRODUCTION nohup python36 -m producer.main &
 
 #  - name: Install lvm2
 #    yum:
