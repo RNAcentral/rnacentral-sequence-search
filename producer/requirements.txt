@@ -7,3 +7,4 @@ aiojobs
 aiopg
 sqlalchemy
 requests
+gunicorn

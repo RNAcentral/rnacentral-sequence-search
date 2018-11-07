@@ -4,3 +4,4 @@ aiohttp_jinja2
 aiohttp-devtools
 aiojobs
 requests
+gunicorn
