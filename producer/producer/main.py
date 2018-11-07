@@ -63,8 +63,10 @@ def create_app():
     return app
 
 
+app = create_app()
+
+
 if __name__ == '__main__':
-    app = create_app()
     web.run_app(app, host=app['settings'].HOST, port=app['settings'].PORT)
 
 # Why using thread pool at all? Because there can be blocking calls: https://pymotw.com/3/asyncio/executors.html
