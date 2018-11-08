@@ -56,6 +56,10 @@
       group: centos
       mode: 0755
 
+  - name: Kill running instances of producer service
+    shell: "sudo kill $(ps -ef | grep -v grep | grep -w gunicorn | awk '{print $2}')"
+    ignore_errors: yes
+
   - name: Run producer service
     shell:
       chdir: /srv/producer
