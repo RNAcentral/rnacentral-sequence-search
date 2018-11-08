@@ -61,10 +61,10 @@ def create_app():
     return app
 
 
-if __name__ == '__main__':
-    loop = asyncio.get_event_loop()
-    app = create_app()
+app = create_app()
 
+
+if __name__ == '__main__':
     web.run_app(app, host=settings.HOST, port=settings.PORT)
 
     # Why using thread pool at all? Because there can be blocking calls: https://pymotw.com/3/asyncio/executors.html
