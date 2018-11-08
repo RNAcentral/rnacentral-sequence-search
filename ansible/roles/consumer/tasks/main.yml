@@ -63,10 +63,12 @@
     args:
       chdir: /srv/consumer
 
-  - name: Mount volume with databases
-    shell: |
-      mkdir /srv/consumer/databases
-      sudo mount /dev/vdb /srv/consumer/databases
+  - name: Mount volume for databases
+    mount:
+      path: /srv/consumer/databases
+      src: /dev/vdb
+      fstype: iso9660
+      state: mounted
 
   - name: Create logs directory
     file:
@@ -79,5 +81,5 @@
   - name: Run consumer service
     shell:
       chdir: /srv/consumer
-      cmd: /usr/local/bin/gunicorn consumer.main:app --daemon --bind 0.0.0.0:8002 --worker-class aiohttp.worker.GunicornWebWorker --access-logfile /var/log/gunicorn/access_log --error-logfile /var/log/gunicorn/error_log --env ENVIRONMENT=PRODUCTION --log-level=DEBUG --timeout 120
+      cmd: /usr/local/bin/gunicorn consumer.main:app --daemon --bind 0.0.0.0:8000 --worker-class aiohttp.worker.GunicornWebWorker --access-logfile /var/log/gunicorn/access_log --error-logfile /var/log/gunicorn/error_log --env ENVIRONMENT=PRODUCTION --log-level=DEBUG --timeout 120
 
