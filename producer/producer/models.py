@@ -20,10 +20,10 @@ from aiopg.sa import create_engine
 # ------------------------------
 
 async def init_pg(app):
-    logging.debug("POSTGRES_USER = %s" % app['settings'].POSTGRES_USER)
-    logging.debug("POSTGRES_DATABASE = %s" % app['settings'].POSTGRES_DATABASE)
-    logging.debug("POSTGRES_HOST = %s" % app['settings'].POSTGRES_HOST)
-    logging.debug("POSTGRES_PASSWORD = %s" % app['settings'].POSTGRES_PASSWORD)
+    logging.info("POSTGRES_USER = %s" % app['settings'].POSTGRES_USER)
+    logging.info("POSTGRES_DATABASE = %s" % app['settings'].POSTGRES_DATABASE)
+    logging.info("POSTGRES_HOST = %s" % app['settings'].POSTGRES_HOST)
+    logging.info("POSTGRES_PASSWORD = %s" % app['settings'].POSTGRES_PASSWORD)
 
     app['engine'] = await create_engine(
         user=app['settings'].POSTGRES_USER,
