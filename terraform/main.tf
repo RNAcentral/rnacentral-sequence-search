@@ -52,6 +52,20 @@ resource "openstack_compute_secgroup_v2" "sequence_search" {
   }
 
   rule {
+    from_port = 8002
+    to_port = 8002
+    ip_protocol = "tcp"
+    cidr = "0.0.0.0/0"
+  }
+
+  rule {
+    from_port = 5432
+    to_port = 5432
+    ip_protocol = "tcp"
+    cidr = "0.0.0.0/0"
+  }
+
+  rule {
     from_port = -1
     to_port = -1
     ip_protocol = "icmp"
