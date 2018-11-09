@@ -34,7 +34,7 @@
 
     # List of database extensions to be created (optional)
     postgresql_database_extensions:
-      - db: docker
+      - db: producer
         extensions:
           - hstore
           - citext
