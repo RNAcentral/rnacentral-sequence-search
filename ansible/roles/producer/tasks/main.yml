@@ -27,6 +27,7 @@
       - python36
       - python36-devel
       - python36-setuptools
+      - nodejs
 
   - name: Install pip3
     shell: easy_install-3.6 pip
@@ -42,6 +43,7 @@
       owner: centos
       group: centos
       mode: 0755
+      recurse: yes
 
   - name: Install requirements
     shell: /usr/local/bin/pip install -r requirements.txt
@@ -55,6 +57,21 @@
       owner: centos
       group: centos
       mode: 0755
+
+  - name: Install node_modules
+    shell:
+      chdir: /srv/producer/producer/static
+      cmd: "npm install"
+
+  - name: Clean dist directory
+    shell:
+     chdir: /srv/producer/producer/static
+     cmd: "npm run clean"
+
+  - name: Build frontend code bundle in dist
+    shell:
+      chdir: /srv/producer/producer/static
+      cmd: "npm run build"
 
   - name: Kill running instances of producer service
     shell: "sudo kill $(ps -ef | grep -v grep | grep -w gunicorn | awk '{print $2}')"
