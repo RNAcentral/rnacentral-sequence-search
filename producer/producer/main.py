@@ -42,7 +42,7 @@ def create_app():
     app.update(name='producer', settings=settings)
 
     # setup Jinja2 template renderer
-    aiohttp_jinja2.setup(app, loader=jinja2.PackageLoader('producer', 'templates'))
+    aiohttp_jinja2.setup(app, loader=jinja2.PackageLoader('producer', 'static', 'dist'))
 
     # create db connection on startup, shutdown on exit
     app.on_startup.append(init_pg)
