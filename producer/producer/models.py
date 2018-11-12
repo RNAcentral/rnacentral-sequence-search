@@ -11,7 +11,6 @@ See the License for the specific language governing permissions and
 limitations under the License.
 """
 
-import logging
 import sqlalchemy as sa
 from aiopg.sa import create_engine
 
@@ -20,11 +19,6 @@ from aiopg.sa import create_engine
 # ------------------------------
 
 async def init_pg(app):
-    logging.info("POSTGRES_USER = %s" % app['settings'].POSTGRES_USER)
-    logging.info("POSTGRES_DATABASE = %s" % app['settings'].POSTGRES_DATABASE)
-    logging.info("POSTGRES_HOST = %s" % app['settings'].POSTGRES_HOST)
-    logging.info("POSTGRES_PASSWORD = %s" % app['settings'].POSTGRES_PASSWORD)
-
     app['engine'] = await create_engine(
         user=app['settings'].POSTGRES_USER,
         database=app['settings'].POSTGRES_DATABASE,
