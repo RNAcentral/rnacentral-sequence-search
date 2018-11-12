@@ -72,7 +72,7 @@
     shell:
       chdir: /srv/producer/producer/static
       cmd: "npm install"
-      become: false
+    become: false
 
   - name: Clean dist directory
     shell:
