@@ -58,10 +58,21 @@
       group: centos
       mode: 0755
 
+  - name: Remove node_modules, copied over from local machine (if any)
+    shell:
+      chdir: /srv/producer/producer/static
+      cmd: rm -rf node_modules
+
+  - name: Remove package-lock.json, copied over from local machine (if any)
+    shell:
+      chdir: /srv/producer/producer/static
+      cmd: rm package-lock.json
+
   - name: Install node_modules
     shell:
       chdir: /srv/producer/producer/static
       cmd: "npm install"
+      become: false
 
   - name: Clean dist directory
     shell:
