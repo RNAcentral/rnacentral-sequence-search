@@ -16,7 +16,7 @@ module.exports = function(env) {
     entry: path.join(__dirname, 'src', 'app.jsx'),
     output: {
       path: path.join(__dirname, 'dist'),
-      publicPath: '/static/', // environment === 'production' ? '/dist/' : '/',
+      publicPath: '/dist/', // environment === 'production' ? '/dist/' : '/',
       filename: 'app.[hash:7].js'
     },
     resolve: {
@@ -28,7 +28,7 @@ module.exports = function(env) {
       new HtmlWebpackPlugin({
         inject: "body",
         template: "src/index.html",
-        filename: environment === 'production' ? path.join(__dirname, "dist", "index.html") : "index.html"
+        filename: environment === 'production' ? path.join(__dirname, "index.html") : "index.html"
       }),
       new webpack.ProvidePlugin({ $: 'jquery', jQuery: 'jquery', jquery: 'jquery' })
     ],

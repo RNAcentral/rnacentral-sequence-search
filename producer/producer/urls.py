@@ -30,4 +30,4 @@ def setup_routes(app):
 
 
 def setup_static_routes(app):
-    app.router.add_static('/static/', path=settings.PROJECT_ROOT / 'static' / 'dist', name='static')
+    app.router.add_static('/dist/', path=settings.PROJECT_ROOT / 'static' / 'dist', name='static')
