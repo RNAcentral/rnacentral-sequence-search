@@ -85,7 +85,7 @@ async def submit_job(request):
     """
     For testing purposes, try the following command:
 
-    curl -H "Content-Type:application/json" -d "{\"job_id\": 1, \"databases\": [\"miRBase\"], \"sequence\": \"AAAAGGTCGGAGCGAGGCAAAATTGGCTTTCAAACTAGGTTCTGGGTTCACATAAGACCT\"}" localhost:8000/job
+    curl -H "Content-Type:application/json" -d "{\"job_id\": 1, \"database\": \"miRBase\", \"sequence\": \"AAAAGGTCGGAGCGAGGCAAAATTGGCTTTCAAACTAGGTTCTGGGTTCACATAAGACCT\"}" localhost:8000/submit-job
     """
     data = await request.json()
     try:
@@ -93,7 +93,7 @@ async def submit_job(request):
         sequence = data['sequence']
         database = data['database']
     except (KeyError, TypeError, ValueError) as e:
-        raise web.HTTPBadRequest(text='Bad input') from e
+        raise web.HTTPBadRequest(text='Bad input: %s' % str(e)) from e
 
     validate_job_data(job_id, sequence, database)
 
