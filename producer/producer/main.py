@@ -16,7 +16,6 @@ import logging
 import aiohttp_jinja2
 import jinja2
 from aiojobs.aiohttp import setup as setup_aiojobs
-from aiohttp_swagger import setup_swagger
 from aiohttp import web, web_middlewares
 
 from . import settings
@@ -56,9 +55,6 @@ def create_app():
 
     # setup aiojobs scheduler
     setup_aiojobs(app)
-
-    # setup swagger documentation
-    setup_swagger(app, swagger_url="api/doc")
 
     return app
 

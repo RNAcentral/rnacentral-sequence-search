@@ -11,13 +11,13 @@ See the License for the specific language governing permissions and
 limitations under the License.
 """
 
+from aiohttp_swagger import setup_swagger
 from .views import index, submit_job, job_status, job_result, job_done, rnacentral_databases, job_results_urs_list, \
     facets, facets_search
 from . import settings
 
 
 def setup_routes(app):
-    app.router.add_get('/', index, name='index')
     app.router.add_post('/api/submit-job', submit_job, name='submit-job')
     app.router.add_get('/api/job-status/{job_id:\d+}', job_status, name='job-status')
     app.router.add_get('/api/job-result/{job_id:\d+}', job_result, name='job-result')
@@ -28,6 +28,11 @@ def setup_routes(app):
     app.router.add_get('/api/facets-search/{job_id:\d+}', facets_search, name='facets-search')
     setup_static_routes(app)
 
+    # setup swagger documentation
+    setup_swagger(app, swagger_url="api/doc")
+
+    # cover-all index url goes last, even after swagger
+    app.router.add_get('/{tail:.*}', index, name='index')
 
 def setup_static_routes(app):
     app.router.add_static('/dist/', path=settings.PROJECT_ROOT / 'static' / 'dist', name='static')
