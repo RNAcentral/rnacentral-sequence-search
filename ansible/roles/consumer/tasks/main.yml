@@ -51,12 +51,21 @@
         - "--exclude=queries/*.fasta"
         - "--exclude=results/*.fasta"
 
+  - name: Umount volume for databases (so that chown)
+    mount:
+      path: /srv/consumer/consumer/databases
+      src: /dev/vdb
+      fstype: iso9660
+      state: unmounted
+    ignore_errors: yes
+
   - name: Chown aiohttp code
     file:
       path: /srv/consumer
       owner: centos
       group: centos
       mode: 0755
+      recurse: yes
 
   - name: Install pip3 requirements
     shell: /usr/local/bin/pip install -r requirements.txt
@@ -65,7 +74,7 @@
 
   - name: Mount volume for databases
     mount:
-      path: /srv/consumer/databases
+      path: /srv/consumer/consumer/databases
       src: /dev/vdb
       fstype: iso9660
       state: mounted
