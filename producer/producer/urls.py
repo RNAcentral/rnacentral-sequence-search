@@ -34,5 +34,6 @@ def setup_routes(app):
     # cover-all index url goes last, even after swagger
     app.router.add_get('/{tail:.*}', index, name='index')
 
+
 def setup_static_routes(app):
     app.router.add_static('/dist/', path=settings.PROJECT_ROOT / 'static' / 'dist', name='static')
