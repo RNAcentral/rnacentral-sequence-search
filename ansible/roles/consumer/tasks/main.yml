@@ -85,7 +85,6 @@
       state: absent
     ignore_errors: yes
 
-
   - name: Create logs directory
     file:
       path: /var/log/gunicorn
@@ -95,6 +94,7 @@
       mode: 0755
 
   - name: Kill running instances of consumer service
+#    shell: "sudo kill $(ps -ef | grep -v grep | grep -w gunicorn | awk '{print $2}')"
     shell: "sudo kill $(ps -ef | grep -v grep | grep -w consumer.main | awk '{print $2}')"
     ignore_errors: yes
 
