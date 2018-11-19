@@ -13,6 +13,7 @@ limitations under the License.
 
 import json
 import os
+import logging
 import aiohttp
 from aiohttp import web
 from aiojobs.aiohttp import spawn
@@ -36,7 +37,11 @@ async def nhmmer(job_id, sequence, database):
     # TODO: recoverable errors handling
     # TODO: irrecoverable errors handling
 
+    logger = logging.Logger('aiohttp.web')
+    logger.info('Job %s spawned' % job_id)
+
     filename = await nhmmer_search(sequence=sequence, job_id=job_id, database=database)
+    logger.info('Nhmmer search finished processing %s' % job_id)
 
     data = {"job_id": job_id, "database": database, "result": []}
     for record in nhmmer_parse(filename=filename):
@@ -55,10 +60,12 @@ async def nhmmer(job_id, sequence, database):
         async with aiohttp.ClientSession() as session:
             async with session.post(response_url, data=json.dumps(data), headers=headers) as response:
                 if response.status != 200:
-                    print(response.status)
                     text = await response.text()
-                    print(text)
+                    logger.error('Job %s failed to deliver results: %s' % (job_id, text))
+                else:
+                    logger.info('Results of job %s passed to' % response.status)
     except Exception as e:
+        logger.error('Job %s erred: %s' % (job_id, str(e)))
         return web.HTTPBadGateway(text=str(e))
 
 
@@ -87,7 +94,10 @@ async def submit_job(request):
 
     curl -H "Content-Type:application/json" -d "{\"job_id\": 1, \"database\": \"miRBase\", \"sequence\": \"AAAAGGTCGGAGCGAGGCAAAATTGGCTTTCAAACTAGGTTCTGGGTTCACATAAGACCT\"}" localhost:8000/submit-job
     """
+    logger = logging.Logger('aiohttp.web')
+
     data = await request.json()
+    logger.info('Job %s submitted ' % data['job_id'])
     try:
         job_id = data['job_id']
         sequence = data['sequence']
@@ -95,6 +105,7 @@ async def submit_job(request):
     except (KeyError, TypeError, ValueError) as e:
         raise web.HTTPBadRequest(text='Bad input: %s' % str(e)) from e
 
+    logger.info('Job %s data validated' % data['job_id'])
     validate_job_data(job_id, sequence, database)
 
     await spawn(request, nhmmer(job_id, sequence, database))

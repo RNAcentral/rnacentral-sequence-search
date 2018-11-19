@@ -104,7 +104,7 @@
     shell:
       chdir: /srv/producer
 #      cmd: /usr/local/bin/gunicorn producer.main:app --daemon --bind 0.0.0.0:8002 --worker-class aiohttp.worker.GunicornWebWorker --access-logfile /var/log/gunicorn/access_log --error-logfile /var/log/gunicorn/error_log --env ENVIRONMENT=PRODUCTION --log-level=DEBUG --timeout 120
-      cmd: ENVIRONMENT=PRODUCTION nohup python36 -m producer.main 1>/var/log/gunicorn/access_log 2>/var/log/gunicorn/error_log &
+      cmd: ENVIRONMENT=PRODUCTION nohup python36 -m producer.main &> /var/log/gunicorn/access_log &
 
 #  - name: Install lvm2
 #    yum:
