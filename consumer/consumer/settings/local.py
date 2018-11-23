@@ -17,3 +17,6 @@ PRODUCER_PROTOCOL = 'http'
 PRODUCER_HOST = 'localhost'
 PRODUCER_PORT = '8002'
 PRODUCER_JOB_DONE_URL = 'api/job-done'
+
+# full path to nhmmer executable
+NHMMER_EXECUTABLE = 'nhmmer'

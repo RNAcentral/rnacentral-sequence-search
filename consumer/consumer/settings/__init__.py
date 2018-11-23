@@ -31,9 +31,6 @@ PROJECT_ROOT = pathlib.Path(__file__).parent.parent
 # full path to sequence database
 SEQDATABASES = PROJECT_ROOT / 'databases'
 
-# full path to nhmmer executable
-NHMMER_EXECUTABLE = 'nhmmer'
-
 # minimum query sequence length
 MIN_LENGTH = 10
 
