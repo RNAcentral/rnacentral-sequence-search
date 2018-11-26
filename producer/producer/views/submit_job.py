@@ -87,6 +87,9 @@ async def delegate(connection, request, data, job_id):
                         )
                     else:
                         text = await response.text()
+                        job_chunk_id = await connection.scalar(
+                            JobChunk.insert().values(job_id=job_id, database=database, submitted=datetime.datetime.now(), status='error')
+                        )
                         raise web.HTTPBadRequest(text=text)
         except Exception as e:
             return web.HTTPBadGateway(text=str(e))
