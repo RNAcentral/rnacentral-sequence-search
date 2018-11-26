@@ -87,8 +87,12 @@ async def delegate(connection, request, data, job_id):
                         )
                     else:
                         text = await response.text()
-                        job_chunk_id = await connection.scalar(
-                            JobChunk.insert().values(job_id=job_id, database=database, submitted=datetime.datetime.now(), status='error')
+                        await connection.execute(
+                            '''
+                            UPDATE {job_chunks}
+                            SET status = 'error'
+                            WHERE job_id={job_id} AND database='{database}';
+                            '''.format(job_chunks='job_chunks', job_id=job_id, database=database)
                         )
                         raise web.HTTPBadRequest(text=text)
         except Exception as e:
