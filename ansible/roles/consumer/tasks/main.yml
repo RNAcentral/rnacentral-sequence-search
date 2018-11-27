@@ -51,7 +51,33 @@
         - "--exclude=queries/*.fasta"
         - "--exclude=results/*.fasta"
 
-  - name: Umount volume for databases (so that chown)
+  - name: Delete queries directory
+    file:
+      path: /srv/consumer/consumer/queries
+      state: absent
+
+  - name: Create queries directory
+    file:
+      path: /srv/consumer/consumer/queries
+      state: directory
+      owner: centos
+      group: centos
+      mode: 0755
+
+  - name: Delete results directory
+    file:
+      path: /src/consumer/consumer/results
+      state: absent
+
+  - name: Create results directory
+    file:
+      path: /srv/consumer/consumer/results
+      state: directory
+      owner: centos
+      group: centos
+      mode: 0755
+
+  - name: Umount volume for databases (so that chown doesn't complain)
     mount:
       path: /srv/consumer/consumer/databases
       src: /dev/vdb
