@@ -11,6 +11,7 @@ See the License for the specific language governing permissions and
 limitations under the License.
 """
 
+import logging
 import aiohttp
 from aiohttp import web
 import sqlalchemy as sa
@@ -99,6 +100,7 @@ async def facets_search(request):
                 })
 
     except Exception as e:
+        logging.error(str(e))
         raise web.HTTPNotFound() from e
 
     # TODO: sort/aggregate sequence search results?
@@ -113,6 +115,7 @@ async def facets_search(request):
                 if response.status >= 400:
                     raise web.HTTPBadGateway(text="Couldn't connect to text search proxy")
     except Exception as e:
+        logging.error(str(e))
         return web.HTTPBadGateway(text=str(e))
 
     # request facets from ebi text search
@@ -175,4 +178,5 @@ async def facets_search(request):
 
                     return web.json_response(text_search_data)
     except Exception as e:
+        logging.error(str(e))
         return web.HTTPBadGateway(text=str(e))
