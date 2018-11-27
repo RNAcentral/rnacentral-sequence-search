@@ -22,6 +22,7 @@ import Job from 'pages/Job/index.jsx';
 import Result from 'pages/Result/index.jsx';
 import Documentation from 'pages/Documentation/index.jsx';
 import About from 'pages/About/index.jsx';
+import Error from 'pages/Error/index.jsx';
 
 
 class Layout extends React.Component {
@@ -61,6 +62,7 @@ class Layout extends React.Component {
                   <PropsRoute path="/result/:resultId" component={Result} />
                   <PropsRoute path="/documentation" component={Documentation} />
                   <PropsRoute path="/about" component={About} />
+                  <PropsRoute path="/error" component={Error} />
                   <Redirect to="/search" />
                 </Switch>
               </section>

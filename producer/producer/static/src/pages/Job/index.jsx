@@ -24,6 +24,9 @@ class Job extends React.Component {
         if (data.status === 'success') {
           window.clearTimeout(this.statusTimeout);
           this.props.history.push(`/result/${this.props.match.params.jobId}`);
+        } else if (data.status === 'error') {
+          window.clearTimeout(this.statusTimeout);
+          this.props.history.push(`/error`);
         } else {
           this.statusTimeout = setTimeout(this.getStatus, 1000);
           this.setState(data);
