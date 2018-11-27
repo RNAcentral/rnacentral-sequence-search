@@ -94,9 +94,7 @@ async def delegate(connection, request, data, job_id):
                             WHERE job_id={job_id} AND database='{database}';
                             '''.format(job_chunks='job_chunks', job_id=job_id, database=database)
                         )
-
                         logging.error("%s" % text)
-
                         raise web.HTTPBadRequest(text=text)
         except Exception as e:
             return web.HTTPBadGateway(text=str(e))
