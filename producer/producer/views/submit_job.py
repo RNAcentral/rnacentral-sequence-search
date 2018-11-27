@@ -18,6 +18,7 @@ import datetime
 import logging
 import aiohttp
 from aiohttp import web
+import sqlalchemy as sa
 
 from ..models import Job, JobChunk
 
@@ -86,7 +87,9 @@ async def delegate(connection, request, data, job_id):
                             '''.format(job_chunks='job_chunks', job_id=job_id, database=database)
                         )
                     else:
-                        text = await response.text()
+                        # TODO: attempt retry upon a failed delivery?
+
+                        # set status of job_chunk and whole job to error
                         await connection.execute(
                             '''
                             UPDATE {job_chunks}
@@ -94,6 +97,11 @@ async def delegate(connection, request, data, job_id):
                             WHERE job_id={job_id} AND database='{database}';
                             '''.format(job_chunks='job_chunks', job_id=job_id, database=database)
                         )
+                        query = sa.text('''UPDATE jobs SET status = 'error' WHERE id=:job_id''')
+                        await connection.execute(query, job_id=data['job_id'])
+
+                        # log and report error
+                        text = await response.text()
                         logging.error("%s" % text)
                         raise web.HTTPBadRequest(text=text)
         except Exception as e:
