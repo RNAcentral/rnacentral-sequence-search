@@ -49,6 +49,7 @@ pipeline {
                 dir('../ansible') {
                     sh '''
                         rm -rf ~/.ssh/known_hosts
+                        source ENV/bin/activate
                         ansible-playbook -i hosts local
                     '''
                 }
@@ -58,7 +59,10 @@ pipeline {
         stage("Deploy producer") {
             steps {
                 dir('../ansible') {
-                    sh 'ansible-playbook -i hosts producer.yml'
+                    sh '''
+                        source ENV/bin/activate
+                        ansible-playbook -i hosts producer.yml
+                    '''
                 }
             }
         }
@@ -70,7 +74,10 @@ pipeline {
             }
             steps {
                 dir('../ansible') {
-                    sh 'ansible-playbook -i hosts database.yml --tags configuration-'
+                    sh '''
+                        source ENV/bin/activate
+                        ansible-playbook -i hosts database.yml --tags postgresql-configure
+                    '''
                 }
             }
         }
@@ -78,7 +85,10 @@ pipeline {
         stage("Deploy database") {
             steps {
                 dir('../ansible') {
-                    sh 'ansible-playbook -i hosts database.yml'
+                    sh '''
+                        source ENV/bin/activate
+                        ansible-playbook -i hosts database.yml
+                    '''
                 }
             }
         }
@@ -86,7 +96,10 @@ pipeline {
         stage("Deploy consumers") {
             steps {
                 dir('../ansible') {
-                    sh 'ansible-playbook -i hosts consumers.yml'
+                    sh '''
+                        source ENV/bin/activate
+                        ansible-playbook -i hosts consumers.yml
+                    '''
                 }
             }
         }
