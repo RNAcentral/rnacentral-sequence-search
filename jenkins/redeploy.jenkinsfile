@@ -1,0 +1,82 @@
+pipeline {
+    agent any
+    parameters {
+        choice (
+            choices: ['no' , 'yes'],
+            description: 'Shall we re-create the whole OpenStack cloud from scratch?',
+            name: 'REBUILD_INFRASTRUCTURE'
+        )
+        choice (
+            choices: ['no', 'yes'],
+            description: 'Shall we drop the contents of the Postgres database?',
+            name: 'DROP_DATABASE'
+        )
+    }
+    stages {
+        stage("Destroy OpenStack infrastructure") {
+            when {
+                // Only rebuild terraform
+                expression { params.REBUILD_INFRASTRUCTURE == 'yes' }
+            }
+            environment {
+                SEQUENCE_SEARCH_RSA = credentials("sequence_search_rsa")
+                SEQUENCE_SEARCH_RSA_PUB = credentials("sequence_search_rsa.pub")
+            }
+            steps {
+                script {
+                    sh 'cat ${TERRAFORM_RSA} > ../terraform/sequence_search_rsa'
+                    sh 'cat ${TERRAFORM_RSA_PUB} > ../terraform/sequence_search_rsa.pub'
+                }
+
+                dir('../terraform') {
+                    sh '''
+                        terraform destroy -auto-approve -no-color
+                        terraform apply -auto-approve -no-color
+                    '''
+                }
+                dir('../ansible') {
+                    sh '''
+                        rm -rf ~/.ssh/known_hosts
+                        ansible-playbook -i hosts local
+                    '''
+                }
+            }
+        }
+        stage("Deploy producer") {
+            steps {
+                dir('../ansible') {
+                    sh 'ansible-playbook -i hosts producer.yml'
+                }
+            }
+        }
+
+        stage("Clear database") {
+            when {
+                // Only rebuild terraform
+                expression { params.DROP_DATABASE == 'yes' }
+            }
+            steps {
+                dir('../ansible') {
+                    sh 'ansible-playbook -i hosts database.yml --tags configuration-'
+                }
+            }
+        }
+
+        stage("Deploy database") {
+            steps {
+                dir('../ansible') {
+                    sh 'ansible-playbook -i hosts database.yml'
+                }
+            }
+        }
+
+        stage("Deploy consumers") {
+            steps {
+                dir('../ansible') {
+                    sh 'ansible-playbook -i hosts consumers.yml'
+                }
+            }
+        }
+
+    }
+}
