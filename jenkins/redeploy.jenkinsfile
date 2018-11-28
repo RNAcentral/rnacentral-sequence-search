@@ -13,6 +13,16 @@ pipeline {
         )
     }
     stages {
+        stage("Install ansible") {
+            sh '''
+                virtualenv ENV --python=/net/isilonP/public/rw/homes/xfm_adm/src/python/bin/python
+                source ENV/bin/activate
+                source rnacentral/scripts/env.sh
+                pip install --upgrade pip
+                pip install --upgrade -r requirements.txt
+            '''
+        }
+
         stage("Destroy OpenStack infrastructure") {
             when {
                 // Only rebuild terraform
@@ -30,8 +40,9 @@ pipeline {
 
                 dir('../terraform') {
                     sh '''
-                        terraform destroy -auto-approve -no-color
-                        terraform apply -auto-approve -no-color
+                        ~/src/terraform init -no-color
+                        ~/src/terraform destroy -auto-approve -no-color
+                        ~/src/terraform apply -auto-approve -no-color
                     '''
                 }
                 dir('../ansible') {
@@ -42,6 +53,7 @@ pipeline {
                 }
             }
         }
+
         stage("Deploy producer") {
             steps {
                 dir('../ansible') {
