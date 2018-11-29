@@ -35,8 +35,8 @@ pipeline {
             }
             steps {
                 script {
-                    sh 'cat ${SEQUENCE_SEARCH_RSA} > ../terraform/sequence_search_rsa'
-                    sh 'cat ${SEQUENCE_SEARCH_RSA_PUB} > ../terraform/sequence_search_rsa.pub'
+                    sh 'cat ${SEQUENCE_SEARCH_RSA} > terraform/sequence_search_rsa'
+                    sh 'cat ${SEQUENCE_SEARCH_RSA_PUB} > terraform/sequence_search_rsa.pub'
                 }
 
                 dir('terraform') {
