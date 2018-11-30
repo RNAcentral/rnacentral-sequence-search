@@ -32,11 +32,13 @@ pipeline {
             environment {
                 SEQUENCE_SEARCH_RSA = credentials("sequence_search_rsa")
                 SEQUENCE_SEARCH_RSA_PUB = credentials("sequence_search_rsa.pub")
+                PROVIDERS_TF = credentials("providers.tf")
             }
             steps {
                 script {
                     sh 'cat ${SEQUENCE_SEARCH_RSA} > terraform/sequence_search_rsa'
                     sh 'cat ${SEQUENCE_SEARCH_RSA_PUB} > terraform/sequence_search_rsa.pub'
+                    sh 'cat ${PROVIDERS_TF} > terraform/providers.tf'
                 }
 
                 dir('terraform') {
