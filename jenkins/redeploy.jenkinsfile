@@ -16,7 +16,7 @@ pipeline {
         stage("Install ansible") {
             steps {
                 sh '''
-                    virtualenv ENV --python=/net/isilonP/public/rw/homes/xfm_adm/src/python/bin/python
+                    virtualenv ENV --python=/nfs/public/rw/xfam/rnacentral/test/local/python-3.6.6/bin/python3
                     source ENV/bin/activate
                     pip install --upgrade pip
                     pip install --upgrade -r requirements.txt
