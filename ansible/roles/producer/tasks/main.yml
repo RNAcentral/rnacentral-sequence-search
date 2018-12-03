@@ -1,10 +1,10 @@
 ---
   # This role is related to producer installation
   - import_tasks: install_deps.yml
-    tags: [producer-install-deps]
+    tags: [ producer-install-deps ]
 
   - import_tasks: rsync.yml
-    tags: [producer-rsync]
+    tags: [ producer-rsync ]
 
   - name: Install requirements
     shell: /usr/local/bin/pip install -r requirements.txt
@@ -12,15 +12,18 @@
       chdir: /srv/producer
 
   - import_tasks: logs.yml
-    tags: [producer-logs]
+    tags: [ producer-logs ]
 
   - import_tasks: build_frontend.yml
-    tags: [producer-frontend]
+    tags: [ producer-frontend ]
 
   - name: Apply migrations to the database
     shell:
       chdir: /srv/producer
       cmd: ENVIRONMENT=PRODUCTION python36 -m producer.models
+
+  - import_tasks: restart.yml
+    tags: [ producer-restart ]
 
 #  - name: Install lvm2
 #    yum:
