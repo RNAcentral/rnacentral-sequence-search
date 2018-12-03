@@ -25,6 +25,10 @@ Here are the steps required to do this:
 - Install python-based dependencies via `pip install -r requirements.txt` (possibly, using a virtualenv)
 
 
+### How to create .iso image from databases folder on MacOS
+
+ - https://matt.berther.io/2008/12/14/creating-iso-images-from-a-folder-in-osx/
+
 ## "Sources of inspiration"
 
 Code in this repository is based on the following projects by other folks (kudos to them):

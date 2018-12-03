@@ -64,6 +64,15 @@
       group: centos
       mode: 0755
 
+  - name: Create access log
+    file:
+      path: /var/log/gunicorn/access_log
+      state: file
+      owner: centos
+      group: centos
+      mode: 0755
+      state: touch
+
   - name: Remove node_modules, copied over from local machine (if any)
     shell:
       chdir: /srv/producer/producer/static
