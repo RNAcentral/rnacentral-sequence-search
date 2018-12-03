@@ -12,19 +12,24 @@ POSTGRES_USER = 'burkov'
 POSTGRES_PASSWORD = 'example'
 
 CONSUMERS = {
+    "ena1": "localhost",
+    "ena2": "localhost",
+    "ena3": "localhost",
+    "ena4": "localhost",
+    "ena5": "localhost",
     "greengenes": "localhost",
     "pdbe": "localhost",
     "refseq": "localhost",
     "sgd": "localhost",
     "tair": "localhost",
-    "lncrnadb": "localhost",
-    "pombase": "localhost",
-    "rfam": "localhost",
-    "snopy": "localhost",
-    "tmrna_web": "localhost",
-    "mirbase": "localhost",
-    "rdp": "localhost",
-    "rgd": "localhost",
-    "srpdb": "localhost",
-    "wormbase": "localhost"
+    # "lncrnadb": "localhost",
+    # "pombase": "localhost",
+    # "rfam": "localhost",
+    # "snopy": "localhost",
+    # "tmrna_web": "localhost",
+    # "mirbase": "localhost",
+    # "rdp": "localhost",
+    # "rgd": "localhost",
+    # "srpdb": "localhost",
+    # "wormbase": "localhost"
 }
