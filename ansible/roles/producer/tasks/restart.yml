@@ -1,0 +1,10 @@
+  - name: Kill running instances of producer service
+#    shell: "sudo kill $(ps -ef | grep -v grep | grep -w gunicorn | awk '{print $2}')"
+    shell: "sudo kill $(ps -ef | grep -v grep | grep -w producer.main | awk '{print $2}')"
+    ignore_errors: yes
+
+  - name: Run producer service
+    shell:
+      chdir: /srv/producer
+#      cmd: /usr/local/bin/gunicorn producer.main:app --daemon --bind 0.0.0.0:8002 --worker-class aiohttp.worker.GunicornWebWorker --access-logfile /var/log/gunicorn/access_log --error-logfile /var/log/gunicorn/error_log --env ENVIRONMENT=PRODUCTION --log-level=DEBUG --timeout 120
+      cmd: ENVIRONMENT=PRODUCTION nohup python36 -m producer.main &> /var/log/gunicorn/access_log &

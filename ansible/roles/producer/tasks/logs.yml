@@ -1,0 +1,22 @@
+  - name: Delete logs directory
+    file:
+      path: /var/log/gunicorn
+      state: absent
+    ignore_errors: yes
+
+  - name: Create logs directory
+    file:
+      path: /var/log/gunicorn
+      state: directory
+      owner: centos
+      group: centos
+      mode: 0755
+
+  - name: Create access log
+    file:
+      path: /var/log/gunicorn/access_log
+      state: file
+      owner: centos
+      group: centos
+      mode: 0755
+      state: touch

@@ -1,119 +1,26 @@
 ---
   # This role is related to producer installation
-  - name: Enable epel repository
-    yum_repository:
-      name: epel
-      baseurl: https://download.fedoraproject.org/pub/epel/$releasever/$basearch/
-      enabled: yes
-      state: present
-      description: epel repostiory
-      gpgcheck: no
+  - import_tasks: install_deps.yml
+    tags: [producer-install-deps]
 
-  - name: Install yum dependencies
-    yum:
-      name:
-      - curl
-      - gcc
-      - git
-      - libaio
-      - openssl
-      - openssl-devel
-      - tar
-      - unzip
-      - wget
-      - zlib-devel
-      - gcc-c++
-      - make
-      - python36
-      - python36-devel
-      - python36-setuptools
-      - nodejs
-
-  - name: Install pip3
-    shell: easy_install-3.6 pip
-
-  - name: Rsync aiohttp code
-    synchronize:
-      src: ../../../producer
-      dest: /srv
-
-  - name: Chown aiohttp code
-    file:
-      path: /srv/producer
-      owner: centos
-      group: centos
-      mode: 0755
-      recurse: yes
+  - import_tasks: rsync.yml
+    tags: [producer-rsync]
 
   - name: Install requirements
     shell: /usr/local/bin/pip install -r requirements.txt
     args:
       chdir: /srv/producer
 
-  - name: Delete logs directory
-    file:
-      path: /var/log/gunicorn
-      state: absent
-    ignore_errors: yes
+  - import_tasks: logs.yml
+    tags: [producer-logs]
 
-  - name: Create logs directory
-    file:
-      path: /var/log/gunicorn
-      state: directory
-      owner: centos
-      group: centos
-      mode: 0755
-
-  - name: Create access log
-    file:
-      path: /var/log/gunicorn/access_log
-      state: file
-      owner: centos
-      group: centos
-      mode: 0755
-      state: touch
-
-  - name: Remove node_modules, copied over from local machine (if any)
-    shell:
-      chdir: /srv/producer/producer/static
-      cmd: rm -rf node_modules
-
-  - name: Remove package-lock.json, copied over from local machine (if any)
-    shell:
-      chdir: /srv/producer/producer/static
-      cmd: rm package-lock.json
-
-  - name: Install node_modules
-    shell:
-      chdir: /srv/producer/producer/static
-      cmd: "npm install"
-    become: false
-
-  - name: Clean dist directory
-    shell:
-     chdir: /srv/producer/producer/static
-     cmd: "npm run clean"
-
-  - name: Build frontend code bundle in dist
-    shell:
-      chdir: /srv/producer/producer/static
-      cmd: "npm run build"
+  - import_tasks: build_frontend.yml
+    tags: [producer-frontend]
 
   - name: Apply migrations to the database
     shell:
       chdir: /srv/producer
       cmd: ENVIRONMENT=PRODUCTION python36 -m producer.models
-
-  - name: Kill running instances of producer service
-#    shell: "sudo kill $(ps -ef | grep -v grep | grep -w gunicorn | awk '{print $2}')"
-    shell: "sudo kill $(ps -ef | grep -v grep | grep -w producer.main | awk '{print $2}')"
-    ignore_errors: yes
-
-  - name: Run producer service
-    shell:
-      chdir: /srv/producer
-#      cmd: /usr/local/bin/gunicorn producer.main:app --daemon --bind 0.0.0.0:8002 --worker-class aiohttp.worker.GunicornWebWorker --access-logfile /var/log/gunicorn/access_log --error-logfile /var/log/gunicorn/error_log --env ENVIRONMENT=PRODUCTION --log-level=DEBUG --timeout 120
-      cmd: ENVIRONMENT=PRODUCTION nohup python36 -m producer.main &> /var/log/gunicorn/access_log &
 
 #  - name: Install lvm2
 #    yum:

@@ -1,0 +1,12 @@
+  - name: Rsync aiohttp code
+    synchronize:
+      src: ../../../producer
+      dest: /srv
+
+  - name: Chown aiohttp code
+    file:
+      path: /srv/producer
+      owner: centos
+      group: centos
+      mode: 0755
+      recurse: yes
