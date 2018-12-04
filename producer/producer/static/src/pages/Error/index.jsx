@@ -8,7 +8,7 @@ class Error extends React.Component {
         <div className="col-lg-12">
           <div className="hpanel">
             <div className="panel-heading">
-              <h1>About</h1>
+              <h1>Error</h1>
             </div>
             <div className="panel-body">
               <div className="callout alert">
