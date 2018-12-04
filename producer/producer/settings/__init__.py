@@ -30,21 +30,26 @@ PROJECT_ROOT = pathlib.Path(__file__).parent.parent
 
 # list of rnacentral databases
 RNACENTRAL_DATABASES = [
+    "ena1",
+    "ena2",
+    "ena3",
+    "ena4",
+    "ena5",
     "greengenes",
     "pdbe",
     "refseq",
     "sgd",
     "tair",
-    "lncrnadb",
-    "pombase",
-    "rfam",
-    "snopy",
-    "tmrna_web",
-    "mirbase",
-    "rdp",
-    "rgd",
-    "srpdb",
-    "wormbase"
+    # "lncrnadb",
+    # "pombase",
+    # "rfam",
+    # "snopy",
+    # "tmrna_web",
+    # "mirbase",
+    # "rdp",
+    # "rgd",
+    # "srpdb",
+    # "wormbase"
 ]
 
 CONSUMER_SUBMIT_JOB_URL = 'submit-job'

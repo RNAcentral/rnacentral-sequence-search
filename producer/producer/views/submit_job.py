@@ -66,6 +66,26 @@ async def save(connection, request, data):
     return job_id
 
 
+async def _save_job_error(connection, job_id, database, reason):
+    try:
+        # set status of job_chunk and whole job to error
+        await connection.execute(
+            '''
+            UPDATE {job_chunks}
+            SET status = 'error'
+            WHERE job_id={job_id} AND database='{database}';
+            '''.format(job_chunks='job_chunks', job_id=job_id, database=database)
+        )
+    except Exception as e:
+        logging.error("Failed to save job_chunks to the database about a failed job with job_id = %s, reason = %s" % (job_id, reason))
+
+    try:
+        query = sa.text('''UPDATE jobs SET status = 'error' WHERE id=:job_id''')
+        await connection.execute(query, job_id=job_id)
+    except Exception as e:
+        logging.error("Failed to save job to the database about failed job, job_id = %s, reason = %s" % (job_id, reason))
+
+
 async def delegate(connection, request, data, job_id):
     """Send job chunks to consumers, if sent successfully - update status of each JobChunk in the database."""
     for database in data["databases"]:
@@ -73,38 +93,37 @@ async def delegate(connection, request, data, job_id):
         json_data = json.dumps({"job_id": job_id, "sequence": data['query'], "database": database})
         headers = {'content-type': 'application/json'}
 
-        logging.debug("Queuing JobChunk to consumer: url = {}, json_data = {}, headers = {}".format(url, json_data, headers))
-
         try:
             async with aiohttp.ClientSession() as session:
+
+                logging.debug("Queuing JobChunk to consumer: url = {}, json_data = {}, headers = {}".format(url, json_data, headers))
+
                 async with session.post(url, data=json_data, headers=headers) as response:
                     if response.status < 400:
-                        await connection.execute(
-                            '''
-                            UPDATE {job_chunks}
-                            SET status = 'started'
-                            WHERE job_id={job_id} AND database='{database}';
-                            '''.format(job_chunks='job_chunks', job_id=job_id, database=database)
-                        )
+                        try:
+                            await connection.execute(
+                                '''
+                                UPDATE {job_chunks}
+                                SET status = 'started'
+                                WHERE job_id={job_id} AND database='{database}';
+                                '''.format(job_chunks='job_chunks', job_id=job_id, database=database)
+                            )
+                        except Exception as e:
+                            logging.error("Failed to save successfully submitted job_chunks to the database, job_id = %s" % job_id)
                     else:
                         # TODO: attempt retry upon a failed delivery?
-
-                        # set status of job_chunk and whole job to error
-                        await connection.execute(
-                            '''
-                            UPDATE {job_chunks}
-                            SET status = 'error'
-                            WHERE job_id={job_id} AND database='{database}';
-                            '''.format(job_chunks='job_chunks', job_id=job_id, database=database)
-                        )
-                        query = sa.text('''UPDATE jobs SET status = 'error' WHERE id=:job_id''')
-                        await connection.execute(query, job_id=data['job_id'])
+                        await _save_job_error(connection, job_id, database, reason="error response status")
 
                         # log and report error
                         text = await response.text()
                         logging.error("%s" % text)
+
                         raise web.HTTPBadRequest(text=text)
         except Exception as e:
+            logging.error(str(e))
+
+            await _save_job_error(connection, job_id, database, reason="failed to connect")
+
             return web.HTTPBadGateway(text=str(e))
 
 
