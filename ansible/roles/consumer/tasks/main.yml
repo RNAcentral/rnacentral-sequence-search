@@ -1,45 +1,8 @@
 ---
-  # This role is related to producer installation
-  - name: Enable epel repository
-    yum_repository:
-      name: epel
-      baseurl: https://download.fedoraproject.org/pub/epel/$releasever/$basearch/
-      enabled: yes
-      state: present
-      description: epel repostiory
-      gpgcheck: no
+  # This role is about consumer installation
 
-  - name: Install yum dependencies
-    yum:
-      name:
-      - curl
-      - gcc
-      - git
-      - libaio
-      - openssl
-      - openssl-devel
-      - tar
-      - unzip
-      - wget
-      - zlib-devel
-      - gcc-c++
-      - make
-      - python36
-      - python36-devel
-      - python36-setuptools
-
-  - name: Install pip3
-    shell: easy_install-3.6 pip
-
-  - name: Install nhmmer
-    shell: |
-      curl -OL http://eddylab.org/software/hmmer/hmmer-3.2.1.tar.gz
-      tar -zxvf hmmer-3.2.1.tar.gz
-      cd hmmer-3.2.1
-      ./configure --prefix /usr/local
-      make
-      make install
-      cd easel; make install
+  - import_tasks: install_deps.yml
+    tags: [ consumer-install-deps ]
 
   - name: Rsync aiohttp code
     synchronize:
@@ -51,31 +14,17 @@
         - "--exclude=queries/*.fasta"
         - "--exclude=results/*.fasta"
 
-  - name: Delete queries directory
-    file:
-      path: /srv/consumer/consumer/queries
-      state: absent
+  - import_tasks: logs.yml
+    tags: [ consumer-logs ]
 
-  - name: Create queries directory
-    file:
-      path: /srv/consumer/consumer/queries
-      state: directory
-      owner: centos
-      group: centos
-      mode: 0755
+  - import_tasks: queries.yml
+    tags: [ consumer-queries ]
 
-  - name: Delete results directory
-    file:
-      path: /srv/consumer/consumer/results
-      state: absent
+  - import_tasks: results.yml
+    tags: [ consumer-results ]
 
-  - name: Create results directory
-    file:
-      path: /srv/consumer/consumer/results
-      state: directory
-      owner: centos
-      group: centos
-      mode: 0755
+  - import_tasks: logs.yml
+    tags: [ consumer-logs ]
 
   - name: Umount volume for databases (so that chown doesn't complain)
     mount:
@@ -105,27 +54,5 @@
       fstype: iso9660
       state: mounted
 
-  - name: Delete logs directory
-    file:
-      path: /var/log/gunicorn
-      state: absent
-    ignore_errors: yes
-
-  - name: Create logs directory
-    file:
-      path: /var/log/gunicorn
-      state: directory
-      owner: centos
-      group: centos
-      mode: 0755
-
-  - name: Kill running instances of consumer service
-#    shell: "sudo kill $(ps -ef | grep -v grep | grep -w gunicorn | awk '{print $2}')"
-    shell: "sudo kill $(ps -ef | grep -v grep | grep -w consumer.main | awk '{print $2}')"
-    ignore_errors: yes
-
-  - name: Run consumer service
-    shell:
-      chdir: /srv/consumer
-#      cmd: /usr/local/bin/gunicorn consumer.main:app --daemon --bind 0.0.0.0:8000 --worker-class aiohttp.worker.GunicornWebWorker --access-logfile /var/log/gunicorn/access_log --error-logfile /var/log/gunicorn/error_log --env ENVIRONMENT=PRODUCTION --log-level=DEBUG
-      cmd: ENVIRONMENT=PRODUCTION nohup python36 -m consumer.main &> /var/log/gunicorn/access_log &
+  - import_tasks: restart.yml
+    tags: [ consumer-restart ]

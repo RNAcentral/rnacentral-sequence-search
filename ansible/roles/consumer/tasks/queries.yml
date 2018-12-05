@@ -1,0 +1,14 @@
+# file: consumer/tasks/queries.yml
+
+  - name: Delete queries directory
+    file:
+      path: /srv/consumer/consumer/queries
+      state: absent
+
+  - name: Create queries directory
+    file:
+      path: /srv/consumer/consumer/queries
+      state: directory
+      owner: centos
+      group: centos
+      mode: 0755

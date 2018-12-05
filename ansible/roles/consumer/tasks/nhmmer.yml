@@ -1,0 +1,11 @@
+# file: consumer/tasks/nhmmer.yml
+
+  - name: Install nhmmer
+    shell: |
+      curl -OL http://eddylab.org/software/hmmer/hmmer-3.2.1.tar.gz
+      tar -zxvf hmmer-3.2.1.tar.gz
+      cd hmmer-3.2.1
+      ./configure --prefix /usr/local
+      make
+      make install
+      cd easel; make install

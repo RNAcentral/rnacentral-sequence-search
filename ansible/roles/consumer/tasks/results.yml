@@ -1,0 +1,14 @@
+# file: consumer/tasks/results.yml
+
+  - name: Delete results directory
+    file:
+      path: /srv/consumer/consumer/results
+      state: absent
+
+  - name: Create results directory
+    file:
+      path: /srv/consumer/consumer/results
+      state: directory
+      owner: centos
+      group: centos
+      mode: 0755
