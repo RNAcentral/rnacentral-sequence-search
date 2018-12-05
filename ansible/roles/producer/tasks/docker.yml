@@ -1,6 +1,5 @@
 # file: producer/tasks/docker.yml
 
-
 #  - name: Install lvm2
 #    yum:
 #      name: lvm2
