@@ -1,3 +1,5 @@
+# file: producer/tasks/restart.yml
+
   - name: Kill running instances of producer service
 #    shell: "sudo kill $(ps -ef | grep -v grep | grep -w gunicorn | awk '{print $2}')"
     shell: "sudo kill $(ps -ef | grep -v grep | grep -w producer.main | awk '{print $2}')"

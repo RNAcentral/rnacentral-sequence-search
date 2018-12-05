@@ -1,3 +1,5 @@
+# file: producer/tasks/logs.yml
+
   - name: Delete logs directory
     file:
       path: /var/log/gunicorn

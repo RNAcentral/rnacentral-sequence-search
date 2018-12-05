@@ -1,3 +1,5 @@
+# file: producer/tasks/rsync.yml
+
   - name: Rsync aiohttp code
     synchronize:
       src: ../../../producer

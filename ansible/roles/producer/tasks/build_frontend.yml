@@ -1,3 +1,5 @@
+# file: producer/tasks/build_frontend.yml
+
   - name: Remove node_modules, copied over from local machine (if any)
     shell:
       chdir: /srv/producer/producer/static
