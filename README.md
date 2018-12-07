@@ -27,6 +27,12 @@ Here are the steps required to do this:
 
 ### How to create .iso image from databases folder on MacOS
 
+ The command is like this:
+
+ `hdiutil makehybrid -o ~/Desktop/image.iso ~/path/to/folder/to/be/converted -iso -joliet`
+
+ Links:
+
  - https://matt.berther.io/2008/12/14/creating-iso-images-from-a-folder-in-osx/
 
 ## "Sources of inspiration"

@@ -13,8 +13,11 @@ limitations under the License.
 
 import sqlalchemy as sa
 from aiohttp import web
+import logging
 
 from ..models import Job, JobChunk, JobChunkResult
+from .submit_job import delegate
+from ..consumers import free_consumer, find_highest_priority_job_chunk, delegate_job_to_consumer
 
 
 async def serialize(connection, request, data):
@@ -88,5 +91,10 @@ async def job_done(request):
         if all_job_chunks_success:
             query = sa.text('''UPDATE jobs SET status = 'success' WHERE id=:job_id''')
             result = await connection.execute(query, job_id=data['job_id'])
+
+        free_consumer(request, consumer_ip)
+
+        # try scheduling another job chunk for this consumer
+
 
         return web.HTTPOk()

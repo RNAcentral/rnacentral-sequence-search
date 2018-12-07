@@ -37,11 +37,16 @@ async def init_pg(app):
 # Models schema
 # -------------
 
-STATUS_CHOICES = (
+JOB_STATUS_CHOICES = (
     ('pending', 'pendind'),
     ('started', 'started'),
     ('success', 'success'),
     ('failed', 'failed'),
+)
+
+CONSUMER_STATUS_CHOICES = (
+    ('available', 'available'),
+    ('busy', 'busy')
 )
 
 metadata = sa.MetaData()
@@ -52,7 +57,7 @@ Job = sa.Table('jobs', metadata,
                  sa.Column('query', sa.Text),
                  sa.Column('submitted', sa.DateTime),
                  sa.Column('finished', sa.DateTime, nullable=True),
-                 sa.Column('status', sa.String(255)))  # choices=STATUS_CHOICES, default='started'
+                 sa.Column('status', sa.String(255)))  # choices=JOB_STATUS_CHOICES, default='started'
 
 """Part of the search job, run against a specific database and assigned to a specific consumer"""
 JobChunk = sa.Table('job_chunks', metadata,
@@ -61,7 +66,7 @@ JobChunk = sa.Table('job_chunks', metadata,
                   sa.Column('database', sa.String(255)),
                   sa.Column('submitted', sa.DateTime),
                   sa.Column('result', sa.String(255), nullable=True),
-                  sa.Column('status', sa.String(255)))  # choices=STATUS_CHOICES, default='started'
+                  sa.Column('status', sa.String(255)))  # choices=JOB_STATUS_CHOICES, default='started'
 
 JobChunkResult = sa.Table('job_chunk_results', metadata,
                   sa.Column('id', sa.Integer, primary_key=True),
@@ -84,6 +89,11 @@ JobChunkResult = sa.Table('job_chunk_results', metadata,
                   sa.Column('gaps', sa.Float),
                   sa.Column('query_length', sa.Integer),
                   sa.Column('result_id', sa.Integer))
+
+Consumer = sa.Table('consumer', metadata,
+            sa.Column('id', sa.Integer, primary_key=True),
+            sa.Column('ip', sa.String(15)),
+            sa.Column('status', sa.String(255)))  # choices=CONSUMER_STATUS_CHOICES, default='available'
 
 # Migrations
 # ----------
@@ -153,6 +163,12 @@ if __name__ == "__main__":
                       gaps FLOAT NOT NULL,
                       query_length INTEGER NOT NULL,
                       result_id INTEGER NOT NULL)
+                ''')
+
+                await connection.execute('''
+                    CREATE TABLE consumer (
+                      ip VARCHAR PRIMARY KEY,
+                      status VARCHAR(255) NOT NULL)
                 ''')
 
 
