@@ -21,6 +21,7 @@ from aiohttp import web
 import sqlalchemy as sa
 
 from ..models import Job, JobChunk
+from ..consumers import delegate_job_to_consumer, free_consumer, find_highest_priority_job_chunk, except_error_in_job_chunk
 
 
 def serialize(request, data):
@@ -118,7 +119,5 @@ async def submit_job(request):
                 await delegate_job_to_consumer(connection, request, data['query'], database, job_id)
             except Exception as e:
                 return web.HTTPBadGateway(text=str(e))
-
-
 
     return web.json_response({"job_id": job_id}, status=201)

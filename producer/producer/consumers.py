@@ -43,9 +43,10 @@ async def find_highest_priority_job_chunk(request):
         return
 
 
-async def except_error_in_job_chunk(engine, job_id, database, reason):
+async def except_error_in_job_chunk(request, job_id, database, reason):
+    """When a job_chunk fails, record error to the database and free the consumer."""
     try:
-        async with engine.acquire() as connection:
+        async with request.app['engine'].acquire() as connection:
             # set status of job_chunk and whole job to error
             await connection.execute(
                 '''
@@ -72,7 +73,7 @@ async def delegate_job_to_consumer(request, consumer_ip, job_id, job_chunk_id, d
     if job_chunk_id:
         try:
             async with request.app['engine'].acquire() as connection:
-                url = "http://" + request.app['settings'].CONSUMERS[database] + '/' + request.app['settings'].CONSUMER_SUBMIT_JOB_URL
+                url = "http://" + consumer_ip + '/' + request.app['settings'].CONSUMER_SUBMIT_JOB_URL
                 json_data = json.dumps({"job_id": job_id, "sequence": query, "database": database})
                 headers = {'content-type': 'application/json'}
 
@@ -88,7 +89,7 @@ async def delegate_job_to_consumer(request, consumer_ip, job_id, job_chunk_id, d
                                     UPDATE 'consumer'
                                     SET status = 'busy'
                                     WHERE id={consumer_id}
-                                    '''.format(consumer_id))
+                                    '''.format(consumer_ip))
 
                             try:
                                 await connection.execute('''
