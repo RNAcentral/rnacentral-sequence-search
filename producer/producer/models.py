@@ -51,6 +51,8 @@ CONSUMER_STATUS_CHOICES = (
 
 metadata = sa.MetaData()
 
+# TODO: consistent naming for tables: either 'jobs' and 'consumers' or 'job' and 'consumer'
+
 """A search job that is divided into multiple job chunks per database"""
 Job = sa.Table('jobs', metadata,
                  sa.Column('id', sa.Integer, primary_key=True),
@@ -65,6 +67,7 @@ JobChunk = sa.Table('job_chunks', metadata,
                   sa.Column('job_id', None, sa.ForeignKey('jobs.id')),
                   sa.Column('database', sa.String(255)),
                   sa.Column('submitted', sa.DateTime),
+                  sa.Column('consumer', sa.ForeignKey('consumer.id'), nullable=True),
                   sa.Column('result', sa.String(255), nullable=True),
                   sa.Column('status', sa.String(255)))  # choices=JOB_STATUS_CHOICES, default='started'
 

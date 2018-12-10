@@ -82,6 +82,9 @@ async def job_done(request):
                  .select_from(sa.join(Job, JobChunk, Job.c.id == JobChunk.c.job_id))  # noqa
                  .where(Job.c.id == data['job_id']))  # noqa
 
+        # try scheduling another job chunk for this consumer
+        free_consumer(request, consumer_ip)
+
         all_job_chunks_success = True
         async for row in connection.execute(query):
             if row.status != 'success':
@@ -91,10 +94,5 @@ async def job_done(request):
         if all_job_chunks_success:
             query = sa.text('''UPDATE jobs SET status = 'success' WHERE id=:job_id''')
             result = await connection.execute(query, job_id=data['job_id'])
-
-        free_consumer(request, consumer_ip)
-
-        # try scheduling another job chunk for this consumer
-
 
         return web.HTTPOk()
