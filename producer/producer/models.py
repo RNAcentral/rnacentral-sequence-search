@@ -140,6 +140,7 @@ if __name__ == "__main__":
                       job_id INT references jobs(id),
                       database VARCHAR(255),
                       submitted TIMESTAMP,
+                      consumer INT references consumer(id),
                       result VARCHAR(255),
                       status VARCHAR(255))
                 ''')
@@ -170,7 +171,8 @@ if __name__ == "__main__":
 
                 await connection.execute('''
                     CREATE TABLE consumer (
-                      ip VARCHAR PRIMARY KEY,
+                      id serial PRIMARY KEY,
+                      ip VARCHAR(15),
                       status VARCHAR(255) NOT NULL)
                 ''')
 

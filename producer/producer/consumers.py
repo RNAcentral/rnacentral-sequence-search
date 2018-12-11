@@ -90,6 +90,8 @@ async def delegate_job_to_consumer(request, consumer_ip, job_id, job_chunk_id, d
                                     SET status = 'busy'
                                     WHERE id={consumer_id}
                                     '''.format(consumer_ip))
+                            except Exception as e:
+                                logging.error("Failed to set the consumer status to 'busy'")
 
                             try:
                                 await connection.execute('''
@@ -99,8 +101,7 @@ async def delegate_job_to_consumer(request, consumer_ip, job_id, job_chunk_id, d
                                     '''.format(job_chunks='job_chunks', job_id=job_id, database=database))
 
                             except Exception as e:
-                                logging.error(
-                                    "Failed to save successfully submitted job_chunks to the database, job_id = %s" % job_id)
+                                logging.error("Failed to save successfully submitted job_chunks to the database, job_id = %s" % job_id)
                         else:
                             # TODO: attempt retry upon a failed delivery?
                             await _job_error(connection, job_id, database, reason="error response status")
