@@ -27,16 +27,16 @@ async def find_highest_priority_job_chunk(request):
     # among the running jobs, find the one, submitted first
     try:
         async with request.app['engine'].acquire() as connection:
-            query = (sa.select([Job.c.id, Job.c.status, JobChunk.c.job_id, JobChunk.c.database, JobChunk.c.status])
+            query = (sa.select([Job.c.id, Job.c.status, Job.c.submitted, JobChunk.c.job_id, JobChunk.c.database, JobChunk.c.status])
                      .select_from(sa.join(Job, JobChunk, Job.c.id == JobChunk.c.job_id))  # noqa
-                     .where(Job.c.status == 'success')
+                     .where(Job.c.status == 'started')
+                     .order_by(Job.c.submitted)
                      .apply_labels())  # noqa
             result = connection.execute(query)
 
-            # select a job chunk to submit
-            for row in result:
-                job_chunk_id = row.job_chunk.id
-                job_id = row.job_id
+            for row in result:  # select a job chunk to submit
+                return row.job_chunk.id
+            return
 
     except Exception as e:
         logging.error(str(e))
