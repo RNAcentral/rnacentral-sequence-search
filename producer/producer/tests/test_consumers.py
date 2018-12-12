@@ -32,7 +32,53 @@ ENVIRONMENT=TEST python -m unittest producer.tests.test_facets_search
 """
 
 
-class ConsumersTestCase(AioHTTPTestCase):
+class FreeConsumersTestCase(AioHTTPTestCase):
+    async def get_application(self):
+        logging.basicConfig(level=logging.ERROR)  # subdue messages like 'DEBUG:asyncio:Using selector: KqueueSelector'
+        app = create_app()
+        return app
+
+    async def setUpAsync(self):
+        await super().setUpAsync()
+
+        logging.info("settings = %s" % self.app['settings'].__dict__)
+
+        async with self.app['engine'].acquire() as connection:
+            self.consumer = await connection.scalar(
+                Consumer.insert().values(
+                    ip='192.168.0.2',
+                    status='busy'
+                )
+            )
+
+            self.job_id = await connection.scalar(
+                Job.insert().values(query='AACAGCATGAGTGCGCTGGATGCTG', submitted=datetime.datetime.now(), status='started')
+            )
+
+            self.job_chunk_id1 = await connection.scalar(
+                JobChunk.insert().values(
+                    job_id=self.job_id,
+                    database='mirbase',
+                    submitted=datetime.datetime.now(),
+                    status='started',
+                    consumer=self.consumer
+                )
+            )
+
+    async def tearDownAsync(self):
+        async with self.app['engine'].acquire() as connection:
+            await connection.execute('DELETE FROM job_chunk_results')
+            await connection.execute('DELETE FROM job_chunks')
+            await connection.execute('DELETE FROM jobs')
+
+            await super().tearDownAsync()
+
+    @unittest_run_loop
+    async def test_free_consumer(self):
+        await free_consumer()
+
+
+class HighestPriorityJobChunkConsumerTestCase(AioHTTPTestCase):
     async def get_application(self):
         logging.basicConfig(level=logging.ERROR)  # subdue messages like 'DEBUG:asyncio:Using selector: KqueueSelector'
         app = create_app()
@@ -79,16 +125,46 @@ class ConsumersTestCase(AioHTTPTestCase):
             await super().tearDownAsync()
 
     @unittest_run_loop
-    async def test_free_consumer(self):
-        pass
-
-    @unittest_run_loop
     async def test_find_highest_priority_job_chunk(self):
         pass
+
+
+class ExceptErrorInJobChunkConsumerTestCase(AioHTTPTestCase):
+    async def get_application(self):
+        logging.basicConfig(level=logging.ERROR)  # subdue messages like 'DEBUG:asyncio:Using selector: KqueueSelector'
+        app = create_app()
+        return app
+
+    async def setUpAsync(self):
+        await super().setUpAsync()
+
+        logging.info("settings = %s" % self.app['settings'].__dict__)
+
+        async with self.app['engine'].acquire() as connection:
+            self.job_id = await connection.scalar(
+                Job.insert().values(query='AACAGCATGAGTGCGCTGGATGCTG', submitted=datetime.datetime.now(), status='started')
+            )
 
     @unittest_run_loop
     async def test_except_error_in_job_chunk(self):
         pass
+
+
+class DelegateJobToConsumerConsumerTestCase(AioHTTPTestCase):
+    async def get_application(self):
+        logging.basicConfig(level=logging.ERROR)  # subdue messages like 'DEBUG:asyncio:Using selector: KqueueSelector'
+        app = create_app()
+        return app
+
+    async def setUpAsync(self):
+        await super().setUpAsync()
+
+        logging.info("settings = %s" % self.app['settings'].__dict__)
+
+        async with self.app['engine'].acquire() as connection:
+            self.job_id = await connection.scalar(
+                Job.insert().values(query='AACAGCATGAGTGCGCTGGATGCTG', submitted=datetime.datetime.now(), status='started')
+            )
 
     @unittest_run_loop
     async def test_delegate_job_to_consumer(self):

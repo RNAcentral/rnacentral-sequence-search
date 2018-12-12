@@ -7,10 +7,10 @@ import json
 from .models import Job, JobChunk, JobChunkResult
 
 
-async def free_consumer(request, consumer_ip):
+async def free_consumer(engine, consumer_ip):
     """When a consumer returns result, set its state in the database to 'available'."""
     try:
-        async with request.app['engine'].acquire() as connection:
+        async with engine.acquire() as connection:
             query = sa.text('''
                 UPDATE consumer
                 SET status = 'available'
@@ -22,11 +22,11 @@ async def free_consumer(request, consumer_ip):
         logging.error(str(e))
 
 
-async def find_highest_priority_job_chunk(request):
+async def find_highest_priority_job_chunk(engine):
     """Find the next job chunk to give consumers for processing."""
     # among the running jobs, find the one, submitted first
     try:
-        async with request.app['engine'].acquire() as connection:
+        async with engine.acquire() as connection:
             query = (sa.select([Job.c.id, Job.c.status, Job.c.submitted, JobChunk.c.job_id, JobChunk.c.database, JobChunk.c.status])
                      .select_from(sa.join(Job, JobChunk, Job.c.id == JobChunk.c.job_id))  # noqa
                      .where(Job.c.status == 'started')
@@ -43,10 +43,10 @@ async def find_highest_priority_job_chunk(request):
         return
 
 
-async def except_error_in_job_chunk(request, job_id, database, reason):
+async def except_error_in_job_chunk(engine, job_id, database, reason):
     """When a job_chunk fails, record error to the database and free the consumer."""
     try:
-        async with request.app['engine'].acquire() as connection:
+        async with engine.acquire() as connection:
             # set status of job_chunk and whole job to error
             await connection.execute(
                 '''
@@ -64,15 +64,15 @@ async def except_error_in_job_chunk(request, job_id, database, reason):
     except Exception as e:
         logging.error("Failed to save job to the database about failed job, job_id = %s, reason = %s" % (job_id, reason))
 
-    free_consumer(request, consumer_ip)
+    free_consumer(engine, consumer_ip)
 
 
-async def delegate_job_to_consumer(request, consumer_ip, job_id, job_chunk_id, database, query):
+async def delegate_job_to_consumer(engine, consumer_ip, job_id, job_chunk_id, database, query):
     """When a consumer returns result, set its state in the database to 'available'."""
     # if job chunks available, use the same consumer to run them
     if job_chunk_id:
         try:
-            async with request.app['engine'].acquire() as connection:
+            async with engine.acquire() as connection:
                 url = "http://" + consumer_ip + '/' + request.app['settings'].CONSUMER_SUBMIT_JOB_URL
                 json_data = json.dumps({"job_id": job_id, "sequence": query, "database": database})
                 headers = {'content-type': 'application/json'}
