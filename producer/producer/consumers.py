@@ -49,11 +49,12 @@ async def except_error_in_job_chunk(engine, job_id, database, reason):
     try:
         async with engine.acquire() as connection:
             # set status of job_chunk and whole job to error
-            await connection.execute(
+            job_chunks = await connection.execute(
                 '''
                 UPDATE {job_chunks}
                 SET status = 'error'
-                WHERE job_id={job_id} AND database='{database}';
+                WHERE job_id={job_id} AND database='{database}'
+                RETURNING *;
                 '''.format(job_chunks='job_chunks', job_id=job_id, database=database)
             )
     except Exception as e:
@@ -65,7 +66,8 @@ async def except_error_in_job_chunk(engine, job_id, database, reason):
     except Exception as e:
         logging.error("Failed to save job to the database about failed job, job_id = %s, reason = %s" % (job_id, reason))
 
-    free_consumer(engine, consumer_ip)
+    for row in job_chunks:
+        free_consumer(engine, row.consumer_ip)
 
 
 async def delegate_job_to_consumer(engine, consumer_ip, job_id, job_chunk_id, database, query):
