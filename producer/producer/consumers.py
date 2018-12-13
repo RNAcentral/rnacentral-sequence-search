@@ -5,6 +5,7 @@ import logging
 import json
 
 from .models import Job, JobChunk, JobChunkResult
+from .settings import CONSUMER_SUBMIT_JOB_URL
 
 
 async def free_consumer(engine, consumer_ip):
@@ -73,7 +74,7 @@ async def delegate_job_to_consumer(engine, consumer_ip, job_id, job_chunk_id, da
     if job_chunk_id:
         try:
             async with engine.acquire() as connection:
-                url = "http://" + consumer_ip + '/' + request.app['settings'].CONSUMER_SUBMIT_JOB_URL
+                url = "http://" + consumer_ip + '/' + CONSUMER_SUBMIT_JOB_URL
                 json_data = json.dumps({"job_id": job_id, "sequence": query, "database": database})
                 headers = {'content-type': 'application/json'}
 
@@ -104,7 +105,7 @@ async def delegate_job_to_consumer(engine, consumer_ip, job_id, job_chunk_id, da
                                 logging.error("Failed to save successfully submitted job_chunks to the database, job_id = %s" % job_id)
                         else:
                             # TODO: attempt retry upon a failed delivery?
-                            await _job_error(connection, job_id, database, reason="error response status")
+                            await except_error_in_job_chunk(connection, job_id, database, reason="error response status")
 
                             # log and report error
                             text = await response.text()
@@ -114,4 +115,5 @@ async def delegate_job_to_consumer(engine, consumer_ip, job_id, job_chunk_id, da
         except Exception as e:
             logging.error(str(e))
 
-            await _job_error(connection, job_id, database, reason="failed to connect")
+            async with engine.acquire() as connection:
+                await except_error_in_job_chunk(connection, job_id, database, reason="failed to connect")

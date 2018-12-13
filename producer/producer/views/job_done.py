@@ -16,7 +16,6 @@ from aiohttp import web
 import logging
 
 from ..models import Job, JobChunk, JobChunkResult
-from .submit_job import delegate
 from ..consumers import free_consumer, find_highest_priority_job_chunk, delegate_job_to_consumer
 
 

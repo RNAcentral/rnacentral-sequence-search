@@ -52,6 +52,11 @@ CONSUMER_STATUS_CHOICES = (
 metadata = sa.MetaData()
 
 # TODO: consistent naming for tables: either 'jobs' and 'consumers' or 'job' and 'consumer'
+"""State of a consumer instance"""
+Consumer = sa.Table('consumer', metadata,
+            sa.Column('id', sa.Integer, primary_key=True),
+            sa.Column('ip', sa.String(15)),
+            sa.Column('status', sa.String(255)))  # choices=CONSUMER_STATUS_CHOICES, default='available'
 
 """A search job that is divided into multiple job chunks per database"""
 Job = sa.Table('jobs', metadata,
@@ -71,6 +76,7 @@ JobChunk = sa.Table('job_chunks', metadata,
                   sa.Column('result', sa.String(255), nullable=True),
                   sa.Column('status', sa.String(255)))  # choices=JOB_STATUS_CHOICES, default='started'
 
+"""Result of a specific JobChunk"""
 JobChunkResult = sa.Table('job_chunk_results', metadata,
                   sa.Column('id', sa.Integer, primary_key=True),
                   sa.Column('job_chunk_id', None, sa.ForeignKey('job_chunks.id')),
@@ -92,11 +98,6 @@ JobChunkResult = sa.Table('job_chunk_results', metadata,
                   sa.Column('gaps', sa.Float),
                   sa.Column('query_length', sa.Integer),
                   sa.Column('result_id', sa.Integer))
-
-Consumer = sa.Table('consumer', metadata,
-            sa.Column('id', sa.Integer, primary_key=True),
-            sa.Column('ip', sa.String(15)),
-            sa.Column('status', sa.String(255)))  # choices=CONSUMER_STATUS_CHOICES, default='available'
 
 # Migrations
 # ----------
@@ -122,9 +123,18 @@ if __name__ == "__main__":
 
         async with engine:
             async with engine.acquire() as connection:
+                await connection.execute('DROP TABLE IF EXISTS consumer')
                 await connection.execute('DROP TABLE IF EXISTS job_chunk_results')
                 await connection.execute('DROP TABLE IF EXISTS job_chunks')
                 await connection.execute('DROP TABLE IF EXISTS jobs')
+
+                await connection.execute('''
+                    CREATE TABLE consumer (
+                      id serial PRIMARY KEY,
+                      ip VARCHAR(15),
+                      status VARCHAR(255) NOT NULL)
+                ''')
+
                 await connection.execute('''
                     CREATE TABLE jobs (
                       id serial PRIMARY KEY,
@@ -167,13 +177,6 @@ if __name__ == "__main__":
                       gaps FLOAT NOT NULL,
                       query_length INTEGER NOT NULL,
                       result_id INTEGER NOT NULL)
-                ''')
-
-                await connection.execute('''
-                    CREATE TABLE consumer (
-                      id serial PRIMARY KEY,
-                      ip VARCHAR(15),
-                      status VARCHAR(255) NOT NULL)
                 ''')
 
 

@@ -28,7 +28,7 @@ from ..consumers import free_consumer, find_highest_priority_job_chunk, except_e
 """
 Run these tests with:
 
-ENVIRONMENT=TEST python -m unittest producer.tests.test_facets_search
+ENVIRONMENT=TEST python3 -m unittest producer.tests.test_consumers
 """
 
 
@@ -75,7 +75,17 @@ class FreeConsumersTestCase(AioHTTPTestCase):
 
     @unittest_run_loop
     async def test_free_consumer(self):
-        await free_consumer()
+        await free_consumer(self.app['engine'], '192.168.0.2')
+
+        async with self.app['engine'].acquire() as connection:
+            self.consumer = await connection.execute('''
+              SELECT id, ip, status
+              FROM consumer
+              WHERE ip='192.168.0.2'
+            ''')
+
+            for row in self.consumer:
+                assert row.status == 'available'
 
 
 class HighestPriorityJobChunkConsumerTestCase(AioHTTPTestCase):
