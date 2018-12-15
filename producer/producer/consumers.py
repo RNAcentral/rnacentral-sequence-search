@@ -16,8 +16,12 @@ async def free_consumer(engine, consumer_ip):
                 UPDATE consumer
                 SET status = 'available'
                 WHERE ip=:consumer_ip
+                RETURNING consumer.*;
             ''')
             result = connection.execute(query, consumer_ip=consumer_ip)
+
+        for row in result:
+            print(row)
 
     except Exception as e:
         logging.error(str(e))

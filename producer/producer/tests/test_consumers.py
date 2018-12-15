@@ -67,6 +67,7 @@ class FreeConsumersTestCase(AioHTTPTestCase):
 
     async def tearDownAsync(self):
         async with self.app['engine'].acquire() as connection:
+            await connection.execute('DELETE FROM consumer')
             await connection.execute('DELETE FROM job_chunk_results')
             await connection.execute('DELETE FROM job_chunks')
             await connection.execute('DELETE FROM jobs')
