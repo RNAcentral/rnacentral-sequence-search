@@ -123,10 +123,10 @@ if __name__ == "__main__":
 
         async with engine:
             async with engine.acquire() as connection:
-                await connection.execute('DROP TABLE IF EXISTS consumer')
                 await connection.execute('DROP TABLE IF EXISTS job_chunk_results')
                 await connection.execute('DROP TABLE IF EXISTS job_chunks')
                 await connection.execute('DROP TABLE IF EXISTS jobs')
+                await connection.execute('DROP TABLE IF EXISTS consumer')
 
                 await connection.execute('''
                     CREATE TABLE consumer (

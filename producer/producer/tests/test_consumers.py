@@ -41,8 +41,6 @@ class FreeConsumersTestCase(AioHTTPTestCase):
     async def setUpAsync(self):
         await super().setUpAsync()
 
-        logging.info("settings = %s" % self.app['settings'].__dict__)
-
         async with self.app['engine'].acquire() as connection:
             self.consumer = await connection.scalar(
                 Consumer.insert().values(
@@ -98,8 +96,6 @@ class HighestPriorityJobChunkConsumerTestCase(AioHTTPTestCase):
     async def setUpAsync(self):
         await super().setUpAsync()
 
-        logging.info("settings = %s" % self.app['settings'].__dict__)
-
         async with self.app['engine'].acquire() as connection:
             self.job_id = await connection.scalar(
                 Job.insert().values(query='AACAGCATGAGTGCGCTGGATGCTG', submitted=datetime.datetime.now(), status='started')
@@ -149,8 +145,6 @@ class ExceptErrorInJobChunkConsumerTestCase(AioHTTPTestCase):
     async def setUpAsync(self):
         await super().setUpAsync()
 
-        logging.info("settings = %s" % self.app['settings'].__dict__)
-
         async with self.app['engine'].acquire() as connection:
             self.job_id = await connection.scalar(
                 Job.insert().values(query='AACAGCATGAGTGCGCTGGATGCTG', submitted=datetime.datetime.now(), status='started')
@@ -169,8 +163,6 @@ class DelegateJobToConsumerConsumerTestCase(AioHTTPTestCase):
 
     async def setUpAsync(self):
         await super().setUpAsync()
-
-        logging.info("settings = %s" % self.app['settings'].__dict__)
 
         async with self.app['engine'].acquire() as connection:
             self.job_id = await connection.scalar(
