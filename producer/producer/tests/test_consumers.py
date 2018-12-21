@@ -28,7 +28,7 @@ from ..consumers import free_consumer, find_highest_priority_job_chunk, except_e
 """
 Run these tests with:
 
-ENVIRONMENT=TEST python3 -m unittest producer.tests.test_consumers
+ENVIRONMENT=TEST python3 -m unittest producer.tests.test_consumers.FreeConsumersTestCase
 """
 
 
@@ -65,10 +65,10 @@ class FreeConsumersTestCase(AioHTTPTestCase):
 
     async def tearDownAsync(self):
         async with self.app['engine'].acquire() as connection:
-            await connection.execute('DELETE FROM consumer')
             await connection.execute('DELETE FROM job_chunk_results')
             await connection.execute('DELETE FROM job_chunks')
             await connection.execute('DELETE FROM jobs')
+            await connection.execute('DELETE FROM consumer')
 
             await super().tearDownAsync()
 

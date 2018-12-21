@@ -18,7 +18,7 @@ async def free_consumer(engine, consumer_ip):
                 WHERE ip=:consumer_ip
                 RETURNING consumer.*;
             ''')
-            result = connection.execute(query, consumer_ip=consumer_ip)
+            result = await connection.execute(query, consumer_ip=consumer_ip)
 
         for row in result:
             print(row)
@@ -37,7 +37,7 @@ async def find_highest_priority_job_chunk(engine):
                      .where(Job.c.status == 'started')
                      .order_by(Job.c.submitted)
                      .apply_labels())  # noqa
-            result = connection.execute(query)
+            result = await connection.execute(query)
 
             for row in result:  # select a job chunk to submit
                 return row.job_chunk.id
