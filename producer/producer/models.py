@@ -21,10 +21,10 @@ from aiopg.sa import create_engine
 
 async def init_pg(app):
     logger = logging.getLogger('aiohttp.web')
-    logger.error("POSTGRES_USER = %s" % app['settings'].POSTGRES_USER)
-    logger.error("POSTGRES_DATABASE = %s" % app['settings'].POSTGRES_DATABASE)
-    logger.error("POSTGRES_HOST = %s" % app['settings'].POSTGRES_HOST)
-    logger.error("POSTGRES_PASSWORD = %s" % app['settings'].POSTGRES_PASSWORD)
+    logger.debug("POSTGRES_USER = %s" % app['settings'].POSTGRES_USER)
+    logger.debug("POSTGRES_DATABASE = %s" % app['settings'].POSTGRES_DATABASE)
+    logger.debug("POSTGRES_HOST = %s" % app['settings'].POSTGRES_HOST)
+    logger.debug("POSTGRES_PASSWORD = %s" % app['settings'].POSTGRES_PASSWORD)
 
     app['engine'] = await create_engine(
         user=app['settings'].POSTGRES_USER,
