@@ -21,7 +21,7 @@ from aiohttp import web
 import sqlalchemy as sa
 
 from ..models import Job, JobChunk
-from ..consumers import delegate_job_to_consumer, free_consumer, find_highest_priority_job_chunk, except_error_in_job_chunk
+from ..consumers import delegate_job_to_consumer, free_consumer, find_highest_priority_job_chunk, save_job_chunk_error
 
 
 def serialize(request, data):

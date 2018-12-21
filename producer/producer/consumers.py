@@ -50,7 +50,33 @@ async def find_highest_priority_job_chunk(engine):
         return
 
 
-async def except_error_in_job_chunk(engine, job_id, database, reason):
+async def save_job_chunk_started(engine, job_id, database, consumer_ip):
+    """
+    When a job was successfully submitted to consumer,
+    save the job status and consumer status to the database.
+    """
+    async with engine.acquire() as connection:
+        try:
+            await connection.execute('''
+                UPDATE 'consumer'
+                SET status = 'busy'
+                WHERE id={consumer_id}
+                '''.format(consumer_ip))
+        except Exception as e:
+            logging.error("Failed to set the consumer status to 'busy'")
+
+        try:
+            await connection.execute('''
+                UPDATE {job_chunks}
+                SET status = 'started'
+                WHERE job_id={job_id} AND database='{database}';
+                '''.format(job_chunks='job_chunks', job_id=job_id, database=database))
+
+        except Exception as e:
+            logging.error("Failed to save successfully submitted job_chunks to the database, job_id = %s" % job_id)
+
+
+async def save_job_chunk_error(engine, job_id, database, reason):
     """When a job_chunk fails, record error to the database and free the consumer."""
     try:
         async with engine.acquire() as connection:
@@ -93,27 +119,9 @@ async def delegate_job_to_consumer(engine, consumer_ip, job_id, job_chunk_id, da
                     # What if we run into a race condition? How to lock?
                     async with session.post(url, data=json_data, headers=headers) as response:
                         if response.status < 400:
-                            try:
-                                await connection.execute('''
-                                    UPDATE 'consumer'
-                                    SET status = 'busy'
-                                    WHERE id={consumer_id}
-                                    '''.format(consumer_ip))
-                            except Exception as e:
-                                logging.error("Failed to set the consumer status to 'busy'")
-
-                            try:
-                                await connection.execute('''
-                                    UPDATE {job_chunks}
-                                    SET status = 'started'
-                                    WHERE job_id={job_id} AND database='{database}';
-                                    '''.format(job_chunks='job_chunks', job_id=job_id, database=database))
-
-                            except Exception as e:
-                                logging.error("Failed to save successfully submitted job_chunks to the database, job_id = %s" % job_id)
-                        else:
-                            # TODO: attempt retry upon a failed delivery?
-                            await except_error_in_job_chunk(connection, job_id, database, reason="error response status")
+                            await save_job_chunk_started(engine, job_id, database, consumer_ip)
+                        else:  # TODO: attempt retry upon a failed delivery?
+                            await save_job_chunk_error(connection, job_id, database, reason="error response status")
 
                             # log and report error
                             text = await response.text()
@@ -124,4 +132,4 @@ async def delegate_job_to_consumer(engine, consumer_ip, job_id, job_chunk_id, da
             logging.error(str(e))
 
             async with engine.acquire() as connection:
-                await except_error_in_job_chunk(connection, job_id, database, reason="failed to connect")
+                await save_job_chunk_error(connection, job_id, database, reason="failed to connect")

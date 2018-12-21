@@ -22,7 +22,7 @@ import sqlalchemy as sa
 
 from ..main import create_app
 from ..models import Job, JobChunk, JobChunkResult, Consumer
-from ..consumers import free_consumer, find_highest_priority_job_chunk, except_error_in_job_chunk, delegate_job_to_consumer
+from ..consumers import free_consumer, find_highest_priority_job_chunk, save_job_chunk_error, delegate_job_to_consumer
 
 
 class FreeConsumersTestCase(AioHTTPTestCase):
@@ -141,11 +141,15 @@ class HighestPriorityJobChunkConsumerTestCase(AioHTTPTestCase):
         assert job_chunk_id == self.job_chunk_id1
 
 
-class ExceptErrorInJobChunkConsumerTestCase(AioHTTPTestCase):
+class SaveJobChunkStartedConsumerTestCase(AioHTTPTestCase):
+    pass
+
+
+class SaveJobChunkErrorConsumerTestCase(AioHTTPTestCase):
     """
     Run this test with the following command:
 
-    ENVIRONMENT=TEST python3 -m unittest producer.tests.test_consumers.ExceptErrorInJobChunkConsumerTestCase
+    ENVIRONMENT=TEST python3 -m unittest producer.tests.test_consumers.SaveJobChunkErrorConsumerTestCase
     """
     async def get_application(self):
         logging.basicConfig(level=logging.ERROR)  # subdue messages like 'DEBUG:asyncio:Using selector: KqueueSelector'
@@ -162,7 +166,7 @@ class ExceptErrorInJobChunkConsumerTestCase(AioHTTPTestCase):
 
     @unittest_run_loop
     async def test_except_error_in_job_chunk(self):
-        pass
+        await save_job_chunk_error(self.app['engine'], job_id, database, reason)
 
 
 class DelegateJobToConsumerConsumerTestCase(AioHTTPTestCase):
