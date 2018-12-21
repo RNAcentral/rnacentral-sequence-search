@@ -25,14 +25,12 @@ from ..models import Job, JobChunk, JobChunkResult, Consumer
 from ..consumers import free_consumer, find_highest_priority_job_chunk, except_error_in_job_chunk, delegate_job_to_consumer
 
 
-"""
-Run these tests with:
-
-ENVIRONMENT=TEST python3 -m unittest producer.tests.test_consumers.FreeConsumersTestCase
-"""
-
-
 class FreeConsumersTestCase(AioHTTPTestCase):
+    """
+    Run this test with the following command:
+
+    ENVIRONMENT=TEST python3 -m unittest producer.tests.test_consumers.FreeConsumersTestCase
+    """
     async def get_application(self):
         logging.basicConfig(level=logging.ERROR)  # subdue messages like 'DEBUG:asyncio:Using selector: KqueueSelector'
         app = create_app()
@@ -88,6 +86,11 @@ class FreeConsumersTestCase(AioHTTPTestCase):
 
 
 class HighestPriorityJobChunkConsumerTestCase(AioHTTPTestCase):
+    """
+    Run this test with the following command:
+
+    ENVIRONMENT=TEST python3 -m unittest producer.tests.test_consumers.HighestPriorityJobChunkConsumerTestCase
+    """
     async def get_application(self):
         logging.basicConfig(level=logging.ERROR)  # subdue messages like 'DEBUG:asyncio:Using selector: KqueueSelector'
         app = create_app()
@@ -133,10 +136,17 @@ class HighestPriorityJobChunkConsumerTestCase(AioHTTPTestCase):
 
     @unittest_run_loop
     async def test_find_highest_priority_job_chunk(self):
-        pass
+        job_chunk_id = await find_highest_priority_job_chunk(self.app['engine'])
+
+        assert job_chunk_id == self.job_chunk_id1
 
 
 class ExceptErrorInJobChunkConsumerTestCase(AioHTTPTestCase):
+    """
+    Run this test with the following command:
+
+    ENVIRONMENT=TEST python3 -m unittest producer.tests.test_consumers.ExceptErrorInJobChunkConsumerTestCase
+    """
     async def get_application(self):
         logging.basicConfig(level=logging.ERROR)  # subdue messages like 'DEBUG:asyncio:Using selector: KqueueSelector'
         app = create_app()
@@ -156,6 +166,11 @@ class ExceptErrorInJobChunkConsumerTestCase(AioHTTPTestCase):
 
 
 class DelegateJobToConsumerConsumerTestCase(AioHTTPTestCase):
+    """
+    Run this test with the following command:
+
+    ENVIRONMENT=TEST python3 -m unittest producer.tests.test_consumers.DelegateJobToConsumerConsumerTestCase
+    """
     async def get_application(self):
         logging.basicConfig(level=logging.ERROR)  # subdue messages like 'DEBUG:asyncio:Using selector: KqueueSelector'
         app = create_app()
