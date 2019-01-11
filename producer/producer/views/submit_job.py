@@ -21,7 +21,8 @@ from aiohttp import web
 import sqlalchemy as sa
 
 from ..models import Job, JobChunk
-from ..consumers import delegate_job_to_consumer, free_consumer, find_highest_priority_job_chunk, save_job_chunk_error
+from ..consumers import delegate_job_to_consumer, free_consumer, find_highest_priority_job_chunk, \
+    save_job_chunk_error, save_job_chunk_started, find_available_consumers
 
 
 def serialize(request, data):
@@ -54,17 +55,18 @@ def serialize(request, data):
     return data
 
 
-async def save(connection, request, data):
+async def save(request, data):
     """Save metadata about this job and job_chunks to the database."""
-    job_id = await connection.scalar(
-        Job.insert().values(query=data['query'], submitted=datetime.datetime.now(), status='started')
-    )
-    for database in data['databases']:
-        job_chunk_id = await connection.scalar(
-            JobChunk.insert().values(job_id=job_id, database=database, submitted=datetime.datetime.now(), status='pending')
+    async with request.app['engine'].acquire() as connection:
+        job_id = await connection.scalar(
+            Job.insert().values(query=data['query'], submitted=datetime.datetime.now(), status='started')
         )
+        for database in data['databases']:
+            job_chunk_id = await connection.scalar(
+                JobChunk.insert().values(job_id=job_id, database=database, submitted=datetime.datetime.now(), status='pending')
+            )
 
-    return job_id
+        return job_id
 
 
 async def submit_job(request):
@@ -112,12 +114,14 @@ async def submit_job(request):
     data = await request.json()
     data = serialize(request, data)
 
-    async with request.app['engine'].acquire() as connection:
-        job_id = await save(connection, request, data)
-        for database in data['databases']:
-            try:
-                await delegate_job_to_consumer(connection, request, data['query'], database, job_id)
-            except Exception as e:
-                return web.HTTPBadGateway(text=str(e))
+    job_id = await save(request, data)
+
+    consumers = await find_available_consumers(request.app['engine'])
+
+    for database in data['databases']:
+        try:
+            await delegate_job_to_consumer(request.app['engine'], consumer_ip, job_id, job_chunk_id, database, data['query'])
+        except Exception as e:
+            return web.HTTPBadGateway(text=str(e))
 
     return web.json_response({"job_id": job_id}, status=201)

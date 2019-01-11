@@ -54,8 +54,7 @@ metadata = sa.MetaData()
 # TODO: consistent naming for tables: either 'jobs' and 'consumers' or 'job' and 'consumer'
 """State of a consumer instance"""
 Consumer = sa.Table('consumer', metadata,
-            sa.Column('id', sa.Integer, primary_key=True),
-            sa.Column('ip', sa.String(15)),
+            sa.Column('ip', sa.String(15), primary_key=True),
             sa.Column('status', sa.String(255)))  # choices=CONSUMER_STATUS_CHOICES, default='available'
 
 """A search job that is divided into multiple job chunks per database"""
@@ -130,8 +129,7 @@ if __name__ == "__main__":
 
                 await connection.execute('''
                     CREATE TABLE consumer (
-                      id serial PRIMARY KEY,
-                      ip VARCHAR(15),
+                      ip VARCHAR(15) PRIMARY KEY,
                       status VARCHAR(255) NOT NULL)
                 ''')
 

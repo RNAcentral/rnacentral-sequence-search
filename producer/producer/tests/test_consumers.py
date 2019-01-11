@@ -22,7 +22,62 @@ import sqlalchemy as sa
 
 from ..main import create_app
 from ..models import Job, JobChunk, JobChunkResult, Consumer
-from ..consumers import free_consumer, find_highest_priority_job_chunk, save_job_chunk_error, delegate_job_to_consumer
+from ..consumers import free_consumer, find_available_consumers, find_highest_priority_job_chunk, \
+    save_job_chunk_started, save_job_chunk_error, delegate_job_to_consumer
+
+
+class FindAvailableConsumersTestCase(AioHTTPTestCase):
+    """
+    Run this test with the following command:
+
+    ENVIRONMENT=TEST python3 -m unittest producer.tests.test_consumers.FindAvailableConsumersTestCase
+
+    """
+    async def get_application(self):
+        logging.basicConfig(level=logging.ERROR)  # subdue messages like 'DEBUG:asyncio:Using selector: KqueueSelector'
+        app = create_app()
+        return app
+
+    async def setUpAsync(self):
+        await super().setUpAsync()
+
+        async with self.app['engine'].acquire() as connection:
+            connection.scalar(
+                Consumer.insert().values(
+                    ip='192.168.0.2',
+                    status='available'
+                )
+            )
+
+            connection.scalar(
+                Consumer.insert().values(
+                    ip='192.168.0.3',
+                    status='busy'
+                )
+            )
+
+            connection.scalar(
+                Consumer.insert().values(
+                    ip='192.168.0.4',
+                    status='available'
+                )
+            )
+
+    async def tearDownAsync(self):
+        async with self.app['engine'].acquire() as connection:
+            await connection.execute('DELETE FROM job_chunk_results')
+            await connection.execute('DELETE FROM job_chunks')
+            await connection.execute('DELETE FROM jobs')
+            await connection.execute('DELETE FROM consumer')
+
+            await super().tearDownAsync()
+
+    @unittest_run_loop
+    async def test_find_available_consumer(self):
+        consumers = await find_available_consumers(self.app['engine'])
+
+        async with self.app['engine'].acquire() as connection:
+            self.consumer = await connection.execute('''''')
 
 
 class FreeConsumersTestCase(AioHTTPTestCase):
@@ -142,7 +197,27 @@ class HighestPriorityJobChunkConsumerTestCase(AioHTTPTestCase):
 
 
 class SaveJobChunkStartedConsumerTestCase(AioHTTPTestCase):
-    pass
+    """
+    Run this test with the following command:
+
+    ENVIRONMENT=TEST python3 -m unittest producer.tests.test_consumers.SaveJobChunkStartedConsumerTestCase
+    """
+    async def get_application(self):
+        logging.basicConfig(level=logging.ERROR)  # subdue messages like 'DEBUG:asyncio:Using selector: KqueueSelector'
+        app = create_app()
+        return app
+
+    async def setUpAsync(self):
+        await super().setUpAsync()
+
+        async with self.app['engine'].acquire() as connection:
+            self.job_id = await connection.scalar(
+                Job.insert().values(query='AACAGCATGAGTGCGCTGGATGCTG', submitted=datetime.datetime.now(), status='started')
+            )
+
+    @unittest_run_loop
+    async def test_job_chunk_started(self):
+        await save_job_chunk_started(self.app['engine'], job_id, database, reason)
 
 
 class SaveJobChunkErrorConsumerTestCase(AioHTTPTestCase):

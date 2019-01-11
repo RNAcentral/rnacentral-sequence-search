@@ -8,6 +8,31 @@ from .models import Job, JobChunk, JobChunkResult
 from .settings import CONSUMER_SUBMIT_JOB_URL
 
 
+async def find_available_consumers(engine):
+    """
+    Returns a list of available consumers that can be used to run.
+    :param engine:
+    :return:
+    """
+    try:
+        async with engine.acquire() as connection:
+            query = sa.text('''
+                SELECT ip, status
+                FROM consumer
+                WHERE status == 'available'
+            ''')
+            result = await connection.execute(query)
+
+        for row in result:
+            print(row)
+
+        return []
+
+    except Exception as e:
+        logging.error(str(e))
+        return
+
+
 async def free_consumer(engine, consumer_ip):
     """When a consumer returns result, set its state in the database to 'available'."""
     try:
@@ -55,25 +80,28 @@ async def save_job_chunk_started(engine, job_id, database, consumer_ip):
     When a job was successfully submitted to consumer,
     save the job status and consumer status to the database.
     """
-    async with engine.acquire() as connection:
-        try:
-            await connection.execute('''
-                UPDATE 'consumer'
-                SET status = 'busy'
-                WHERE id={consumer_id}
-                '''.format(consumer_ip))
-        except Exception as e:
-            logging.error("Failed to set the consumer status to 'busy'")
+    try:
+        async with engine.acquire() as connection:
+            try:
+                await connection.execute('''
+                    UPDATE 'consumer'
+                    SET status = 'busy'
+                    WHERE id={consumer_id}
+                    '''.format(consumer_ip))
+            except Exception as e:
+                logging.error("Failed to set the consumer status to 'busy'")
 
-        try:
-            await connection.execute('''
-                UPDATE {job_chunks}
-                SET status = 'started'
-                WHERE job_id={job_id} AND database='{database}';
-                '''.format(job_chunks='job_chunks', job_id=job_id, database=database))
-
-        except Exception as e:
-            logging.error("Failed to save successfully submitted job_chunks to the database, job_id = %s" % job_id)
+            try:
+                await connection.execute('''
+                    UPDATE {job_chunks}
+                    SET status = 'started'
+                    WHERE job_id={job_id} AND database='{database}';
+                    '''.format(job_chunks='job_chunks', job_id=job_id, database=database)
+                )
+            except Exception as e:
+                logging.error("Failed to save successfully submitted job_chunks to the database, job_id = %s" % job_id)
+    except Exception as e:
+        logging.error("Failed to open connection to the database in save_job_chunk_started, job_id = %s" % job_id)
 
 
 async def save_job_chunk_error(engine, job_id, database, reason):
@@ -121,7 +149,7 @@ async def delegate_job_to_consumer(engine, consumer_ip, job_id, job_chunk_id, da
                         if response.status < 400:
                             await save_job_chunk_started(engine, job_id, database, consumer_ip)
                         else:  # TODO: attempt retry upon a failed delivery?
-                            await save_job_chunk_error(connection, job_id, database, reason="error response status")
+                            await save_job_chunk_error(engine, job_id, database, reason="error response status")
 
                             # log and report error
                             text = await response.text()
