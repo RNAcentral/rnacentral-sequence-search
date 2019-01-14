@@ -42,21 +42,21 @@ class FindAvailableConsumersTestCase(AioHTTPTestCase):
         await super().setUpAsync()
 
         async with self.app['engine'].acquire() as connection:
-            connection.scalar(
+            await connection.execute(
                 Consumer.insert().values(
                     ip='192.168.0.2',
                     status='available'
                 )
             )
 
-            connection.scalar(
+            await connection.execute(
                 Consumer.insert().values(
                     ip='192.168.0.3',
                     status='busy'
                 )
             )
 
-            connection.scalar(
+            await connection.execute(
                 Consumer.insert().values(
                     ip='192.168.0.4',
                     status='available'
@@ -76,8 +76,13 @@ class FindAvailableConsumersTestCase(AioHTTPTestCase):
     async def test_find_available_consumer(self):
         consumers = await find_available_consumers(self.app['engine'])
 
-        async with self.app['engine'].acquire() as connection:
-            self.consumer = await connection.execute('''''')
+        for index, row in enumerate(consumers):
+            if index == 0:
+                assert row.ip == '192.168.0.2'
+                assert row.status == 'available'
+            elif index == 1:
+                assert row.ip == '192.168.0.4'
+                assert row.status == 'available'
 
 
 class FreeConsumersTestCase(AioHTTPTestCase):

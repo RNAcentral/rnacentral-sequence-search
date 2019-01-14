@@ -19,14 +19,11 @@ async def find_available_consumers(engine):
             query = sa.text('''
                 SELECT ip, status
                 FROM consumer
-                WHERE status == 'available'
+                WHERE status='available'
             ''')
             result = await connection.execute(query)
 
-        for row in result:
-            print(row)
-
-        return []
+        return result
 
     except Exception as e:
         logging.error(str(e))
