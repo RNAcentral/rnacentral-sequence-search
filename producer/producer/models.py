@@ -71,7 +71,7 @@ JobChunk = sa.Table('job_chunks', metadata,
                   sa.Column('job_id', None, sa.ForeignKey('jobs.id')),
                   sa.Column('database', sa.String(255)),
                   sa.Column('submitted', sa.DateTime),
-                  sa.Column('consumer', sa.ForeignKey('consumer.id'), nullable=True),
+                  sa.Column('consumer', sa.ForeignKey('consumer.ip'), nullable=True),
                   sa.Column('result', sa.String(255), nullable=True),
                   sa.Column('status', sa.String(255)))  # choices=JOB_STATUS_CHOICES, default='started'
 
@@ -148,7 +148,7 @@ if __name__ == "__main__":
                       job_id INT references jobs(id),
                       database VARCHAR(255),
                       submitted TIMESTAMP,
-                      consumer INT references consumer(id),
+                      consumer VARCHAR(15) references consumer(ip),
                       result VARCHAR(255),
                       status VARCHAR(255))
                 ''')
