@@ -69,6 +69,18 @@ async def save(request, data):
         return job_id
 
 
+async def get_job_chunk_by_job_id_and_database(request, job_id, database):
+    async with request.app['engine'].acquire() as connection:
+        query = sa.text('''
+            SELECT id
+            FROM job_chunks
+            WHERE job_id={job_id} AND database='{database}'
+        ''').format(job_id=job_id, database=database)
+        result = await connection.execute(query)
+
+        return result
+
+
 async def submit_job(request):
     """
     Example:
@@ -117,10 +129,14 @@ async def submit_job(request):
     job_id = await save(request, data)
 
     consumers = await find_available_consumers(request.app['engine'])
-
-    for database in data['databases']:
+    databases_copy = data['databases']
+    async for consumer in consumers:
         try:
-            await delegate_job_to_consumer(request.app['engine'], consumer_ip, job_id, job_chunk_id, database, data['query'])
+            engine = request.app['engine']
+            database = databases_copy.pop()
+            query = data['query']
+            job_chunk_id = await get_job_chunk_by_job_id_and_database(request, job_id, database)
+            await delegate_job_to_consumer(engine, consumer.ip, job_id, job_chunk_id, database, query)
         except Exception as e:
             return web.HTTPBadGateway(text=str(e))
 
