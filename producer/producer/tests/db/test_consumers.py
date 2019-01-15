@@ -20,17 +20,17 @@ from aiohttp.test_utils import unittest_run_loop
 from aiohttp.test_utils import AioHTTPTestCase
 import sqlalchemy as sa
 
-from ..main import create_app
-from ..models import Job, JobChunk, JobChunkResult, Consumer
-from ..consumers import free_consumer, find_available_consumers, find_highest_priority_job_chunk, \
-    save_job_chunk_started, save_job_chunk_error, delegate_job_to_consumer
+from ...main import create_app
+from ...models import Job, JobChunk, JobChunkResult, Consumer
+from ...db.consumers import set_consumer_status, find_available_consumers, delegate_job_to_consumer
+from ...db.job_chunks import find_highest_priority_job_chunk
 
 
 class FindAvailableConsumersTestCase(AioHTTPTestCase):
     """
     Run this test with the following command:
 
-    ENVIRONMENT=TEST python3 -m unittest producer.tests.test_consumers.FindAvailableConsumersTestCase
+    ENVIRONMENT=TEST python3 -m unittest producer.tests.db.test_consumers.FindAvailableConsumersTestCase
 
     """
     async def get_application(self):
@@ -85,11 +85,11 @@ class FindAvailableConsumersTestCase(AioHTTPTestCase):
                 assert row.status == 'available'
 
 
-class FreeConsumersTestCase(AioHTTPTestCase):
+class SetConsumerStatusTestCase(AioHTTPTestCase):
     """
     Run this test with the following command:
 
-    ENVIRONMENT=TEST python3 -m unittest producer.tests.test_consumers.FreeConsumersTestCase
+    ENVIRONMENT=TEST python3 -m unittest producer.tests.db.test_consumers.SetConsumerStatusTestCase
     """
     async def get_application(self):
         logging.basicConfig(level=logging.ERROR)  # subdue messages like 'DEBUG:asyncio:Using selector: KqueueSelector'
@@ -131,8 +131,8 @@ class FreeConsumersTestCase(AioHTTPTestCase):
             await super().tearDownAsync()
 
     @unittest_run_loop
-    async def test_free_consumer(self):
-        await free_consumer(self.app['engine'], '192.168.0.2')
+    async def test_set_consumer_status(self):
+        await set_consumer_status(self.app['engine'], '192.168.0.2', 'available')
 
         async with self.app['engine'].acquire() as connection:
             self.consumer = await connection.execute('''
@@ -145,115 +145,11 @@ class FreeConsumersTestCase(AioHTTPTestCase):
                 assert row.status == 'available'
 
 
-class HighestPriorityJobChunkConsumerTestCase(AioHTTPTestCase):
-    """
-    Run this test with the following command:
-
-    ENVIRONMENT=TEST python3 -m unittest producer.tests.test_consumers.HighestPriorityJobChunkConsumerTestCase
-    """
-    async def get_application(self):
-        logging.basicConfig(level=logging.ERROR)  # subdue messages like 'DEBUG:asyncio:Using selector: KqueueSelector'
-        app = create_app()
-        return app
-
-    async def setUpAsync(self):
-        await super().setUpAsync()
-
-        async with self.app['engine'].acquire() as connection:
-            self.job_id = await connection.scalar(
-                Job.insert().values(query='AACAGCATGAGTGCGCTGGATGCTG', submitted=datetime.datetime.now(), status='started')
-            )
-
-            self.job_id2 = await connection.scalar(
-                Job.insert().values(query='CGTGCTGAATAGCTGGAGAGGCTCAT', submitted=datetime.datetime.now(), status='started')
-            )
-
-            self.job_chunk_id1 = await connection.scalar(
-                JobChunk.insert().values(
-                    job_id=self.job_id,
-                    database='mirbase',
-                    submitted=datetime.datetime.now(),
-                    status='started'
-                )
-            )
-
-            self.job_chunk_id2 = await connection.scalar(
-                JobChunk.insert().values(
-                    job_id=self.job_id2,
-                    database='pombase',
-                    submitted=datetime.datetime.now(),
-                    status='started'
-                )
-            )
-
-    async def tearDownAsync(self):
-        async with self.app['engine'].acquire() as connection:
-            await connection.execute('DELETE FROM job_chunk_results')
-            await connection.execute('DELETE FROM job_chunks')
-            await connection.execute('DELETE FROM jobs')
-
-            await super().tearDownAsync()
-
-    @unittest_run_loop
-    async def test_find_highest_priority_job_chunk(self):
-        job_chunk_id = await find_highest_priority_job_chunk(self.app['engine'])
-
-        assert job_chunk_id == self.job_chunk_id1
-
-
-class SaveJobChunkStartedConsumerTestCase(AioHTTPTestCase):
-    """
-    Run this test with the following command:
-
-    ENVIRONMENT=TEST python3 -m unittest producer.tests.test_consumers.SaveJobChunkStartedConsumerTestCase
-    """
-    async def get_application(self):
-        logging.basicConfig(level=logging.ERROR)  # subdue messages like 'DEBUG:asyncio:Using selector: KqueueSelector'
-        app = create_app()
-        return app
-
-    async def setUpAsync(self):
-        await super().setUpAsync()
-
-        async with self.app['engine'].acquire() as connection:
-            self.job_id = await connection.scalar(
-                Job.insert().values(query='AACAGCATGAGTGCGCTGGATGCTG', submitted=datetime.datetime.now(), status='started')
-            )
-
-    @unittest_run_loop
-    async def test_job_chunk_started(self):
-        await save_job_chunk_started(self.app['engine'], job_id, database, reason)
-
-
-class SaveJobChunkErrorConsumerTestCase(AioHTTPTestCase):
-    """
-    Run this test with the following command:
-
-    ENVIRONMENT=TEST python3 -m unittest producer.tests.test_consumers.SaveJobChunkErrorConsumerTestCase
-    """
-    async def get_application(self):
-        logging.basicConfig(level=logging.ERROR)  # subdue messages like 'DEBUG:asyncio:Using selector: KqueueSelector'
-        app = create_app()
-        return app
-
-    async def setUpAsync(self):
-        await super().setUpAsync()
-
-        async with self.app['engine'].acquire() as connection:
-            self.job_id = await connection.scalar(
-                Job.insert().values(query='AACAGCATGAGTGCGCTGGATGCTG', submitted=datetime.datetime.now(), status='started')
-            )
-
-    @unittest_run_loop
-    async def test_except_error_in_job_chunk(self):
-        await save_job_chunk_error(self.app['engine'], job_id, database, reason)
-
-
 class DelegateJobToConsumerConsumerTestCase(AioHTTPTestCase):
     """
     Run this test with the following command:
 
-    ENVIRONMENT=TEST python3 -m unittest producer.tests.test_consumers.DelegateJobToConsumerConsumerTestCase
+    ENVIRONMENT=TEST python3 -m unittest producer.tests.db.test_consumers.DelegateJobToConsumerConsumerTestCase
     """
     async def get_application(self):
         logging.basicConfig(level=logging.ERROR)  # subdue messages like 'DEBUG:asyncio:Using selector: KqueueSelector'

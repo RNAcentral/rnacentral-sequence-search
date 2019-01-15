@@ -16,7 +16,8 @@ from aiohttp import web
 import logging
 
 from ..models import Job, JobChunk, JobChunkResult
-from ..consumers import free_consumer, find_highest_priority_job_chunk, delegate_job_to_consumer
+from ..db.consumers import set_consumer_status, delegate_job_to_consumer
+from ..db.job_chunks import find_highest_priority_job_chunk
 
 
 async def serialize(connection, request, data):
@@ -82,7 +83,7 @@ async def job_done(request):
                  .where(Job.c.id == data['job_id']))  # noqa
 
         # try scheduling another job chunk for this consumer
-        free_consumer(request, consumer_ip)
+        set_consumer_status(request, consumer_ip, 'available')
 
         all_job_chunks_success = True
         async for row in connection.execute(query):
