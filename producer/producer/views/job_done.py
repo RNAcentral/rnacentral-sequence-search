@@ -17,7 +17,8 @@ import logging
 
 from ..models import Job, JobChunk, JobChunkResult
 from ..db.consumers import set_consumer_status, delegate_job_to_consumer
-from ..db.job_chunks import find_highest_priority_job_chunk
+from ..db.job_chunks import find_highest_priority_job_chunk, set_job_chunk_status
+from ..db.jobs import check_job_chunks_status
 
 
 async def serialize(connection, request, data):
@@ -53,17 +54,7 @@ async def job_done(request):
         data = await serialize(connection, request, data)
 
         # update job_chunks
-        query = sa.text('''
-            UPDATE job_chunks
-            SET status = 'success'
-            WHERE job_id=:job_id AND database=:database
-            RETURNING *;
-        ''')
-        result = await connection.execute(
-            query,
-            job_id=data['job_id'],
-            database=data['database']
-        )
+        result = set_job_chunk_status(request.app['engine'], data['job_id'], data['database'], status='success')
 
         # get job_chunk_id from update query response
         for row in result:
@@ -73,24 +64,12 @@ async def job_done(request):
 
         # save job chunk results
         for result in data['result']:
-            await connection.scalar(
-                JobChunkResult.insert().values(job_chunk_id=job_chunk_id, **result)
-            )
-
-        # check, if all other job chunks are also done - then the whole job is done
-        query = (sa.select([Job.c.id, JobChunk.c.job_id, JobChunk.c.status])
-                 .select_from(sa.join(Job, JobChunk, Job.c.id == JobChunk.c.job_id))  # noqa
-                 .where(Job.c.id == data['job_id']))  # noqa
+            await connection.scalar(JobChunkResult.insert().values(job_chunk_id=job_chunk_id, **result))
 
         # try scheduling another job chunk for this consumer
         set_consumer_status(request, consumer_ip, 'available')
 
-        all_job_chunks_success = True
-        async for row in connection.execute(query):
-            if row.status != 'success':
-                all_job_chunks_success = False
-                break
-
+        all_job_chunks_success = await check_job_chunks_status(job_id)
         if all_job_chunks_success:
             query = sa.text('''UPDATE jobs SET status = 'success' WHERE id=:job_id''')
             result = await connection.execute(query, job_id=data['job_id'])

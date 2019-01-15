@@ -32,13 +32,26 @@ async def set_job_chunk_status(engine, job_id, database, status):
     try:
         async with engine.acquire() as connection:
             try:
-                await connection.execute('''
-                    UPDATE {job_chunks}
-                    SET status = 'status'
-                    WHERE job_id={job_id} AND database='{database}'
+                # await connection.execute('''
+                #     UPDATE {job_chunks}
+                #     SET status = 'status'
+                #     WHERE job_id={job_id} AND database='{database}'
+                #     RETURNING *;
+                #     '''.format(job_chunks='job_chunks', job_id=job_id, database=database, status=status)
+                # )
+                query = sa.text('''
+                    UPDATE job_chunks
+                    SET status = ':status'
+                    WHERE job_id=:job_id AND database=':database'
                     RETURNING *;
-                    '''.format(job_chunks='job_chunks', job_id=job_id, database=database, status=status)
+                ''')
+                result = await connection.execute(
+                    query,
+                    job_id=job_id,
+                    database=database,
+                    status=status
                 )
+                return result
             except Exception as e:
                 logging.error("Failed to update_job_chunk_status in the database, job_id = %s, database = %s" % (job_id, database))
     except Exception as e:

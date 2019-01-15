@@ -4,7 +4,8 @@ from aiohttp import web
 import logging
 import json
 
-from .job_chunks import set_job_chunk_status
+from ..db.job_chunks import set_job_chunk_status
+from ..db.jobs import set_job_status
 from ..settings import CONSUMER_SUBMIT_JOB_URL
 
 
@@ -65,6 +66,7 @@ async def delegate_job_to_consumer(engine, consumer_ip, job_id, job_chunk_id, da
                         await set_job_chunk_status(engine, job_id, database, consumer_ip, status="started")
                     else:  # TODO: attempt retry upon a failed delivery?
                         await set_job_chunk_status(engine, job_id, database, consumer_ip, status="error")
+                        await set_job_status(engine, job_id, status="error")
 
                         # log and report error
                         text = await response.text()
