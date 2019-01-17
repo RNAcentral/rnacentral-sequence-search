@@ -5,14 +5,14 @@ import sqlalchemy as sa
 from ..models import Job, JobChunk
 
 
-async def set_job_status(engine, job_id, reason):
+async def set_job_status(engine, job_id, status):
     try:
         async with engine.acquire() as connection:
             try:
-                query = sa.text('''UPDATE jobs SET status = 'error' WHERE id=:job_id''')
-                await connection.execute(query, job_id=job_id)
+                query = sa.text('''UPDATE jobs SET status = ':status' WHERE id=:job_id''')
+                await connection.execute(query, job_id=job_id, status=status)
             except Exception as e:
-                logging.error("Failed to save job to the database about failed job, job_id = %s, reason = %s" % (job_id, reason))
+                logging.error("Failed to save job to the database about failed job, job_id = %s, status = %s" % (job_id, status))
     except Exception as e:
         logging.error("Failed to open connection to the database in save_job_status() for job with job_id = %s" % job_id)
 
@@ -32,5 +32,17 @@ async def check_job_chunks_status(engine, job_id):
                     break
 
             return
+    except Exception as e:
+        logging.error("Failed to open connection to the database in check_job_chunks_status() for job with job_id = %s" % job_id)
+
+
+async def get_job_query(engine, job_id):
+    try:
+        async with engine.acquire() as connection:
+            sql_query = sa.select(Job.c.query).select_from(Job).where(Job.c.id == job_id)
+
+            async for row in connection.execute(sql_query):
+                return row.c.query
+
     except Exception as e:
         logging.error("Failed to open connection to the database in check_job_chunks_status() for job with job_id = %s" % job_id)

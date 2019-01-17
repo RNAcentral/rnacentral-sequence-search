@@ -47,7 +47,7 @@ async def set_consumer_status(engine, consumer_ip, status):
         logging.error(str(e))
 
 
-async def delegate_job_to_consumer(engine, consumer_ip, job_id, job_chunk_id, database, query):
+async def delegate_job_to_consumer(engine, consumer_ip, job_id, database, query):
     """When a consumer returns result, set its state in the database to 'available'."""
     try:
         async with engine.acquire() as connection:
