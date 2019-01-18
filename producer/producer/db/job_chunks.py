@@ -14,18 +14,21 @@ async def find_highest_priority_job_chunk(engine):
     # among the running jobs, find the one, submitted first
     try:
         async with engine.acquire() as connection:
-            query = (sa.select([Job.c.id, Job.c.status, Job.c.submitted, JobChunk.c.job_id, JobChunk.c.id, JobChunk.c.database, JobChunk.c.status])
-                     .select_from(sa.join(Job, JobChunk, Job.c.id == JobChunk.c.job_id))  # noqa
-                     .where(Job.c.status == 'started')
-                     .order_by(Job.c.submitted)
-                     .apply_labels())  # noqa
+            try:
+                query = (sa.select([Job.c.id, Job.c.status, Job.c.submitted, JobChunk.c.job_id, JobChunk.c.id, JobChunk.c.database, JobChunk.c.status])
+                         .select_from(sa.join(Job, JobChunk, Job.c.id == JobChunk.c.job_id))  # noqa
+                         .where(Job.c.status == 'started')
+                         .order_by(Job.c.submitted)
+                         .apply_labels())  # noqa
 
-            # if there are started jobs and job_chunks, pick one from the earliest submitted job
-            async for row in connection.execute(query):  # select a job chunk to submit
-                return row[0], row[4], row[5]
+                # if there are started jobs and job_chunks, pick one from the earliest submitted job
+                async for row in connection.execute(query):  # select a job chunk to submit
+                    return row[0], row[4], row[5]
 
-            # if there are no running job_chunks, return None
-            return None
+                # if there are no running job_chunks, return None
+                return None
+            except Exception as e:
+                logging.error("Failed to find highest priority job chunks")
 
     except Exception as e:
         logging.error(str(e))
@@ -35,12 +38,15 @@ async def find_highest_priority_job_chunk(engine):
 async def get_consumer_ip_from_job_chunk(engine, job_chunk_id):
     try:
         async with engine.acquire() as connection:
-            query = (sa.select([JobChunk.c.consumer])
-                     .select_from(JobChunk)
-                     .where(JobChunk.c.id)
-                     .apply_labels())
-            async for row in connection.execute(query):
-                return row[0]
+            try:
+                query = (sa.select([JobChunk.c.consumer])
+                         .select_from(JobChunk)
+                         .where(JobChunk.c.id)
+                         .apply_labels())
+                async for row in connection.execute(query):
+                    return row[0]
+            except Exception as e:
+                logging.error("Failed to get consumer ip from job_chunk, job_chunk_id = %s" % job_chunk_id)
     except Exception as e:
         logging.error(str(e))
         return
