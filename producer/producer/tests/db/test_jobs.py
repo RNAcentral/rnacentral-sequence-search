@@ -71,5 +71,4 @@ class GetJobQueryTestCase(AioHTTPTestCase):
     @unittest_run_loop
     async def test_set_job_status_error(self):
         query = await get_job_query(self.app['engine'], self.job_id)
-        print(query)
         assert query == 'AACAGCATGAGTGCGCTGGATGCTG'

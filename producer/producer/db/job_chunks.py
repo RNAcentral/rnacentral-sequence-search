@@ -22,7 +22,7 @@ async def find_highest_priority_job_chunk(engine):
 
             # if there are started jobs and job_chunks, pick one from the earliest submitted job
             async for row in connection.execute(query):  # select a job chunk to submit
-                return row[0], row[3], row[4]
+                return row[0], row[4], row[5]
 
             # if there are no running job_chunks, return None
             return None

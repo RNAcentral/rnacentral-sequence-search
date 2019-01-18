@@ -25,11 +25,11 @@ from ...models import Job, JobChunk, JobChunkResult, Consumer
 from ...db.job_chunks import find_highest_priority_job_chunk, set_job_chunk_status
 
 
-class HighestPriorityJobChunkTestCase(AioHTTPTestCase):
+class FindHighestPriorityJobChunkTestCase(AioHTTPTestCase):
     """
     Run this test with the following command:
 
-    ENVIRONMENT=TEST python3 -m unittest producer.tests.db.test_job_chunks.HighestPriorityJobChunkTestCase
+    ENVIRONMENT=TEST python3 -m unittest producer.tests.db.test_job_chunks.FindHighestPriorityJobChunkTestCase
     """
     async def get_application(self):
         logging.basicConfig(level=logging.ERROR)  # subdue messages like 'DEBUG:asyncio:Using selector: KqueueSelector'
@@ -76,9 +76,11 @@ class HighestPriorityJobChunkTestCase(AioHTTPTestCase):
 
     @unittest_run_loop
     async def test_find_highest_priority_job_chunk(self):
-        job_chunk_id = await find_highest_priority_job_chunk(self.app['engine'])
+        job_id, job_chunk_id, database = await find_highest_priority_job_chunk(self.app['engine'])
 
+        assert job_id == self.job_id
         assert job_chunk_id == self.job_chunk_id1
+        assert database == 'mirbase'
 
 
 class SetJobChunkStatusTestCase(AioHTTPTestCase):
