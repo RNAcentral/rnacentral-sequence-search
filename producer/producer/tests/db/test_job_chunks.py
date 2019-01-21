@@ -22,7 +22,7 @@ import sqlalchemy as sa
 
 from ...main import create_app
 from ...models import Job, JobChunk, JobChunkResult, Consumer
-from ...db.job_chunks import find_highest_priority_job_chunk, set_job_chunk_status
+from ...db.job_chunks import find_highest_priority_job_chunk, get_consumer_ip_from_job_chunk, set_job_chunk_status
 
 
 class FindHighestPriorityJobChunkTestCase(AioHTTPTestCase):
@@ -72,7 +72,7 @@ class FindHighestPriorityJobChunkTestCase(AioHTTPTestCase):
             await connection.execute('DELETE FROM job_chunks')
             await connection.execute('DELETE FROM jobs')
 
-            await super().tearDownAsync()
+        await super().tearDownAsync()
 
     @unittest_run_loop
     async def test_find_highest_priority_job_chunk(self):
@@ -81,6 +81,53 @@ class FindHighestPriorityJobChunkTestCase(AioHTTPTestCase):
         assert job_id == self.job_id
         assert job_chunk_id == self.job_chunk_id1
         assert database == 'mirbase'
+
+
+class GetConsumerIpFromJobChunkTestCase(AioHTTPTestCase):
+    """
+    Run this test with the following command:
+
+    ENVIRONMENT=TEST python3 -m unittest producer.tests.db.test_job_chunks.GetConsumerIpFromJobChunkTestCase
+    """
+    async def get_application(self):
+        logging.basicConfig(level=logging.ERROR)  # subdue messages like 'DEBUG:asyncio:Using selector: KqueueSelector'
+        app = create_app()
+        return app
+
+    async def setUpAsync(self):
+        await super().setUpAsync()
+
+        async with self.app['engine'].acquire() as connection:
+            self.job_id = await connection.scalar(
+                Job.insert().values(query='AACAGCATGAGTGCGCTGGATGCTG', submitted=datetime.datetime.now(), status='started')
+            )
+
+            await connection.execute(
+                Consumer.insert().values(ip='192.168.0.2', status='busy')
+            )
+
+            self.job_chunk_id = await connection.scalar(
+                JobChunk.insert().values(
+                    job_id=self.job_id,
+                    database='mirbase',
+                    submitted=datetime.datetime.now(),
+                    status='pending',
+                    consumer='192.168.0.2'
+                )
+            )
+
+    async def tearDownAsync(self):
+        async with self.app['engine'].acquire() as connection:
+            await connection.execute('DELETE FROM job_chunk_results')
+            await connection.execute('DELETE FROM job_chunks')
+            await connection.execute('DELETE FROM jobs')
+            await connection.execute('DELETE FROM consumer')
+
+        await super().tearDownAsync()
+
+    @unittest_run_loop
+    async def test_get_consumer_ip_from_job_chunk(self):
+        consumer_ip = await get_consumer_ip_from_job_chunk(self.app['engine'], self.job_chunk_id)
 
 
 class SetJobChunkStatusTestCase(AioHTTPTestCase):
@@ -110,6 +157,15 @@ class SetJobChunkStatusTestCase(AioHTTPTestCase):
                     status='pending'
                 )
             )
+
+    async def tearDownAsync(self):
+        async with self.app['engine'].acquire() as connection:
+            await connection.execute('DELETE FROM job_chunk_results')
+            await connection.execute('DELETE FROM job_chunks')
+            await connection.execute('DELETE FROM jobs')
+            await connection.execute('DELETE FROM consumer')
+
+        await super().tearDownAsync()
 
     @unittest_run_loop
     async def test_job_chunk_started(self):

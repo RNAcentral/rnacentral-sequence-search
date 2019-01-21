@@ -36,6 +36,9 @@ async def find_highest_priority_job_chunk(engine):
 
 
 async def get_consumer_ip_from_job_chunk(engine, job_chunk_id):
+    import pdb
+    pdb.set_trace()
+
     try:
         async with engine.acquire() as connection:
             try:
