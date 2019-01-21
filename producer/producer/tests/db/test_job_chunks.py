@@ -128,6 +128,8 @@ class GetConsumerIpFromJobChunkTestCase(AioHTTPTestCase):
     @unittest_run_loop
     async def test_get_consumer_ip_from_job_chunk(self):
         consumer_ip = await get_consumer_ip_from_job_chunk(self.app['engine'], self.job_chunk_id)
+        print(consumer_ip)
+        assert consumer_ip == '192.168.0.2'
 
 
 class SetJobChunkStatusTestCase(AioHTTPTestCase):
