@@ -22,7 +22,27 @@ import sqlalchemy as sa
 
 from ...main import create_app
 from ...models import Job, JobChunk, JobChunkResult, Consumer
-from ...db.jobs import set_job_status, get_job_query
+from ...db.jobs import save_job, set_job_status, get_job_query
+
+
+class SaveJobTestCase(AioHTTPTestCase):
+    """
+    Run this test with the following command:
+
+    ENVIRONMENT=TEST python3 -m unittest producer.tests.db.test_jobs.SaveJobTestCase
+    """
+    async def get_application(self):
+        logging.basicConfig(level=logging.ERROR)  # subdue messages like 'DEBUG:asyncio:Using selector: KqueueSelector'
+        app = create_app()
+        return app
+
+    async def setUpAsync(self):
+        await super().setUpAsync()
+
+    @unittest_run_loop
+    async def test_set_job_status_error(self):
+        job_id = await save_job(self.app['engine'], query="AACAGCATGAGTGCGCTGGATGCTG")
+        assert job_id != None
 
 
 class SetJobStatusTestCase(AioHTTPTestCase):

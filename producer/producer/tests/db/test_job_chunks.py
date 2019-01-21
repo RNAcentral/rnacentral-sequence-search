@@ -176,3 +176,11 @@ class SetJobChunkStatusTestCase(AioHTTPTestCase):
     @unittest_run_loop
     async def test_except_error_in_job_chunk(self):
         await set_job_chunk_status(self.app['engine'], self.job_id, 'mirbase', 'error')
+
+
+class SetJobChunkResultsTestCase(AioHTTPTestCase):
+    """
+    Run this test with the following command:
+
+    ENVIRONMENT=TEST python3 -m unittest producer.tests.db.test_job_chunks.SetJobChunkStatusTestCase
+    """

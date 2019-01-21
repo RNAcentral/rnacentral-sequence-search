@@ -1,8 +1,29 @@
 import logging
+import datetime
 
 import sqlalchemy as sa
 
 from ..models import Job, JobChunk, JobChunkResult
+
+
+async def save_job_chunk(engine, job_id, database):
+    try:
+        async with engine.acquire() as connection:
+            try:
+                job_chunk_id = await connection.scalar(
+                    JobChunk.insert().values(
+                        job_id=job_id,
+                        database=database,
+                        submitted=datetime.datetime.now(),
+                        status='pending'
+                    )
+                )
+                return job_chunk_id
+            except Exception as e:
+                logging.error("Failed to save job_chunk for job_id = %s, database = %s", (job_id, database))
+    except Exception as e:
+        logging.error("Failed to open database connection in save_job_chunk for job_id = %s, database = %s" % (job_id, database))
+        return
 
 
 async def find_highest_priority_job_chunk(engine):
