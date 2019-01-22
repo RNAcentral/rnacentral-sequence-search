@@ -113,18 +113,20 @@ async def set_job_chunk_results(engine, job_id, database, results):
     try:
         async with engine.acquire() as connection:
             try:
-                async for row in await connection.execute('''
+                query = sa.text('''
                     SELECT job_chunk_id 
                     FROM :job_chunks 
                     WHERE job_id=:job_id AND database=':database'
                     RETURNING *
-                ''', job_chunks='job_chunks', job_id=job_id, database=database):
+                ''')
+                async for row in await connection.execute(query, job_chunks='job_chunks', job_id=job_id, database=database):
                     job_chunk_id = row.job_chunk_id
                     break
 
                 for result in results:
                     await connection.scalar(JobChunkResult.insert().values(job_chunk_id=job_chunk_id, **result))
             except Exception as e:
-                logging.error("Failed to udpate")
+                logging.error("Failed to set_job_chunk_results in the database, job_id = %s, database = %s" % (job_id, database))
     except Exception as e:
-        logging.error("")
+        logging.error("Failed to open connection to the database in "
+                      "set_job_chunk_results, job_id = %s, database = %s" % (job_id, database))

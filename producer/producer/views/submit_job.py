@@ -22,6 +22,8 @@ import sqlalchemy as sa
 
 from ..models import Job, JobChunk
 from ..db.consumers import delegate_job_to_consumer, set_consumer_status, find_available_consumers
+from ..db.jobs import save_job
+from ..db.job_chunks import save_job_chunk
 
 
 def serialize(request, data):
@@ -56,16 +58,11 @@ def serialize(request, data):
 
 async def save(request, data):
     """Save metadata about this job and job_chunks to the database."""
-    async with request.app['engine'].acquire() as connection:
-        job_id = await connection.scalar(
-            Job.insert().values(query=data['query'], submitted=datetime.datetime.now(), status='started')
-        )
+    job_id = await save_job(request.app['engine'], data['query'])
+    if job_id:
         for database in data['databases']:
-            job_chunk_id = await connection.scalar(
-                JobChunk.insert().values(job_id=job_id, database=database, submitted=datetime.datetime.now(), status='pending')
-            )
-
-        return job_id
+            job_chunk_id = await save_job_chunk(request.app['engine'], job_id, database)
+    return job_id
 
 
 async def get_job_chunk_by_job_id_and_database(request, job_id, database):
