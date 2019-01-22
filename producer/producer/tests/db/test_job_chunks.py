@@ -22,7 +22,33 @@ import sqlalchemy as sa
 
 from ...main import create_app
 from ...models import Job, JobChunk, JobChunkResult, Consumer
-from ...db.job_chunks import find_highest_priority_job_chunk, get_consumer_ip_from_job_chunk, set_job_chunk_status
+from ...db.job_chunks import save_job_chunk, find_highest_priority_job_chunk, get_consumer_ip_from_job_chunk, \
+    set_job_chunk_status
+
+
+class SaveJobChunkTestCase(AioHTTPTestCase):
+    """
+    Run this test with the following command:
+
+    ENVIRONMENT=TEST python3 -m unittest producer.tests.db.test_job_chunks.SaveJobChunkTestCase
+    """
+    async def get_application(self):
+        logging.basicConfig(level=logging.ERROR)  # subdue messages like 'DEBUG:asyncio:Using selector: KqueueSelector'
+        app = create_app()
+        return app
+
+    async def setUpAsync(self):
+        await super().setUpAsync()
+
+        async with self.app['engine'].acquire() as connection:
+            self.job_id = await connection.scalar(
+                Job.insert().values(query='AACAGCATGAGTGCGCTGGATGCTG', submitted=datetime.datetime.now(), status='started')
+            )
+
+    @unittest_run_loop
+    async def test_set_job_status_error(self):
+        job_chunk_id = await save_job_chunk(self.app['engine'], job_id=self.job_id, database='mirbase')
+        assert job_chunk_id is not None
 
 
 class FindHighestPriorityJobChunkTestCase(AioHTTPTestCase):

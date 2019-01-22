@@ -42,7 +42,7 @@ class SaveJobTestCase(AioHTTPTestCase):
     @unittest_run_loop
     async def test_set_job_status_error(self):
         job_id = await save_job(self.app['engine'], query="AACAGCATGAGTGCGCTGGATGCTG")
-        assert job_id != None
+        assert job_id is not None
 
 
 class SetJobStatusTestCase(AioHTTPTestCase):
