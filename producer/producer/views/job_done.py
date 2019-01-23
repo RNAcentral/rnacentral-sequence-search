@@ -16,7 +16,7 @@ from aiohttp import web
 import logging
 
 from ..models import Job, JobChunk, JobChunkResult
-from ..db.consumers import set_consumer_status, delegate_job_to_consumer
+from ..db.consumers import set_consumer_status, delegate_job_chunk_to_consumer
 from ..db.job_chunks import find_highest_priority_job_chunk, set_job_chunk_status, set_job_chunk_results, get_consumer_ip_from_job_chunk
 from ..db.jobs import check_job_chunks_status, set_job_status, get_job_query
 
@@ -72,6 +72,6 @@ async def job_done(request):
         # if there are any pending jobs, try scheduling another job chunk for this consumer
         (job_id, job_chunk_id, database) = find_highest_priority_job_chunk(request.app['engine'])
         query = get_job_query(request.app['engine'], job_id)
-        delegate_job_to_consumer(request.app['engine'], consumer_ip, job_id, database, query)
+        delegate_job_chunk_to_consumer(request.app['engine'], consumer_ip, job_id, database, query)
 
         return web.HTTPOk()

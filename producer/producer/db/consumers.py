@@ -31,6 +31,21 @@ async def find_available_consumers(engine):
         return
 
 
+async def get_consumer_status(engine, consumer_ip):
+    """Get consumer status from the database"""
+    try:
+        async with engine.acquire() as connection:
+            query = sa.text('''
+                SELECT status
+                FROM consumer
+                WHERE ip=:consumer_ip
+            ''')
+            async for row in connection.execute(query, consumer_ip=consumer_ip):
+                return row.status
+    except Exception as e:
+        logging.error(str(e))
+
+
 async def set_consumer_status(engine, consumer_ip, status):
     """Write consumer status in the database to status."""
     try:
@@ -47,7 +62,7 @@ async def set_consumer_status(engine, consumer_ip, status):
         logging.error(str(e))
 
 
-async def delegate_job_to_consumer(engine, consumer_ip, job_id, database, query):
+async def delegate_job_chunk_to_consumer(engine, consumer_ip, job_id, database, query):
     """When a consumer returns result, set its state in the database to 'available'."""
     try:
         async with engine.acquire() as connection:

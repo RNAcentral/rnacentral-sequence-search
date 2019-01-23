@@ -21,7 +21,7 @@ from aiohttp import web
 import sqlalchemy as sa
 
 from ..models import Job, JobChunk
-from ..db.consumers import delegate_job_to_consumer, set_consumer_status, find_available_consumers
+from ..db.consumers import delegate_job_chunk_to_consumer, set_consumer_status, find_available_consumers
 from ..db.jobs import save_job
 from ..db.job_chunks import save_job_chunk
 
@@ -128,11 +128,13 @@ async def submit_job(request):
     databases_copy = data['databases']
     async for consumer in consumers:
         try:
-            engine = request.app['engine']
-            database = databases_copy.pop()
-            query = data['query']
-            # job_chunk_id = await get_job_chunk_by_job_id_and_database(request, job_id, database)
-            await delegate_job_to_consumer(engine, consumer.ip, job_id, database, query)
+            await delegate_job_chunk_to_consumer(
+                request.app['engine'],
+                consumer.ip,
+                job_id,
+                databases_copy.pop(),
+                data['query']
+            )
         except Exception as e:
             return web.HTTPBadGateway(text=str(e))
 
