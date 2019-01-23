@@ -45,6 +45,15 @@ class SaveJobChunkTestCase(AioHTTPTestCase):
                 Job.insert().values(query='AACAGCATGAGTGCGCTGGATGCTG', submitted=datetime.datetime.now(), status='started')
             )
 
+    async def tearDownAsync(self):
+        async with self.app['engine'].acquire() as connection:
+            await connection.execute('DELETE FROM job_chunk_results')
+            await connection.execute('DELETE FROM job_chunks')
+            await connection.execute('DELETE FROM jobs')
+            await connection.execute('DELETE FROM consumer')
+
+            await super().tearDownAsync()
+
     @unittest_run_loop
     async def test_set_job_status_error(self):
         job_chunk_id = await save_job_chunk(self.app['engine'], job_id=self.job_id, database='mirbase')
@@ -97,8 +106,9 @@ class FindHighestPriorityJobChunkTestCase(AioHTTPTestCase):
             await connection.execute('DELETE FROM job_chunk_results')
             await connection.execute('DELETE FROM job_chunks')
             await connection.execute('DELETE FROM jobs')
+            await connection.execute('DELETE FROM consumer')
 
-        await super().tearDownAsync()
+            await super().tearDownAsync()
 
     @unittest_run_loop
     async def test_find_highest_priority_job_chunk(self):
@@ -231,6 +241,15 @@ class SetJobChunkResultsTestCase(AioHTTPTestCase):
                     status='pending'
                 )
             )
+
+    async def tearDownAsync(self):
+        async with self.app['engine'].acquire() as connection:
+            await connection.execute('DELETE FROM job_chunk_results')
+            await connection.execute('DELETE FROM job_chunks')
+            await connection.execute('DELETE FROM jobs')
+            await connection.execute('DELETE FROM consumer')
+
+            await super().tearDownAsync()
 
     @unittest_run_loop
     async def test_set_job_chunk_results(self):

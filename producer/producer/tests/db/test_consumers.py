@@ -100,7 +100,7 @@ class SetConsumerStatusTestCase(AioHTTPTestCase):
         await super().setUpAsync()
 
         async with self.app['engine'].acquire() as connection:
-            self.consumer = await connection.scalar(
+            await connection.execute(
                 Consumer.insert().values(
                     ip='192.168.0.2',
                     status='busy'
@@ -111,13 +111,13 @@ class SetConsumerStatusTestCase(AioHTTPTestCase):
                 Job.insert().values(query='AACAGCATGAGTGCGCTGGATGCTG', submitted=datetime.datetime.now(), status='started')
             )
 
-            self.job_chunk_id1 = await connection.scalar(
+            await connection.execute(
                 JobChunk.insert().values(
                     job_id=self.job_id,
                     database='mirbase',
                     submitted=datetime.datetime.now(),
                     status='started',
-                    consumer=self.consumer
+                    consumer='192.168.0.2'
                 )
             )
 
@@ -135,17 +135,17 @@ class SetConsumerStatusTestCase(AioHTTPTestCase):
         await set_consumer_status(self.app['engine'], '192.168.0.2', 'available')
 
         async with self.app['engine'].acquire() as connection:
-            self.consumer = await connection.execute('''
-              SELECT id, ip, status
+            consumer = await connection.execute('''
+              SELECT ip, status
               FROM consumer
               WHERE ip='192.168.0.2'
             ''')
 
-            for row in self.consumer:
+            for row in consumer:
                 assert row.status == 'available'
 
 
-class DelegateJobToConsumerConsumerTestCase(AioHTTPTestCase):
+class DelegateJobToConsumerTestCase(AioHTTPTestCase):
     """
     Run this test with the following command:
 
@@ -163,6 +163,15 @@ class DelegateJobToConsumerConsumerTestCase(AioHTTPTestCase):
             self.job_id = await connection.scalar(
                 Job.insert().values(query='AACAGCATGAGTGCGCTGGATGCTG', submitted=datetime.datetime.now(), status='started')
             )
+
+    async def tearDownAsync(self):
+        async with self.app['engine'].acquire() as connection:
+            await connection.execute('DELETE FROM job_chunk_results')
+            await connection.execute('DELETE FROM job_chunks')
+            await connection.execute('DELETE FROM jobs')
+            await connection.execute('DELETE FROM consumer')
+
+            await super().tearDownAsync()
 
     @unittest_run_loop
     async def test_delegate_job_to_consumer(self):

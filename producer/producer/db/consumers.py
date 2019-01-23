@@ -37,7 +37,7 @@ async def set_consumer_status(engine, consumer_ip, status):
         async with engine.acquire() as connection:
             query = sa.text('''
                 UPDATE consumer
-                SET status = ':status'
+                SET status = :status
                 WHERE ip=:consumer_ip
                 RETURNING consumer.*;
             ''')
