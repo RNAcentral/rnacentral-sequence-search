@@ -15,6 +15,7 @@ import json
 import logging
 import os
 import datetime
+from unittest import mock
 
 from aiohttp.test_utils import unittest_run_loop
 from aiohttp.test_utils import AioHTTPTestCase
@@ -24,6 +25,7 @@ from ...main import create_app
 from ...models import Job, JobChunk, JobChunkResult, Consumer
 from ...db.consumers import get_consumer_status, set_consumer_status, find_available_consumers, delegate_job_chunk_to_consumer
 from ...db.job_chunks import find_highest_priority_job_chunk
+from ...consumer_client import ConsumerClient
 
 
 class FindAvailableConsumersTestCase(AioHTTPTestCase):
@@ -223,6 +225,10 @@ class DelegateJobChunkToConsumerTestCase(AioHTTPTestCase):
 
     @unittest_run_loop
     async def test_delegate_job_to_consumer(self):
+        with mock.patch('consumer_client', 'submit_job') as mock_submit_job:
+            mock_submit_job.return_value = {}
+            pass
+
         # await delegate_job_chunk_to_consumer(
         #     self.app['engine'],
         #     self.consumer_ip,
