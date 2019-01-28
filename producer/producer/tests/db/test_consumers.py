@@ -15,7 +15,6 @@ import json
 import logging
 import os
 import datetime
-from unittest import mock
 
 from aiohttp.test_utils import unittest_run_loop
 from aiohttp.test_utils import AioHTTPTestCase
@@ -181,7 +180,7 @@ class DelegateJobChunkToConsumerTestCase(AioHTTPTestCase):
     """
     Run this test with the following command:
 
-    ENVIRONMENT=TEST python3 -m unittest producer.tests.db.test_consumers.DelegateJobChunkToConsumerConsumerTestCase
+    ENVIRONMENT=TEST python3 -m unittest producer.tests.db.test_consumers.DelegateJobChunkToConsumerTestCase
     """
     async def get_application(self):
         logging.basicConfig(level=logging.ERROR)  # subdue messages like 'DEBUG:asyncio:Using selector: KqueueSelector'
@@ -225,17 +224,13 @@ class DelegateJobChunkToConsumerTestCase(AioHTTPTestCase):
 
     @unittest_run_loop
     async def test_delegate_job_to_consumer(self):
-        with mock.patch('consumer_client', 'submit_job') as mock_submit_job:
-            mock_submit_job.return_value = {}
-            pass
+        await delegate_job_chunk_to_consumer(
+            self.app['engine'],
+            self.consumer_ip,
+            self.job_id,
+            'mirbase',
+            'AACAGCATGAGTGCGCTGGATGCTG'
+        )
 
-        # await delegate_job_chunk_to_consumer(
-        #     self.app['engine'],
-        #     self.consumer_ip,
-        #     self.job_id,
-        #     'mirbase',
-        #     'AACAGCATGAGTGCGCTGGATGCTG'
-        # )
-        #
-        # assert get_consumer_status(self.app['engine'], self.consumer_ip) == 'busy'
-        pass
+        consumer_status = await get_consumer_status(self.app['engine'], self.consumer_ip)
+        assert consumer_status == 'busy'

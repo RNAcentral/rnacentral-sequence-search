@@ -25,6 +25,27 @@ Here are the steps required to do this:
 - Install python-based dependencies via `pip install -r requirements.txt` (possibly, using a virtualenv)
 
 
+### Installation in development environments
+
+The project is supposed to be run in 4 environments:
+ - local:
+     when developing new features, both producer and consumer are
+     supposed to be run from local machine and postgres database server
+     is also meant to be run on localhost:5432
+ - test:
+    this environment is used for running unit-tests on local machine only,
+    it is not using any database or network communications
+ - docker-compose
+    when running manual quality assurance tests on a single machine, this
+    environment is deployed with docker-compose up and create containers
+    with producer, consumer and postgres
+ - production
+    this is the real production environment, where the code is deployed
+    to openstack cloud
+
+ - how to build frontend in Docker-compose
+
+
 ### How to create .iso image from databases folder on MacOS
 
  The command is like this:
