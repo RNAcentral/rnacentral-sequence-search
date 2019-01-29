@@ -11,25 +11,5 @@ POSTGRES_DATABASE = 'producer'
 POSTGRES_USER = 'burkov'
 POSTGRES_PASSWORD = 'example'
 
-CONSUMERS = {
-    "ena1": "localhost",
-    "ena2": "localhost",
-    "ena3": "localhost",
-    "ena4": "localhost",
-    "ena5": "localhost",
-    "greengenes": "localhost",
-    "pdbe": "localhost",
-    "refseq": "localhost",
-    "sgd": "localhost",
-    "tair": "localhost",
-    # "lncrnadb": "localhost",
-    # "pombase": "localhost",
-    # "rfam": "localhost",
-    # "snopy": "localhost",
-    # "tmrna_web": "localhost",
-    # "mirbase": "localhost",
-    # "rdp": "localhost",
-    # "rgd": "localhost",
-    # "srpdb": "localhost",
-    # "wormbase": "localhost"
-}
+CONSUMER_PORT = 8000
+CONSUMER_IPS = ['127.0.0.1']

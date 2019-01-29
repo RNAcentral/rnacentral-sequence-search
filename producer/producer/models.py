@@ -133,6 +133,12 @@ if __name__ == "__main__":
                       status VARCHAR(255) NOT NULL)
                 ''')
 
+                for consumer_ip in settings.CONSUMER_IPS:
+                    await connection.execute(connection.text('''
+                        UPDATE table consumer
+                        consumer_ip = :consumer_ip, status = "available"
+                    '''), consumer_ip)
+
                 await connection.execute('''
                     CREATE TABLE jobs (
                       id serial PRIMARY KEY,

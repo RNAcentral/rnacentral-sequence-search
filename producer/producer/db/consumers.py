@@ -6,7 +6,7 @@ import json
 
 from ..db.job_chunks import set_job_chunk_status
 from ..db.jobs import set_job_status
-from ..settings import CONSUMER_SUBMIT_JOB_URL
+from ..settings import CONSUMER_SUBMIT_JOB_URL, CONSUMER_PORT
 from ..consumer_client import ConsumerClient
 
 
@@ -64,7 +64,7 @@ async def delegate_job_chunk_to_consumer(engine, consumer_ip, job_id, database, 
     try:
         async with engine.acquire() as connection:
             # prepare the data for request
-            url = "http://" + consumer_ip + '/' + CONSUMER_SUBMIT_JOB_URL
+            url = "http://" + consumer_ip + ':' + CONSUMER_PORT + '/' + CONSUMER_SUBMIT_JOB_URL
             json_data = json.dumps({"job_id": job_id, "sequence": query, "database": database})
             headers = {'content-type': 'application/json'}
 
