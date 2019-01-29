@@ -1,7 +1,5 @@
 import os
 
-from . import PROJECT_ROOT
-
 
 # hostname to listen on
 HOST = "0.0.0.0"

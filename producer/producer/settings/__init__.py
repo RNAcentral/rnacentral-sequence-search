@@ -25,32 +25,12 @@ type of the value here. See also activate.settings.sh.
 Or, passing the custom setting as a keyword argument when initialising settings (useful when testing)
 """
 
-# consumer folder, where media, static, templates and other subfolders are located
+# producer folder, where media, static, templates and other subfolders are located
 PROJECT_ROOT = pathlib.Path(__file__).parent.parent
 
 # list of rnacentral databases
-RNACENTRAL_DATABASES = [
-    "ena1",
-    "ena2",
-    "ena3",
-    "ena4",
-    "ena5",
-    "greengenes",
-    "pdbe",
-    "refseq",
-    "sgd",
-    "tair",
-    # "lncrnadb",
-    # "pombase",
-    # "rfam",
-    # "snopy",
-    # "tmrna_web",
-    # "mirbase",
-    # "rdp",
-    # "rgd",
-    # "srpdb",
-    # "wormbase"
-]
+CONSUMER_DATABASES_DIRECTORY = PROJECT_ROOT.parent.parent / 'consumer' / 'consumer' / 'databases'
+RNACENTRAL_DATABASES = [file.name.strip('.fasta') for file in (CONSUMER_DATABASES_DIRECTORY).glob('*.fasta')]
 
 CONSUMER_SUBMIT_JOB_URL = 'submit-job'
 
