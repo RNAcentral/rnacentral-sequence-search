@@ -126,14 +126,15 @@ async def submit_job(request):
 
     consumers = await find_available_consumers(request.app['engine'])
     databases_copy = data['databases']
+
     async for consumer in consumers:
         try:
             await delegate_job_chunk_to_consumer(
-                request.app['engine'],
-                consumer.ip,
-                job_id,
-                databases_copy.pop(),
-                data['query']
+                engine=request.app['engine'],
+                consumer_ip=consumer.ip,
+                job_id=job_id,
+                database=databases_copy.pop(),
+                query=data['query']
             )
         except Exception as e:
             return web.HTTPBadGateway(text=str(e))

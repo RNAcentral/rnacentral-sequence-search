@@ -24,7 +24,6 @@ from ...main import create_app
 from ...models import Job, JobChunk, JobChunkResult, Consumer
 from ...db.consumers import get_consumer_status, set_consumer_status, find_available_consumers, delegate_job_chunk_to_consumer
 from ...db.job_chunks import find_highest_priority_job_chunk
-from ...consumer_client import ConsumerClient
 
 
 class FindAvailableConsumersTestCase(AioHTTPTestCase):
