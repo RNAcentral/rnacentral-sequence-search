@@ -67,8 +67,8 @@ module.exports = function(env) {
       ]
     },
     devServer: {
-      publicPath: '/',
-      contentBase: './',
+      publicPath: '/dist',
+      contentBase: './dist',
       hot: true,
       proxy: {
         '/api': {
