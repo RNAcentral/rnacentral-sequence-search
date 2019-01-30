@@ -22,6 +22,7 @@ from .. import settings
 from ..nhmmer_parse import nhmmer_parse
 from ..nhmmer_search import nhmmer_search
 from ..filenames import query_file_path, result_file_path
+from ..producer_client import ProducerClient
 
 
 async def nhmmer(job_id, sequence, database):
@@ -57,13 +58,7 @@ async def nhmmer(job_id, sequence, database):
     headers = {'content-type': 'application/json'}
 
     try:
-        async with aiohttp.ClientSession() as session:
-            async with session.post(response_url, data=json.dumps(data), headers=headers) as response:
-                if response.status != 200:
-                    text = await response.text()
-                    logger.error('Job %s failed to deliver results: %s' % (job_id, text))
-                else:
-                    logger.info('Results of job %s passed to' % response.status)
+        await ProducerClient().return_results(response_url, json.dumps(data), headers)
     except Exception as e:
         logger.error('Job %s erred: %s' % (job_id, str(e)))
         return web.HTTPBadGateway(text=str(e))

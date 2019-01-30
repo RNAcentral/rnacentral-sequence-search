@@ -3,7 +3,7 @@ import asyncio
 import aiohttp
 from aiohttp import test_utils, web
 
-from ..settings import ENVIRONMENT
+from .settings import ENVIRONMENT
 
 
 class ConsumerClient(object):
