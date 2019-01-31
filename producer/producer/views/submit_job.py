@@ -67,7 +67,7 @@ async def save(request, data):
 
 async def get_job_chunk_by_job_id_and_database(request, job_id, database):
     async with request.app['engine'].acquire() as connection:
-        query = sa.text('''
+        query = sa.text('''  
             SELECT id
             FROM job_chunks
             WHERE job_id={job_id} AND database='{database}'

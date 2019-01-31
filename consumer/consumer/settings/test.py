@@ -23,3 +23,10 @@ PRODUCER_JOB_DONE_URL = 'api/job-done'
 
 # full path to nhmmer executable
 NHMMER_EXECUTABLE = 'nhmmer'
+
+# postgres database settings
+POSTGRES_HOST = 'localhost'
+POSTGRES_PORT = 5432
+POSTGRES_DATABASE = 'test_producer'
+POSTGRES_USER = 'burkov'
+POSTGRES_PASSWORD = 'example'

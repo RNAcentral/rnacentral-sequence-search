@@ -17,7 +17,8 @@ import logging
 
 from ..models import Job, JobChunk, JobChunkResult
 from ..db.consumers import set_consumer_status, delegate_job_chunk_to_consumer
-from ..db.job_chunks import find_highest_priority_job_chunk, set_job_chunk_status, set_job_chunk_results, get_consumer_ip_from_job_chunk
+from ..db.job_chunks import find_highest_priority_job_chunk, set_job_chunk_status, get_consumer_ip_from_job_chunk
+from consumer.consumer.db.job_chunk_results import set_job_chunk_results
 from ..db.jobs import check_job_chunks_status, set_job_status, get_job_query
 
 
