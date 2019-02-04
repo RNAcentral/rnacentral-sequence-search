@@ -7,20 +7,23 @@ from .settings import ENVIRONMENT
 
 
 class ProducerClient(object):
-    async def return_results(self, url, json_data, headers):
+    async def report_job_chunk_done(self, url, headers, job_id, database):
         logger = logging.Logger('aiohttp.web')
+
+        data = {'job_id': job_id, 'database': database}
+
         if ENVIRONMENT != 'TEST':
             async with aiohttp.ClientSession() as session:
-                async with session.post(url, data=json_data, headers=headers) as response:
-                    if response.status != 200:
+                async with session.post(url, data=data, headers=headers) as response:
+                    if response.status != 200 and response.status != 201:
                         text = await response.text()
                         logger.error('Job %s failed to deliver results: %s' % (job_id, text))
                     else:
                         logger.info('Results of job %s passed to' % response.status)
         else:
             # in TEST environment mock the request
-            logging.debug("Queuing JobChunk to consumer: url = {}, json_data = {}, headers = {}"
-                          .format(url, json_data, headers))
+            logging.debug("Queuing JobChunk to consumer: url = {}, data = {}, headers = {}"
+                          .format(url, data, headers))
 
             request = test_utils.make_mocked_request('POST', url, headers=headers)
             await asyncio.sleep(1)

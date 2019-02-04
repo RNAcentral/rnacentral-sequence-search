@@ -18,7 +18,6 @@ import logging
 from ..models import Job, JobChunk, JobChunkResult
 from ..db.consumers import set_consumer_status, delegate_job_chunk_to_consumer
 from ..db.job_chunks import find_highest_priority_job_chunk, set_job_chunk_status, get_consumer_ip_from_job_chunk
-from consumer.consumer.db.job_chunk_results import set_job_chunk_results
 from ..db.jobs import check_job_chunks_status, set_job_status, get_job_query
 
 
@@ -27,7 +26,6 @@ async def serialize(connection, request, data):
     try:
         job_id = data['job_id']
         database = data['database']
-        result = data['result']
     except (KeyError, TypeError, ValueError) as e:
         raise web.HTTPBadRequest(text='Bad input') from e
 
@@ -61,9 +59,6 @@ async def job_done(request):
 
         # get consumer_ip
         consumer_ip = get_consumer_ip_from_job_chunk(request.app['engine'], job_chunk_id)
-
-        # save job chunk results
-        set_job_chunk_results(request.app['engine'], data['job_id'], data['database'], data['result'])
 
         # if the whole job's done, update its status
         all_job_chunks_success = await check_job_chunks_status(request.app['engine'], data['job_id'])
