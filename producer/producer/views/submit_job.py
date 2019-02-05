@@ -120,7 +120,7 @@ async def submit_job(request):
     consumers = await find_available_consumers(request.app['engine'])
     databases_copy = data['databases']
 
-    async for consumer in consumers:
+    for consumer in consumers:
         try:
             await delegate_job_chunk_to_consumer(
                 engine=request.app['engine'],

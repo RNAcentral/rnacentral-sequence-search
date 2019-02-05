@@ -1,13 +1,19 @@
 import logging
 import asyncio
 import aiohttp
+import json
 from aiohttp import test_utils, web
 
-from .settings import ENVIRONMENT
+from .settings import ENVIRONMENT, CONSUMER_SUBMIT_JOB_URL, CONSUMER_PORT
 
 
 class ConsumerClient(object):
-    async def submit_job(self, url, json_data, headers):
+    async def submit_job(self, consumer_ip, job_id, database, query):
+        # prepare the data for request
+        url = "http://" + str(consumer_ip) + ':' + str(CONSUMER_PORT) + '/' + str(CONSUMER_SUBMIT_JOB_URL)
+        json_data = json.dumps({"job_id": job_id, "sequence": query, "database": database})
+        headers = {'content-type': 'application/json'}
+
         if ENVIRONMENT != 'TEST':
             async with aiohttp.ClientSession() as session:
                 logging.debug("Queuing JobChunk to consumer: url = {}, json_data = {}, headers = {}"
