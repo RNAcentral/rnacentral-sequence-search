@@ -2,6 +2,7 @@ import logging
 import datetime
 
 import sqlalchemy as sa
+import psycopg2
 
 from ..models import Job, JobChunk
 
@@ -21,7 +22,7 @@ async def save_job_chunk(engine, job_id, database):
                 return job_chunk_id
             except Exception as e:
                 logging.error("Failed to save job_chunk for job_id = %s, database = %s", (job_id, database))
-    except Exception as e:
+    except psycopg2.Error as e:
         logging.error("Failed to open database connection in save_job_chunk for job_id = %s, database = %s" % (job_id, database))
         return
 
@@ -51,7 +52,7 @@ async def find_highest_priority_job_chunk(engine):
             except Exception as e:
                 logging.error("Failed to find highest priority job chunks")
 
-    except Exception as e:
+    except psycopg2.Error as e:
         logging.error(str(e))
         return
 
@@ -68,7 +69,7 @@ async def get_consumer_ip_from_job_chunk(engine, job_chunk_id):
                     return row[0]
             except Exception as e:
                 logging.error("Failed to get consumer ip from job_chunk, job_chunk_id = %s" % job_chunk_id)
-    except Exception as e:
+    except psycopg2.Error as e:
         logging.error(str(e))
         return
 
@@ -108,6 +109,6 @@ async def set_job_chunk_status(engine, job_id, database, status):
                 # )
             except Exception as e:
                 logging.error("Failed to set_job_chunk_status in the database, job_id = %s, database = %s" % (job_id, database))
-    except Exception as e:
+    except psycopg2.Error as e:
         logging.error("Failed to open connection to the database in "
                       "set_job_chunk_status, job_id = %s, database = %s" % (job_id, database))

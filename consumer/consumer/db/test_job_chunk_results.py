@@ -19,6 +19,7 @@ import datetime
 from aiohttp.test_utils import unittest_run_loop
 from aiohttp.test_utils import AioHTTPTestCase
 import sqlalchemy as sa
+import psycopg2
 
 from ..main import create_app
 from ..models import Job, JobChunk

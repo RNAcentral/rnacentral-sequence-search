@@ -24,7 +24,7 @@ async def find_available_consumers(engine):
 
         return result
 
-    except Exception as e:
+    except psycopg2.Error as e:
         logging.error(str(e))
         return
 
