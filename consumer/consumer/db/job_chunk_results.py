@@ -13,7 +13,7 @@ async def set_job_chunk_results(engine, job_id, database, results):
                 query = sa.text('''
                     SELECT job_chunk_id 
                     FROM :job_chunks 
-                    WHERE job_id=:job_id AND database=':database'
+                    WHERE job_id=:job_id AND database=:database
                     RETURNING *
                 ''')
                 async for row in await connection.execute(query, job_chunks='job_chunks', job_id=job_id, database=database):
