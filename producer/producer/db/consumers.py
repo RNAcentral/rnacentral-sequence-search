@@ -8,6 +8,7 @@ from ..db.job_chunks import set_job_chunk_status
 from ..db.jobs import set_job_status
 from ..settings import CONSUMER_SUBMIT_JOB_URL, CONSUMER_PORT
 from ..consumer_client import ConsumerClient
+import psycopg2
 
 
 async def find_available_consumers(engine):
@@ -39,7 +40,7 @@ async def get_consumer_status(engine, consumer_ip):
             ''')
             async for row in connection.execute(query, consumer_ip=consumer_ip):
                 return row.status
-    except Exception as e:
+    except psycopg2.Error as e:
         logging.error(str(e))
 
 
@@ -55,7 +56,7 @@ async def set_consumer_status(engine, consumer_ip, status):
             ''')
             result = await connection.execute(query, consumer_ip=consumer_ip, status=status)
 
-    except Exception as e:
+    except psycopg2.Error as e:
         logging.error(str(e))
 
 
@@ -78,7 +79,7 @@ async def delegate_job_chunk_to_consumer(engine, consumer_ip, job_id, database, 
                 await set_job_status(engine, job_id, status="error")
 
                 raise web.HTTPBadRequest(text=await response.text())
-    except Exception as e:
+    except psycopg2.Error as e:
         logging.error(str(e))
 
         async with engine.acquire() as connection:
