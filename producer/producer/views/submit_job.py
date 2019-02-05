@@ -11,17 +11,10 @@ See the License for the specific language governing permissions and
 limitations under the License.
 """
 
-import os
-import json
-import datetime
-
-import logging
-import aiohttp
 from aiohttp import web
 import sqlalchemy as sa
 
-from ..models import Job, JobChunk
-from ..db.consumers import delegate_job_chunk_to_consumer, set_consumer_status, find_available_consumers
+from ..db.consumers import delegate_job_chunk_to_consumer, find_available_consumers
 from ..db.jobs import save_job
 from ..db.job_chunks import save_job_chunk
 

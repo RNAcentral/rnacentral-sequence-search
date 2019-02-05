@@ -80,7 +80,7 @@ async def set_job_chunk_status(engine, job_id, database, status):
                 query = sa.text('''
                     UPDATE job_chunks
                     SET status = :status
-                    WHERE job_id=:job_id AND database=':database'
+                    WHERE job_id=:job_id AND database=:database
                     RETURNING *;
                 ''')
 
