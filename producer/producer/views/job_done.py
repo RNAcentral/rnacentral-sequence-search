@@ -29,6 +29,7 @@ async def serialize(connection, request, data):
     except (KeyError, TypeError, ValueError) as e:
         raise web.HTTPBadRequest(text='Bad input') from e
 
+    # TODO: validate job_id
     jobs = await connection.execute('''
         SELECT *
         FROM {job}
@@ -53,7 +54,7 @@ async def job_done(request):
         data = await serialize(connection, request, data)
 
         # update job_chunk status, get job_chunk_id
-        job_chunk_id = set_job_chunk_status(request.app['engine'], data['job_id'], data['database'], status='success')
+        job_chunk_id = await set_job_chunk_status(request.app['engine'], data['job_id'], data['database'], status='success')
         if job_chunk_id is None:
             raise web.HTTPBadRequest(text="Job chunk, you're trying to update, is non-existent")
 
