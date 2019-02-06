@@ -64,9 +64,6 @@ async def nhmmer(engine, job_id, sequence, database):
     except Exception as e:
         return web.HTTPInternalServerError(text=str(e))
 
-    import pdb
-    pdb.set_trace()
-
     try:
         await ProducerClient().report_job_chunk_done(response_url, headers, job_id, database)
     except Exception as e:
