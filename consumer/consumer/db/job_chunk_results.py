@@ -11,13 +11,12 @@ async def set_job_chunk_results(engine, job_id, database, results):
         async with engine.acquire() as connection:
             try:
                 query = sa.text('''
-                    SELECT job_chunk_id 
-                    FROM :job_chunks 
+                    SELECT id
+                    FROM job_chunks
                     WHERE job_id=:job_id AND database=:database
-                    RETURNING *
                 ''')
-                async for row in await connection.execute(query, job_chunks='job_chunks', job_id=job_id, database=database):
-                    job_chunk_id = row.job_chunk_id
+                async for row in await connection.execute(query, job_id=job_id, database=database):
+                    job_chunk_id = row.id
                     break
 
                 for result in results:
