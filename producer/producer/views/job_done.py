@@ -59,16 +59,16 @@ async def job_done(request):
             raise web.HTTPBadRequest(text="Job chunk, you're trying to update, is non-existent")
 
         # get consumer_ip
-        consumer_ip = get_consumer_ip_from_job_chunk(request.app['engine'], job_chunk_id)
+        consumer_ip = await get_consumer_ip_from_job_chunk(request.app['engine'], job_chunk_id)
 
         # if the whole job's done, update its status
         all_job_chunks_success = await check_job_chunks_status(request.app['engine'], data['job_id'])
         if all_job_chunks_success:
-            set_job_status(request.app['engine'], data['job_id'], 'success')
+            await set_job_status(request.app['engine'], data['job_id'], 'success')
 
         # if there are any pending jobs, try scheduling another job chunk for this consumer
-        (job_id, job_chunk_id, database) = find_highest_priority_job_chunk(request.app['engine'])
-        query = get_job_query(request.app['engine'], job_id)
-        delegate_job_chunk_to_consumer(request.app['engine'], consumer_ip, job_id, database, query)
+        (job_id, job_chunk_id, database) = await find_highest_priority_job_chunk(request.app['engine'])
+        query = await get_job_query(request.app['engine'], job_id)
+        await delegate_job_chunk_to_consumer(request.app['engine'], consumer_ip, job_id, database, query)
 
         return web.HTTPOk()

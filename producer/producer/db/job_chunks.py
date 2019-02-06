@@ -92,11 +92,11 @@ async def set_job_chunk_status(engine, job_id, database, status):
                     status=status
                 )
 
+                id = None  # if connection didn't return any rows, return None
                 async for row in connection.execute(query, job_id=job_id, database=database, status=status):
-                    return row.id
+                    id = row.id
 
-                # if connection didn't return any rows, return None
-                return None
+                return id
 
                 # if this doesn't work, here is an alternative implementation of SQL:
                 #
