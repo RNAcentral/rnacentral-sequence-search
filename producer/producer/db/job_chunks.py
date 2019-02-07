@@ -113,7 +113,7 @@ async def set_job_chunk_consumer(engine, job_id, database, consumer_ip):
             try:
                 query = sa.text('''
                     UPDATE job_chunks
-                    SET consumer_ip = :consumer_ip
+                    SET consumer = :consumer_ip
                     WHERE job_id=:job_id AND database=:database
                     RETURNING *;
                 ''')
