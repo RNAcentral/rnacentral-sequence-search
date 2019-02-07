@@ -4,7 +4,7 @@ import sqlalchemy as sa
 from aiohttp import web
 import logging
 
-from ..db.job_chunks import set_job_chunk_status
+from ..db.job_chunks import set_job_chunk_status, set_job_chunk_consumer
 from ..db.jobs import set_job_status
 from ..consumer_client import ConsumerClient
 import psycopg2
@@ -74,6 +74,7 @@ async def delegate_job_chunk_to_consumer(engine, consumer_ip, job_id, database, 
             if response.status < 400:
                 await set_consumer_status(engine, consumer_ip, 'busy')
                 await set_job_chunk_status(engine, job_id, database, status="started")
+                await set_job_chunk_consumer(engine, job_id, database, consumer_ip)
             else:  # TODO: attempt retry upon a failed delivery?
                 await set_job_chunk_status(engine, job_id, database, status="error")
                 await set_job_status(engine, job_id, status="error")

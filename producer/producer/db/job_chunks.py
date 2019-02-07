@@ -85,13 +85,6 @@ async def set_job_chunk_status(engine, job_id, database, status):
                     RETURNING *;
                 ''')
 
-                result = await connection.execute(
-                    query,
-                    job_id=job_id,
-                    database=database,
-                    status=status
-                )
-
                 id = None  # if connection didn't return any rows, return None
                 async for row in connection.execute(query, job_id=job_id, database=database, status=status):
                     id = row.id
@@ -107,6 +100,29 @@ async def set_job_chunk_status(engine, job_id, database, status):
                 #     RETURNING *;
                 #     '''.format(job_chunks='job_chunks', job_id=job_id, database=database, status=status)
                 # )
+            except Exception as e:
+                logging.error("Failed to set_job_chunk_status in the database, job_id = %s, database = %s" % (job_id, database))
+    except psycopg2.Error as e:
+        logging.error("Failed to open connection to the database in "
+                      "set_job_chunk_status, job_id = %s, database = %s" % (job_id, database))
+
+
+async def set_job_chunk_consumer(engine, job_id, database, consumer_ip):
+    try:
+        async with engine.acquire() as connection:
+            try:
+                query = sa.text('''
+                    UPDATE job_chunks
+                    SET consumer_ip = :consumer_ip
+                    WHERE job_id=:job_id AND database=:database
+                    RETURNING *;
+                ''')
+
+                id = None  # if connection didn't return any rows, return None
+                async for row in connection.execute(query, job_id=job_id, database=database, consumer_ip=consumer_ip):
+                    id = row.id
+
+                return id
             except Exception as e:
                 logging.error("Failed to set_job_chunk_status in the database, job_id = %s, database = %s" % (job_id, database))
     except psycopg2.Error as e:
