@@ -65,7 +65,8 @@ async def job_done(request):
 
         # if there are any pending jobs, try scheduling another job chunk for this consumer
         (job_id, job_chunk_id, database) = await find_highest_priority_job_chunk(request.app['engine'])
-        query = await get_job_query(request.app['engine'], job_id)
-        await delegate_job_chunk_to_consumer(request.app['engine'], consumer_ip, job_id, database, query)
+        if job_id != None:
+            query = await get_job_query(request.app['engine'], job_id)
+            await delegate_job_chunk_to_consumer(request.app['engine'], consumer_ip, job_id, database, query)
 
         return web.HTTPOk()

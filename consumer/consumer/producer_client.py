@@ -23,8 +23,8 @@ class ProducerClient(object):
                         logger.info('Results of job %s passed to' % response.status)
         else:
             # in TEST environment mock the request
-            logging.debug("Queuing JobChunk to consumer: url = {}, data = {}, headers = {}"
-                          .format(url, data, headers))
+            logging.debug("Queuing JobChunk to consumer: url = {}, json_data = {}, headers = {}"
+                          .format(url, json_data, headers))
 
             request = test_utils.make_mocked_request('POST', url, headers=headers)
             await asyncio.sleep(1)

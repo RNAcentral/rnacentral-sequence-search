@@ -48,7 +48,7 @@ async def find_highest_priority_job_chunk(engine):
                     return row[0], row[4], row[5]
 
                 # if there are no running job_chunks, return None
-                return None
+                return None, None, None
             except Exception as e:
                 logging.error("Failed to find highest priority job chunks")
 
