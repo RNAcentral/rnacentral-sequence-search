@@ -52,7 +52,7 @@ async def check_job_chunks_status(engine, job_id):
                         all_job_chunks_success = False
                         break
 
-                return
+                return all_job_chunks_success
             except Exception as e:
                 logging.error("Failed to check job_chunk status, job_id = %s" % job_id)
 

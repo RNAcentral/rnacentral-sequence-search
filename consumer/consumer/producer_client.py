@@ -18,9 +18,9 @@ class ProducerClient(object):
                 async with session.post(url, data=json_data, headers=headers) as response:
                     if response.status != 200 and response.status != 201:
                         text = await response.text()
-                        logger.error('Job %s failed to deliver results: %s' % (job_id, text))
+                        logger.error('JobChunk with job_id = %s, database = %s failed to deliver results: %s' % (job_id, database, text))
                     else:
-                        logger.info('Results of job %s passed to' % response.status)
+                        logger.info('JobChunk with job_id = %s, database = %s returned results: %s' % (job_id, database, response.status))
         else:
             # in TEST environment mock the request
             logging.debug("Queuing JobChunk to consumer: url = {}, json_data = {}, headers = {}"
