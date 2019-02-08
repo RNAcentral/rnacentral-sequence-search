@@ -17,6 +17,7 @@ from aiohttp import web
 import sqlalchemy as sa
 
 from ..models import Job, JobChunk, JobChunkResult
+from ..db.jobs import get_job_results
 
 
 async def facets_search(request):
@@ -48,64 +49,11 @@ async def facets_search(request):
     page = request.query['page'] if 'page' in request.query else 1
     page_size = request.query['page_size'] if 'page_size' in request.query else 20
 
-    # get sequence search results from the database
-    try:
-        async with request.app['engine'].acquire() as connection:
-            sql = (sa.select([
-                    JobChunk.c.job_id,
-                    JobChunk.c.database,
-                    JobChunkResult.c.rnacentral_id,
-                    JobChunkResult.c.description,
-                    JobChunkResult.c.score,
-                    JobChunkResult.c.bias,
-                    JobChunkResult.c.e_value,
-                    JobChunkResult.c.target_length,
-                    JobChunkResult.c.alignment,
-                    JobChunkResult.c.alignment_length,
-                    JobChunkResult.c.gap_count,
-                    JobChunkResult.c.match_count,
-                    JobChunkResult.c.nts_count1,
-                    JobChunkResult.c.nts_count2,
-                    JobChunkResult.c.identity,
-                    JobChunkResult.c.query_coverage,
-                    JobChunkResult.c.target_coverage,
-                    JobChunkResult.c.gaps,
-                    JobChunkResult.c.query_length,
-                    JobChunkResult.c.result_id
-                ])
-                .select_from(sa.join(JobChunk, JobChunkResult, JobChunk.c.id == JobChunkResult.c.job_chunk_id))  # noqa
-                .where(JobChunk.c.job_id == job_id))  # noqa
-
-            results = []
-            async for row in connection.execute(sql):
-                results.append({
-                    'rnacentral_id': row[2],
-                    'description': row[3],
-                    'score': row[4],
-                    'bias': row[5],
-                    'e_value': row[6],
-                    'target_length': row[7],
-                    'alignment': row[8],
-                    'alignment_length': row[9],
-                    'gap_count': row[10],
-                    'match_count': row[11],
-                    'nts_count1': row[12],
-                    'nts_count2': row[13],
-                    'identity': row[14],
-                    'query_coverage': row[15],
-                    'target_coverage': row[16],
-                    'gaps': row[17],
-                    'query_length': row[18],
-                    'result_id': row[19]
-                })
-
-    except Exception as e:
-        logging.error(str(e))
-        raise web.HTTPNotFound() from e
-
+    # get sequence search results from the database, sort/aggregate?
+    results = get_job_results(request.app['engine'], job_id)
     # TODO: sort/aggregate sequence search results?
 
-    # send the list of rnacentral_ids to the proxy
+    # send the list of rnacentral_ids to the proxy, fallback to returning the plain results, if text search unavailable
     rnacentral_ids = "\n".join([result['rnacentral_id'] for result in results])
     url = request.app['settings'].EBI_SEARCH_PROXY_URL + '/' + job_id
     headers = {'content-type': 'text/plain'}
