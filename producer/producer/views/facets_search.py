@@ -16,7 +16,7 @@ import logging
 from aiohttp import web
 
 from ..db.jobs import get_job_results
-from ..text_search_client import get_facets, facets_stub, ProxyConnectionError, EBITextSearchConnectionError
+from ..text_search_client import get_text_search_results, text_search_data_stub, ProxyConnectionError, EBITextSearchConnectionError
 
 
 async def facets_search(request):
@@ -36,7 +36,7 @@ async def facets_search(request):
       '200':
         description: Successfully returns results
         content:
-          'application/json': {results: [...], facets: [...]}
+          'application/json': {entries: [...], facets: [...], hitCount: integer}
       '404':
         description: No results for given job_id
       '502':
@@ -56,17 +56,21 @@ async def facets_search(request):
 
     # try to get facets from EBI text search, otherwise stub facets
     try:
-        facets = await get_facets(results, job_id, query, page, page_size)
+        text_search_data = await get_text_search_results(results, job_id, query, page, page_size)
+
+        # inject text search results into facets json
+        for entry in text_search_data['entries']:
+            for result in results:
+                if result['rnacentral_id'] == entry['id']:
+                    entry.update(result)
     except (ProxyConnectionError, EBITextSearchConnectionError) as e:
         # text search is not available, pad output with facets stub, indicate that
         logger.warning(str(e))
-        facets = facets_stub
+        text_search_data = {'entries': [], 'facets': [], hitCount: len(results)}
 
-    # inject text search results into facets json
-    for entry in facets['entries']:
         for result in results:
-            if result['rnacentral_id'] == entry['id']:
-                entry.update(result)
+            # TODO: possibly update results fields, not sure about structure
+            text_search_data['entries'].append(result)
 
-    return web.json_response(facets)
+    return web.json_response(text_search_data)
 

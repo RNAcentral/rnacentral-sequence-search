@@ -17,39 +17,10 @@ from .settings import EBI_SEARCH_PROXY_URL
 
 
 # if we fail to retrieve facets,
-facets_stub = {
-    "facets": [
-        {
-            "id": "rna_type",
-            "label": "RNA types",
-            "total": 0,
-            "facetValues": []
-        },
-        {
-            "id": "TAXONOMY",
-            "label": "Organisms",
-            "total": 0,
-            "facetValues": []
-        },
-        {
-            "id": "expert_db",
-            "label": "Expert databases",
-            "total": 0,
-            "facetValues": []
-        },
-        {
-            "id": "qc_warning_found",
-            "label": "QC warning found",
-            "total": 0,
-            "facetValues": []
-        },
-        {
-            "id": "has_genomic_coordinates",
-            "label": "Genomic mapping",
-            "total": 0,
-            "facetValues": []
-        }
-    ]
+text_search_data_stub = {
+    "hitCount": 0,
+    "entries": [],  # {id: , source: , highlights: }
+    "facets": [],
 }
 
 
@@ -65,7 +36,7 @@ class EBITextSearchConnectionError(Exception):
         return "EBI text search connection error"
 
 
-async def get_facets(results, job_id, query, page, page_size):
+async def get_text_search_results(results, job_id, query, page, page_size):
     """
     Post text search results to our proxy, so that EBI_SEARCH could retrieve it and index.
     Request text search facets from EBI_SEARCH, and return those data.
@@ -75,10 +46,13 @@ async def get_facets(results, job_id, query, page, page_size):
     url = EBI_SEARCH_PROXY_URL + '/' + job_id
     headers = {'content-type': 'text/plain'}
 
-    async with aiohttp.ClientSession() as session:
-        async with session.post(url, data=rnacentral_ids, headers=headers) as response:
-            if response.status >= 400:
-                raise ProxyConnectionError(response)
+    try:
+        async with aiohttp.ClientSession() as session:
+            async with session.post(url, data=rnacentral_ids, headers=headers) as response:
+                if response.status >= 400:
+                    raise ProxyConnectionError()
+    except Exception:
+        raise ProxyConnectionError()
 
     # request facets from ebi text search
     fields = [
@@ -125,7 +99,10 @@ async def get_facets(results, job_id, query, page, page_size):
         .format(job_id=job_id, query=query, fields=','.join(fields), facetcount=30, facetfields=','.join(facetfields),
                 page=page, page_size=page_size)
 
-    async with aiohttp.ClientSession() as session:
-        async with session.get(url) as response:
-            if response.status < 400:
-                return await response.json()
+    try:
+        async with aiohttp.ClientSession() as session:
+            async with session.get(url) as response:
+                if response.status < 400:
+                    return await response.json()
+    except Exception:
+        raise EBITextSearchConnectionError()
