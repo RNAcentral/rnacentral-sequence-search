@@ -51,8 +51,8 @@ async def get_text_search_results(results, job_id, query, page, page_size):
             async with session.post(url, data=rnacentral_ids, headers=headers) as response:
                 if response.status >= 400:
                     raise ProxyConnectionError()
-    except Exception:
-        raise ProxyConnectionError()
+    except Exception as e:
+        raise ProxyConnectionError() from e
 
     # request facets from ebi text search
     fields = [
@@ -104,5 +104,5 @@ async def get_text_search_results(results, job_id, query, page, page_size):
             async with session.get(url) as response:
                 if response.status < 400:
                     return await response.json()
-    except Exception:
-        raise EBITextSearchConnectionError()
+    except Exception as e:
+        raise EBITextSearchConnectionError() from e
