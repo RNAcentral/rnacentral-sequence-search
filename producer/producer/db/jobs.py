@@ -127,6 +127,9 @@ async def get_job_results(engine, job_id):
                     'result_id': row[19]
                 })
 
+            # sort results by e_value
+            results.sort(key=lambda result: result['e_value'])
+
             return results
 
     except psycopg2.Error as e:
