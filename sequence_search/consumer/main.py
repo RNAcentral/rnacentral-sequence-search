@@ -23,7 +23,7 @@ from aiohttp import web, web_middlewares
 # from consumer.db import close_pg, init_pg
 # from consumer.middlewares import setup_middlewares
 from . import settings
-from .models import init_pg
+from ..producer.models import init_pg
 from .urls import setup_routes
 
 """

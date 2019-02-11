@@ -3,7 +3,7 @@ import logging
 import sqlalchemy as sa
 import psycopg2
 
-from ..models import JobChunkResult
+from ..db.models import JobChunkResult
 
 
 async def set_job_chunk_results(engine, job_id, database, results):
