@@ -5,7 +5,7 @@ import sqlalchemy as sa
 from aiohttp import web
 import psycopg2
 
-from ..models import Job, JobChunk, JobChunkResult
+from .models import Job, JobChunk, JobChunkResult
 
 
 async def save_job(engine, query):

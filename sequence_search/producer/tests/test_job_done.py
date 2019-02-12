@@ -21,7 +21,7 @@ from aiohttp.test_utils import AioHTTPTestCase
 import sqlalchemy as sa
 
 from ..main import create_app
-from ..models import Job, JobChunk
+from ...db.models import Job, JobChunk
 
 
 """

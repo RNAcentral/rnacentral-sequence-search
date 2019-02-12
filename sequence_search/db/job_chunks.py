@@ -4,7 +4,7 @@ import datetime
 import sqlalchemy as sa
 import psycopg2
 
-from ..models import Job, JobChunk
+from .models import Job, JobChunk
 
 
 async def save_job_chunk(engine, job_id, database):

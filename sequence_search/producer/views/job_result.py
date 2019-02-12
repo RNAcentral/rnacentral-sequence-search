@@ -13,7 +13,7 @@ limitations under the License.
 
 from aiohttp import web
 
-from ..db.jobs import get_job_results
+from ...db.jobs import get_job_results
 
 
 async def job_result(request):

@@ -14,9 +14,9 @@ limitations under the License.
 from aiohttp import web
 import sqlalchemy as sa
 
-from ..db.consumers import delegate_job_chunk_to_consumer, find_available_consumers
-from ..db.jobs import save_job
-from ..db.job_chunks import save_job_chunk
+from ...db.consumers import delegate_job_chunk_to_consumer, find_available_consumers
+from ...db.jobs import save_job
+from ...db.job_chunks import save_job_chunk
 
 
 def serialize(request, data):

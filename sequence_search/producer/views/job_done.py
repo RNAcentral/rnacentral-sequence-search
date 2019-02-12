@@ -13,9 +13,9 @@ limitations under the License.
 
 from aiohttp import web
 
-from ..db.consumers import delegate_job_chunk_to_consumer
-from ..db.job_chunks import find_highest_priority_job_chunk, set_job_chunk_status, get_consumer_ip_from_job_chunk
-from ..db.jobs import check_job_chunks_status, set_job_status, get_job_query
+from ...db.consumers import delegate_job_chunk_to_consumer
+from ...db.job_chunks import find_highest_priority_job_chunk, set_job_chunk_status, get_consumer_ip_from_job_chunk
+from ...db.jobs import check_job_chunks_status, set_job_status, get_job_query
 
 
 async def serialize(connection, request, data):

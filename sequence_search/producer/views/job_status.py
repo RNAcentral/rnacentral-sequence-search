@@ -14,7 +14,7 @@ limitations under the License.
 from aiohttp import web
 import sqlalchemy as sa
 
-from ..models import Job, JobChunk
+from ...db.models import Job, JobChunk
 
 
 async def job_status(request):

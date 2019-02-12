@@ -18,7 +18,7 @@ import datetime
 from aiohttp.test_utils import unittest_run_loop
 
 from ..main import create_app
-from ..models import Job, JobChunk, JobChunkResult
+from ...db.models import Job, JobChunk, JobChunkResult
 from aiohttp.test_utils import AioHTTPTestCase
 
 

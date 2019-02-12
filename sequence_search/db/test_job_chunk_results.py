@@ -11,18 +11,15 @@ See the License for the specific language governing permissions and
 limitations under the License.
 """
 
-import json
 import logging
-import os
 import datetime
 
 from aiohttp.test_utils import unittest_run_loop
 from aiohttp.test_utils import AioHTTPTestCase
 import sqlalchemy as sa
-import psycopg2
 
-from ..main import create_app
-from ..models import Job, JobChunk
+from ..consumer.main import create_app
+from .models import Job, JobChunk
 from .job_chunk_results import set_job_chunk_results
 
 

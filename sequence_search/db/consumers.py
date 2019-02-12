@@ -6,7 +6,7 @@ import logging
 
 from ..db.job_chunks import set_job_chunk_status, set_job_chunk_consumer
 from ..db.jobs import set_job_status
-from ..consumer_client import ConsumerClient
+from ..producer.consumer_client import ConsumerClient
 import psycopg2
 
 

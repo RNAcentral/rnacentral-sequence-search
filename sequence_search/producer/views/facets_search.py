@@ -15,7 +15,7 @@ import logging
 
 from aiohttp import web
 
-from ..db.jobs import get_job_results
+from ...db.jobs import get_job_results
 from ..text_search_client import get_text_search_results, ProxyConnectionError, EBITextSearchConnectionError
 
 
