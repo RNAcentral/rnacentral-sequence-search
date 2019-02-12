@@ -1,5 +1,5 @@
 """
-Copyright [2009-2017] EMBL-European Bioinformatics Institute
+Copyright [2009-2019] EMBL-European Bioinformatics Institute
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
 You may obtain a copy of the License at
@@ -110,9 +110,11 @@ if __name__ == "__main__":
 
     $ python3 -m producer.models
     """
-    from . import settings
+    from .settings import get_postgres_credentials
 
-    async def migrate():
+    async def migrate(ENVIRONMENT):
+        settings = get_postgres_credentials(ENVIRONMENT)
+
         engine = await create_engine(
             user=settings.POSTGRES_USER,
             database=settings.POSTGRES_DATABASE,

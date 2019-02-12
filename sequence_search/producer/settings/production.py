@@ -7,13 +7,6 @@ HOST = "0.0.0.0"
 # TCP port for the server to listen on
 PORT = 8002
 
-# postgres database settings
-POSTGRES_HOST = '192.168.0.6'
-POSTGRES_PORT = 5432
-POSTGRES_DATABASE = 'producer'
-POSTGRES_USER = 'docker'
-POSTGRES_PASSWORD = os.getenv('POSTRGES_PASSWORD', 'pass')
-
 CONSUMER_PORT = '8000'
 CONSUMER_IPS = [
     "192.168.0.7",

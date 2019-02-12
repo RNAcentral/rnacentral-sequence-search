@@ -1,5 +1,5 @@
 """
-Copyright [2009-2017] EMBL-European Bioinformatics Institute
+Copyright [2009-2019] EMBL-European Bioinformatics Institute
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
 You may obtain a copy of the License at
@@ -11,19 +11,15 @@ See the License for the specific language governing permissions and
 limitations under the License.
 """
 
-import json
 import logging
-import os
 import datetime
 
 from aiohttp.test_utils import unittest_run_loop
 from aiohttp.test_utils import AioHTTPTestCase
-import sqlalchemy as sa
 
-from ...main import create_app
-from ...models import Job, JobChunk, JobChunkResult, Consumer
-from ...db.consumers import get_consumer_status, set_consumer_status, find_available_consumers, delegate_job_chunk_to_consumer
-from ...db.job_chunks import find_highest_priority_job_chunk
+from ..consumer.main import create_app
+from .models import Job, JobChunk, JobChunkResult, Consumer
+from .consumers import get_consumer_status, set_consumer_status, find_available_consumers, delegate_job_chunk_to_consumer
 
 
 class FindAvailableConsumersTestCase(AioHTTPTestCase):
