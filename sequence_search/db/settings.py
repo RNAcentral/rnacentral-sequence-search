@@ -12,38 +12,50 @@ limitations under the License.
 """
 
 import os
+from collections import namedtuple
+
+
+Settings = namedtuple('Settings', [
+    'POSTGRES_HOST',
+    'POSTGRES_PORT',
+    'POSTGRES_DATABASE',
+    'POSTGRES_USER',
+    'POSTGRES_PASSWORD'
+])
 
 
 def get_postgres_credentials(ENVIRONMENT):
-    if ENVIRONMENT == 'docker-compose':
-        return {
-            'POSTGRES_HOST': 'postgres',
-            'POSTGRES_PORT': 5432,
-            'POSTGRES_DATABASE': 'producer',
-            'POSTGRES_USER': 'docker',
-            'POSTGRES_PASSWORD': 'example'
-        }
-    elif ENVIRONMENT == 'local':
-        return {
-            'POSTGRES_HOST': 'localhost',
-            'POSTGRES_PORT': 5432,
-            'POSTGRES_DATABASE': 'producer',
-            'POSTGRES_USER': 'burkov',
-            'POSTGRES_PASSWORD': 'example'
-        }
-    elif ENVIRONMENT == 'production':
-        return {
-            'POSTGRES_HOST': '192.168.0.6',
-            'POSTGRES_PORT': 5432,
-            'POSTGRES_DATABASE': 'producer',
-            'POSTGRES_USER': 'docker',
-            'POSTGRES_PASSWORD': os.getenv('POSTRGES_PASSWORD', 'pass')
-        }
-    elif ENVIRONMENT == 'test':
-        return {
-            'POSTGRES_HOST': 'localhost',
-            'POSTGRES_PORT': 5432,
-            'POSTGRES_DATABASE': 'test_producer',
-            'POSTGRES_USER': 'burkov',
-            'POSTGRES_PASSWORD': 'example'
-        }
+    ENVIRONMENT = ENVIRONMENT.upper()
+
+    if ENVIRONMENT == 'DOCKER-COMPOSE':
+        return Settings(
+            POSTGRES_HOST='postgres',
+            POSTGRES_PORT=5432,
+            POSTGRES_DATABASE='producer',
+            POSTGRES_USER='docker',
+            POSTGRES_PASSWORD='example'
+        )
+    elif ENVIRONMENT == 'LOCAL':
+        return Settings(
+            POSTGRES_HOST='localhost',
+            POSTGRES_PORT=5432,
+            POSTGRES_DATABASE='producer',
+            POSTGRES_USER='burkov',
+            POSTGRES_PASSWORD='example'
+        )
+    elif ENVIRONMENT == 'PRODUCTION':
+        return Settings(
+            POSTGRES_HOST='192.168.0.6',
+            POSTGRES_PORT=5432,
+            POSTGRES_DATABASE='producer',
+            POSTGRES_USER='docker',
+            POSTGRES_PASSWORD=os.getenv('POSTRGES_PASSWORD', 'pass')
+        )
+    elif ENVIRONMENT == 'TEST':
+        return Settings(
+            POSTGRES_HOST='localhost',
+            POSTGRES_PORT=5432,
+            POSTGRES_DATABASE='test_producer',
+            POSTGRES_USER='burkov',
+            POSTGRES_PASSWORD='example'
+        )

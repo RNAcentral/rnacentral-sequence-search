@@ -127,12 +127,6 @@ async def migrate(ENVIRONMENT):
                   status VARCHAR(255) NOT NULL)
             ''')
 
-            for consumer_ip in settings.CONSUMER_IPS:
-                await connection.execute(sa.text('''
-                    INSERT INTO consumer(ip, status)
-                    VALUES (:consumer_ip, 'available')
-                '''), consumer_ip=consumer_ip)
-
             await connection.execute('''
                 CREATE TABLE jobs (
                   id serial PRIMARY KEY,

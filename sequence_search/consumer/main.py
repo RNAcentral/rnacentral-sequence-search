@@ -56,6 +56,14 @@ def create_app():
     # setup aiojobs scheduler
     setup_aiojobs(app)
 
+    # TODO: register self in the database
+
+    # for consumer_ip in settings.CONSUMER_IPS:
+    #     await connection.execute(sa.text('''
+    #         INSERT INTO consumer(ip, status)
+    #         VALUES (:consumer_ip, 'available')
+    #     '''), consumer_ip=consumer_ip)
+
     return app
 
 
