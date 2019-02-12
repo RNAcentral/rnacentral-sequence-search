@@ -12,6 +12,7 @@ limitations under the License.
 """
 
 import logging
+import os
 import sqlalchemy as sa
 from aiopg.sa import create_engine
 
@@ -98,8 +99,84 @@ JobChunkResult = sa.Table('job_chunk_results', metadata,
                   sa.Column('query_length', sa.Integer),
                   sa.Column('result_id', sa.Integer))
 
+
 # Migrations
 # ----------
+
+
+async def migrate(ENVIRONMENT):
+    settings = get_postgres_credentials(ENVIRONMENT)
+
+    engine = await create_engine(
+        user=settings.POSTGRES_USER,
+        database=settings.POSTGRES_DATABASE,
+        host=settings.POSTGRES_HOST,
+        password=settings.POSTGRES_PASSWORD
+    )
+
+    async with engine:
+        async with engine.acquire() as connection:
+            await connection.execute('DROP TABLE IF EXISTS job_chunk_results')
+            await connection.execute('DROP TABLE IF EXISTS job_chunks')
+            await connection.execute('DROP TABLE IF EXISTS jobs')
+            await connection.execute('DROP TABLE IF EXISTS consumer')
+
+            await connection.execute('''
+                CREATE TABLE consumer (
+                  ip VARCHAR(15) PRIMARY KEY,
+                  status VARCHAR(255) NOT NULL)
+            ''')
+
+            for consumer_ip in settings.CONSUMER_IPS:
+                await connection.execute(sa.text('''
+                    INSERT INTO consumer(ip, status)
+                    VALUES (:consumer_ip, 'available')
+                '''), consumer_ip=consumer_ip)
+
+            await connection.execute('''
+                CREATE TABLE jobs (
+                  id serial PRIMARY KEY,
+                  query TEXT,
+                  submitted TIMESTAMP,
+                  finished TIMESTAMP,
+                  status VARCHAR(255))
+            ''')
+
+            await connection.execute('''
+                CREATE TABLE job_chunks (
+                  id serial PRIMARY KEY,
+                  job_id INT references jobs(id),
+                  database VARCHAR(255),
+                  submitted TIMESTAMP,
+                  consumer VARCHAR(15) references consumer(ip),
+                  result VARCHAR(255),
+                  status VARCHAR(255))
+            ''')
+
+            await connection.execute('''
+                CREATE TABLE job_chunk_results (
+                  id serial PRIMARY KEY,
+                  job_chunk_id INT references job_chunks(id),
+                  rnacentral_id VARCHAR(255) NOT NULL,
+                  description TEXT,
+                  score FLOAT NOT NULL,
+                  bias FLOAT NOT NULL,
+                  e_value FLOAT NOT NULL,
+                  target_length INTEGER NOT NULL,
+                  alignment TEXT NOT NULL,
+                  alignment_length INTEGER NOT NULL,
+                  gap_count INTEGER NOT NULL,
+                  match_count INTEGER NOT NULL,
+                  nts_count1 INTEGER NOT NULL,
+                  nts_count2 INTEGER NOT NULL,
+                  identity FLOAT NOT NULL,
+                  query_coverage FLOAT NOT NULL,
+                  target_coverage FLOAT NOT NULL,
+                  gaps FLOAT NOT NULL,
+                  query_length INTEGER NOT NULL,
+                  result_id INTEGER NOT NULL)
+            ''')
+
 
 if __name__ == "__main__":
     """
@@ -108,83 +185,11 @@ if __name__ == "__main__":
 
     To apply this migration to the database, go one directory up and say:
 
-    $ python3 -m producer.models
+    $ python3 -m models
     """
     from .settings import get_postgres_credentials
 
-    async def migrate(ENVIRONMENT):
-        settings = get_postgres_credentials(ENVIRONMENT)
-
-        engine = await create_engine(
-            user=settings.POSTGRES_USER,
-            database=settings.POSTGRES_DATABASE,
-            host=settings.POSTGRES_HOST,
-            password=settings.POSTGRES_PASSWORD
-        )
-
-        async with engine:
-            async with engine.acquire() as connection:
-                await connection.execute('DROP TABLE IF EXISTS job_chunk_results')
-                await connection.execute('DROP TABLE IF EXISTS job_chunks')
-                await connection.execute('DROP TABLE IF EXISTS jobs')
-                await connection.execute('DROP TABLE IF EXISTS consumer')
-
-                await connection.execute('''
-                    CREATE TABLE consumer (
-                      ip VARCHAR(15) PRIMARY KEY,
-                      status VARCHAR(255) NOT NULL)
-                ''')
-
-                for consumer_ip in settings.CONSUMER_IPS:
-                    await connection.execute(sa.text('''
-                        INSERT INTO consumer(ip, status)
-                        VALUES (:consumer_ip, 'available')
-                    '''), consumer_ip=consumer_ip)
-
-                await connection.execute('''
-                    CREATE TABLE jobs (
-                      id serial PRIMARY KEY,
-                      query TEXT,
-                      submitted TIMESTAMP,
-                      finished TIMESTAMP,
-                      status VARCHAR(255))
-                ''')
-
-                await connection.execute('''
-                    CREATE TABLE job_chunks (
-                      id serial PRIMARY KEY,
-                      job_id INT references jobs(id),
-                      database VARCHAR(255),
-                      submitted TIMESTAMP,
-                      consumer VARCHAR(15) references consumer(ip),
-                      result VARCHAR(255),
-                      status VARCHAR(255))
-                ''')
-
-                await connection.execute('''
-                    CREATE TABLE job_chunk_results (
-                      id serial PRIMARY KEY,
-                      job_chunk_id INT references job_chunks(id),
-                      rnacentral_id VARCHAR(255) NOT NULL,
-                      description TEXT,
-                      score FLOAT NOT NULL,
-                      bias FLOAT NOT NULL,
-                      e_value FLOAT NOT NULL,
-                      target_length INTEGER NOT NULL,
-                      alignment TEXT NOT NULL,
-                      alignment_length INTEGER NOT NULL,
-                      gap_count INTEGER NOT NULL,
-                      match_count INTEGER NOT NULL,
-                      nts_count1 INTEGER NOT NULL,
-                      nts_count2 INTEGER NOT NULL,
-                      identity FLOAT NOT NULL,
-                      query_coverage FLOAT NOT NULL,
-                      target_coverage FLOAT NOT NULL,
-                      gaps FLOAT NOT NULL,
-                      query_length INTEGER NOT NULL,
-                      result_id INTEGER NOT NULL)
-                ''')
-
+    ENVIRONMENT = os.getenv('ENVIRONMENT', 'LOCAL')
 
     import asyncio
-    asyncio.get_event_loop().run_until_complete(migrate())
+    asyncio.get_event_loop().run_until_complete(migrate(ENVIRONMENT))

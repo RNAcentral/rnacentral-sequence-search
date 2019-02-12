@@ -17,19 +17,19 @@ import os
 def get_postgres_credentials(ENVIRONMENT):
     if ENVIRONMENT == 'docker-compose':
         return {
-            'POSTGRES_HOST' : 'postgres',
-            'POSTGRES_PORT' : 5432,
-            'POSTGRES_DATABASE' : 'producer',
-            'POSTGRES_USER' : 'docker',
-            'POSTGRES_PASSWORD' : 'example'
+            'POSTGRES_HOST': 'postgres',
+            'POSTGRES_PORT': 5432,
+            'POSTGRES_DATABASE': 'producer',
+            'POSTGRES_USER': 'docker',
+            'POSTGRES_PASSWORD': 'example'
         }
     elif ENVIRONMENT == 'local':
         return {
-            'POSTGRES_HOST' : 'localhost',
-            'POSTGRES_PORT' : 5432,
-            'POSTGRES_DATABASE' : 'producer',
-            'POSTGRES_USER' : 'burkov',
-            'POSTGRES_PASSWORD' : 'example'
+            'POSTGRES_HOST': 'localhost',
+            'POSTGRES_PORT': 5432,
+            'POSTGRES_DATABASE': 'producer',
+            'POSTGRES_USER': 'burkov',
+            'POSTGRES_PASSWORD': 'example'
         }
     elif ENVIRONMENT == 'production':
         return {
