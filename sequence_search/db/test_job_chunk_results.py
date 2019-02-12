@@ -11,29 +11,22 @@ See the License for the specific language governing permissions and
 limitations under the License.
 """
 
-import logging
 import datetime
 
 from aiohttp.test_utils import unittest_run_loop
-from aiohttp.test_utils import AioHTTPTestCase
 import sqlalchemy as sa
 
-from ..consumer.main import create_app
 from .models import Job, JobChunk
 from .job_chunk_results import set_job_chunk_results
+from .test_base import DBTestCase
 
 
-class SetJobChunkResultsTestCase(AioHTTPTestCase):
+class SetJobChunkResultsTestCase(DBTestCase):
     """
     Run this test with the following command:
 
     ENVIRONMENT=TEST python3 -m unittest consumer.db.test_job_chunk_results.SetJobChunkResultsTestCase
     """
-    async def get_application(self):
-        logging.basicConfig(level=logging.ERROR)  # subdue messages like 'DEBUG:asyncio:Using selector: KqueueSelector'
-        app = create_app()
-        return app
-
     async def setUpAsync(self):
         await super().setUpAsync()
 
@@ -50,15 +43,6 @@ class SetJobChunkResultsTestCase(AioHTTPTestCase):
                     status='pending'
                 )
             )
-
-    async def tearDownAsync(self):
-        async with self.app['engine'].acquire() as connection:
-            await connection.execute('DELETE FROM job_chunk_results')
-            await connection.execute('DELETE FROM job_chunks')
-            await connection.execute('DELETE FROM jobs')
-            await connection.execute('DELETE FROM consumer')
-
-            await super().tearDownAsync()
 
     @unittest_run_loop
     async def test_set_job_chunk_results(self):

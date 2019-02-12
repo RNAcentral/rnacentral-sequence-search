@@ -19,7 +19,7 @@ from aiojobs.aiohttp import setup as setup_aiojobs
 from aiohttp import web, web_middlewares
 
 from . import settings
-from .models import init_pg
+from ..db.models import init_pg
 from .urls import setup_routes
 
 """

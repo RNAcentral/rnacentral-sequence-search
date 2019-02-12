@@ -11,7 +11,6 @@ See the License for the specific language governing permissions and
 limitations under the License.
 """
 
-import asyncio
 import logging
 
 import aiohttp_jinja2
@@ -19,11 +18,8 @@ import jinja2
 from aiojobs.aiohttp import setup as setup_aiojobs
 from aiohttp import web, web_middlewares
 
-
-# from consumer.db import close_pg, init_pg
-# from consumer.middlewares import setup_middlewares
 from . import settings
-from ..producer.models import init_pg
+from ..db.models import init_pg
 from .urls import setup_routes
 
 """
@@ -31,7 +27,7 @@ Run either of the following commands from the parent of current directory:
 
 adev runserver consumer --livereload
 
-python3 -m consumer.main
+python3 -m sequence_search.consumer.main
 """
 
 

@@ -183,9 +183,9 @@ if __name__ == "__main__":
     This code creates the necessary tables in the database - in django this
     would've been initial migration.
 
-    To apply this migration to the database, go one directory up and say:
+    To apply this migration to the database, go two directories up and say:
 
-    $ python3 -m models
+    $ python3 -m sequence_search.db.models
     """
     from .settings import get_postgres_credentials
 

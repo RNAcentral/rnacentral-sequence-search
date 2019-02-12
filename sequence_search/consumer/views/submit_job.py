@@ -11,10 +11,8 @@ See the License for the specific language governing permissions and
 limitations under the License.
 """
 
-import json
 import os
 import logging
-import aiohttp
 from aiohttp import web
 from aiojobs.aiohttp import spawn
 
@@ -23,7 +21,7 @@ from ..nhmmer_parse import nhmmer_parse
 from ..nhmmer_search import nhmmer_search
 from ..filenames import query_file_path, result_file_path
 from ..producer_client import ProducerClient
-from ..db import set_job_chunk_results
+from ...db.job_chunk_results import set_job_chunk_results
 
 
 async def nhmmer(engine, job_id, sequence, database):

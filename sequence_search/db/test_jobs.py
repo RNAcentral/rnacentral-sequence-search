@@ -11,31 +11,21 @@ See the License for the specific language governing permissions and
 limitations under the License.
 """
 
-import json
-import logging
-import os
 import datetime
 
 from aiohttp.test_utils import unittest_run_loop
-from aiohttp.test_utils import AioHTTPTestCase
-import sqlalchemy as sa
 
-from ..consumer.main import create_app
+from .test_base import DBTestCase
 from .models import Job, JobChunk, JobChunkResult, Consumer
 from .jobs import save_job, set_job_status, get_job_query
 
 
-class SaveJobTestCase(AioHTTPTestCase):
+class SaveJobTestCase(DBTestCase):
     """
     Run this test with the following command:
 
     ENVIRONMENT=TEST python3 -m unittest producer.tests.db.test_jobs.SaveJobTestCase
     """
-    async def get_application(self):
-        logging.basicConfig(level=logging.ERROR)  # subdue messages like 'DEBUG:asyncio:Using selector: KqueueSelector'
-        app = create_app()
-        return app
-
     async def setUpAsync(self):
         await super().setUpAsync()
 
@@ -45,17 +35,12 @@ class SaveJobTestCase(AioHTTPTestCase):
         assert job_id is not None
 
 
-class SetJobStatusTestCase(AioHTTPTestCase):
+class SetJobStatusTestCase(DBTestCase):
     """
     Run this test with the following command:
 
     ENVIRONMENT=TEST python3 -m unittest producer.tests.db.test_jobs.SetJobStatusTestCase
     """
-    async def get_application(self):
-        logging.basicConfig(level=logging.ERROR)  # subdue messages like 'DEBUG:asyncio:Using selector: KqueueSelector'
-        app = create_app()
-        return app
-
     async def setUpAsync(self):
         await super().setUpAsync()
 
@@ -69,17 +54,12 @@ class SetJobStatusTestCase(AioHTTPTestCase):
         await set_job_status(self.app['engine'], self.job_id, 'error')
 
 
-class GetJobQueryTestCase(AioHTTPTestCase):
+class GetJobQueryTestCase(DBTestCase):
     """
     Run this test with the following command:
 
     ENVIRONMENT=TEST python3 -m unittest producer.tests.db.test_jobs.GetJobQueryTestCase
     """
-    async def get_application(self):
-        logging.basicConfig(level=logging.ERROR)  # subdue messages like 'DEBUG:asyncio:Using selector: KqueueSelector'
-        app = create_app()
-        return app
-
     async def setUpAsync(self):
         await super().setUpAsync()
 
