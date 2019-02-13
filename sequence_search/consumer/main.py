@@ -64,6 +64,8 @@ def create_app():
     #         VALUES (:consumer_ip, 'available')
     #     '''), consumer_ip=consumer_ip)
 
+    # TODO: clear queries and results directories
+
     return app
 
 
