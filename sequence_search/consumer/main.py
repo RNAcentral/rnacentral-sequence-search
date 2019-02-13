@@ -12,6 +12,7 @@ limitations under the License.
 """
 
 import logging
+import os
 
 import aiohttp_jinja2
 import jinja2
@@ -20,6 +21,8 @@ from aiohttp import web, web_middlewares
 
 from . import settings
 from ..db.models import init_pg
+from ..db.consumers import register_consumer_in_the_database
+from ..db.settings import get_postgres_credentials
 from .urls import setup_routes
 
 """
@@ -44,8 +47,10 @@ def create_app():
     aiohttp_jinja2.setup(app, loader=jinja2.PackageLoader('consumer', 'templates'))
 
     # create db connection on startup, shutdown on exit
+    for key, value in get_postgres_credentials(settings.ENVIRONMENT)._asdict().items():
+        setattr(app['settings'], key, value)
+
     app.on_startup.append(init_pg)
-    # app.on_cleanup.append(close_pg)
 
     # setup views and routes
     setup_routes(app)
@@ -56,15 +61,15 @@ def create_app():
     # setup aiojobs scheduler
     setup_aiojobs(app)
 
-    # TODO: register self in the database
+    # register self in the database
+    register_consumer_in_the_database(app['engine'], settings.HOST)
 
-    # for consumer_ip in settings.CONSUMER_IPS:
-    #     await connection.execute(sa.text('''
-    #         INSERT INTO consumer(ip, status)
-    #         VALUES (:consumer_ip, 'available')
-    #     '''), consumer_ip=consumer_ip)
+    # clear queries and results directories
+    for name in os.listdir(settings.RESULTS_DIR):
+        os.remove(settings.RESULTS_DIR / name)
 
-    # TODO: clear queries and results directories
+    for name in os.listdir(settings.QUERY_DIR):
+        os.remove(settings.QUERY_DIR / name)
 
     return app
 

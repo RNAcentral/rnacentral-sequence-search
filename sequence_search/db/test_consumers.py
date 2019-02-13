@@ -11,11 +11,9 @@ See the License for the specific language governing permissions and
 limitations under the License.
 """
 
-import logging
 import datetime
 
 from aiohttp.test_utils import unittest_run_loop
-from aiohttp.test_utils import AioHTTPTestCase
 
 from .models import Job, JobChunk, JobChunkResult, Consumer
 from .consumers import get_consumer_status, set_consumer_status, find_available_consumers, delegate_job_chunk_to_consumer

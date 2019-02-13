@@ -98,3 +98,15 @@ async def delegate_job_chunk_to_consumer(engine, consumer_ip, job_id, database, 
 
         async with engine.acquire() as connection:
             await set_job_chunk_status(engine, job_id, database, status="error")
+
+
+async def register_consumer_in_the_database(engine, consumer_ip):
+    """Utility for consumer to register itself in the database."""
+    try:
+        async with engine.acquire() as connection:
+            await connection.execute(sa.text('''
+                INSERT INTO consumer(ip, status)
+                VALUES (:consumer_ip, 'available')
+            '''), consumer_ip=consumer_ip)
+    except psycopg2.Error as e:
+        logging.error(str(e))
