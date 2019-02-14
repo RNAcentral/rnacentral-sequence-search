@@ -23,7 +23,6 @@ from . import settings
 from ..db.models import init_pg
 from ..db.consumers import register_consumer_in_the_database
 from ..db.settings import get_postgres_credentials
-from .get_ip import get_ip
 from .urls import setup_routes
 
 """
@@ -35,10 +34,22 @@ python3 -m sequence_search.consumer.main
 """
 
 
-def create_app():
-    import pdb
-    pdb.set_trace()
+async def on_startup(app):
+    # initialize database connection
+    await init_pg(app)
 
+    # register self in the database
+    await register_consumer_in_the_database(app)
+
+    # clear queries and results directories
+    for name in os.listdir(settings.RESULTS_DIR):
+        os.remove(settings.RESULTS_DIR / name)
+
+    for name in os.listdir(settings.QUERY_DIR):
+        os.remove(settings.QUERY_DIR / name)
+
+
+def create_app():
     logging.basicConfig(level=logging.DEBUG)
 
     app = web.Application(middlewares=[
@@ -48,13 +59,13 @@ def create_app():
     app.update(name='consumer', settings=settings)
 
     # setup Jinja2 template renderer
-    aiohttp_jinja2.setup(app, loader=jinja2.PackageLoader('consumer', 'templates'))
+    aiohttp_jinja2.setup(app, loader=jinja2.PackageLoader('sequence_search', 'consumer', 'templates'))
 
     # create db connection on startup, shutdown on exit
     for key, value in get_postgres_credentials(settings.ENVIRONMENT)._asdict().items():
         setattr(app['settings'], key, value)
 
-    app.on_startup.append(init_pg)
+    app.on_startup.append(on_startup)
 
     # setup views and routes
     setup_routes(app)
@@ -64,16 +75,6 @@ def create_app():
 
     # setup aiojobs scheduler
     setup_aiojobs(app)
-
-    # register self in the database
-    register_consumer_in_the_database(app['engine'], get_ip())
-
-    # clear queries and results directories
-    for name in os.listdir(settings.RESULTS_DIR):
-        os.remove(settings.RESULTS_DIR / name)
-
-    for name in os.listdir(settings.QUERY_DIR):
-        os.remove(settings.QUERY_DIR / name)
 
     return app
 

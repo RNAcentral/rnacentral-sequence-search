@@ -10,7 +10,7 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
 """
-
+import socket
 from collections import namedtuple
 
 import sqlalchemy as sa
@@ -99,13 +99,32 @@ async def delegate_job_chunk_to_consumer(engine, consumer_ip, job_id, database, 
             await set_job_chunk_status(engine, job_id, database, status="error")
 
 
-async def register_consumer_in_the_database(engine, consumer_ip):
+def get_ip():
+    """
+    Stolen from:
+    https://stackoverflow.com/questions/166506/finding-local-ip-addresses-using-pythons-stdlib?page=1&tab=active#tab-top
+    """
+    s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+    try:
+        # doesn't even have to be reachable
+        s.connect(('10.255.255.255', 1))
+        IP = s.getsockname()[0]
+    except Exception:
+        IP = '127.0.0.1'
+    finally:
+        s.close()
+    return IP
+
+
+async def register_consumer_in_the_database(app):
     """Utility for consumer to register itself in the database."""
     try:
-        async with engine.acquire() as connection:
+        async with app['engine'].acquire() as connection:
             await connection.execute(sa.text('''
                 INSERT INTO consumer(ip, status)
                 VALUES (:consumer_ip, 'available')
-            '''), consumer_ip=consumer_ip)
+            '''), consumer_ip=get_ip())
     except psycopg2.Error as e:
         logging.error(str(e))
+
+
