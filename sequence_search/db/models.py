@@ -12,9 +12,10 @@ limitations under the License.
 """
 
 import logging
-import os
 import sqlalchemy as sa
 from aiopg.sa import create_engine
+
+from .settings import get_postgres_credentials
 
 
 # Connection initialization code
@@ -170,20 +171,3 @@ async def migrate(ENVIRONMENT):
                   query_length INTEGER NOT NULL,
                   result_id INTEGER NOT NULL)
             ''')
-
-
-if __name__ == "__main__":
-    """
-    This code creates the necessary tables in the database - in django this
-    would've been initial migration.
-
-    To apply this migration to the database, go two directories up and say:
-
-    $ python3 -m sequence_search.db.models
-    """
-    from .settings import get_postgres_credentials
-
-    ENVIRONMENT = os.getenv('ENVIRONMENT', 'LOCAL')
-
-    import asyncio
-    asyncio.get_event_loop().run_until_complete(migrate(ENVIRONMENT))
