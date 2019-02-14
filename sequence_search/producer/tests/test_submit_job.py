@@ -13,7 +13,6 @@ limitations under the License.
 
 import json
 import logging
-import os
 
 from aiohttp.test_utils import unittest_run_loop
 
@@ -24,7 +23,7 @@ from aiohttp.test_utils import AioHTTPTestCase
 """
 Run these tests with:
 
-ENVIRONMENT=TEST python -m unittest producer.tests.test_submit_job
+ENVIRONMENT=TEST python -m unittest sequence_search.producer.tests.test_submit_job
 """
 
 

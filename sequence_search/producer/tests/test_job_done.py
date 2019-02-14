@@ -13,7 +13,6 @@ limitations under the License.
 
 import json
 import logging
-import os
 import datetime
 
 from aiohttp.test_utils import unittest_run_loop
@@ -27,7 +26,7 @@ from ...db.models import Job, JobChunk
 """
 Run these tests with:
 
-ENVIRONMENT=TEST python -m unittest producer.tests.test_job_done
+ENVIRONMENT=TEST python -m unittest sequence_search.producer.tests.test_job_done
 """
 
 

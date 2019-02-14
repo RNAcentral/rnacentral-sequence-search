@@ -11,7 +11,6 @@ See the License for the specific language governing permissions and
 limitations under the License.
 """
 
-import json
 import logging
 import datetime
 
@@ -25,7 +24,7 @@ from aiohttp.test_utils import AioHTTPTestCase
 """
 Run these tests with:
 
-ENVIRONMENT=TEST python -m unittest producer.tests.test_job_result
+ENVIRONMENT=TEST python -m unittest sequence_search.producer.tests.test_job_result
 """
 
 

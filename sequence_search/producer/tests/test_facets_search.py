@@ -11,14 +11,11 @@ See the License for the specific language governing permissions and
 limitations under the License.
 """
 
-import json
 import logging
-import os
 import datetime
 
 from aiohttp.test_utils import unittest_run_loop
 from aiohttp.test_utils import AioHTTPTestCase
-import sqlalchemy as sa
 
 from ..main import create_app
 from ...db.models import Job, JobChunk, JobChunkResult
@@ -27,7 +24,7 @@ from ...db.models import Job, JobChunk, JobChunkResult
 """
 Run these tests with:
 
-ENVIRONMENT=TEST python -m unittest producer.tests.test_facets_search
+ENVIRONMENT=TEST python -m unittest sequence_search.producer.tests.test_facets_search
 """
 
 
