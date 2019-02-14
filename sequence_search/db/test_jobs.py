@@ -24,7 +24,7 @@ class SaveJobTestCase(DBTestCase):
     """
     Run this test with the following command:
 
-    ENVIRONMENT=TEST python3 -m unittest producer.tests.db.test_jobs.SaveJobTestCase
+    ENVIRONMENT=TEST python -m unittest sequence_search.db.test_jobs.SaveJobTestCase
     """
     async def setUpAsync(self):
         await super().setUpAsync()
@@ -39,7 +39,7 @@ class SetJobStatusTestCase(DBTestCase):
     """
     Run this test with the following command:
 
-    ENVIRONMENT=TEST python3 -m unittest producer.tests.db.test_jobs.SetJobStatusTestCase
+    ENVIRONMENT=TEST python -m unittest sequence_search.db.test_jobs.SetJobStatusTestCase
     """
     async def setUpAsync(self):
         await super().setUpAsync()
@@ -58,7 +58,7 @@ class GetJobQueryTestCase(DBTestCase):
     """
     Run this test with the following command:
 
-    ENVIRONMENT=TEST python3 -m unittest producer.tests.db.test_jobs.GetJobQueryTestCase
+    ENVIRONMENT=TEST python -m unittest sequence_search.db.test_jobs.GetJobQueryTestCase
     """
     async def setUpAsync(self):
         await super().setUpAsync()

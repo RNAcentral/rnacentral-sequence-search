@@ -14,9 +14,11 @@ limitations under the License.
 import datetime
 
 from aiohttp.test_utils import unittest_run_loop
+import sqlalchemy as sa
 
-from .models import Job, JobChunk, JobChunkResult, Consumer
-from .consumers import get_consumer_status, set_consumer_status, find_available_consumers, delegate_job_chunk_to_consumer
+from .models import Job, JobChunk, Consumer
+from .consumers import get_consumer_status, set_consumer_status, find_available_consumers, \
+    delegate_job_chunk_to_consumer, register_consumer_in_the_database
 from .test_base import DBTestCase
 
 
@@ -24,7 +26,7 @@ class FindAvailableConsumersTestCase(DBTestCase):
     """
     Run this test with the following command:
 
-    ENVIRONMENT=TEST python3 -m unittest producer.tests.db.test_consumers.FindAvailableConsumersTestCase
+    ENVIRONMENT=TEST python -m unittest sequence_search.db.test_consumers.FindAvailableConsumersTestCase
 
     """
     async def setUpAsync(self):
@@ -69,7 +71,7 @@ class GetConsumerStatusTestCase(DBTestCase):
     """
     Run this test with the following command:
 
-    ENVIRONMENT=TEST python3 -m unittest producer.tests.db.test_consumers.GetConsumerStatusTestCase
+    ENVIRONMENT=TEST python -m unittest sequence_search.db.test_consumers.GetConsumerStatusTestCase
     """
     async def setUpAsync(self):
         await super().setUpAsync()
@@ -90,7 +92,7 @@ class SetConsumerStatusTestCase(DBTestCase):
     """
     Run this test with the following command:
 
-    ENVIRONMENT=TEST python3 -m unittest producer.tests.db.test_consumers.SetConsumerStatusTestCase
+    ENVIRONMENT=TEST python -m unittest sequence_search.db.test_consumers.SetConsumerStatusTestCase
     """
     async def setUpAsync(self):
         await super().setUpAsync()
@@ -131,7 +133,7 @@ class DelegateJobChunkToConsumerTestCase(DBTestCase):
     """
     Run this test with the following command:
 
-    ENVIRONMENT=TEST python3 -m unittest producer.tests.db.test_consumers.DelegateJobChunkToConsumerTestCase
+    ENVIRONMENT=TEST python -m unittest sequence_search.db.test_consumers.DelegateJobChunkToConsumerTestCase
     """
     async def setUpAsync(self):
         await super().setUpAsync()
@@ -171,3 +173,32 @@ class DelegateJobChunkToConsumerTestCase(DBTestCase):
 
         consumer_status = await get_consumer_status(self.app['engine'], self.consumer_ip)
         assert consumer_status == 'busy'
+
+
+class RegisterConsumerInTheDatabaseTestCase(DBTestCase):
+    """
+    Run this test with the following command:
+
+    ENVIRONMENT=TEST python -m unittest sequence_search.db.test_consumers.RegisterConsumerInTheDatabaseTestCase
+    """
+    async def setUpAsync(self):
+        await super().setUpAsync()
+
+    @unittest_run_loop
+    async def test_register_consumer_in_the_database(self):
+        async with self.app['engine'].acquire() as connection:
+
+            await register_consumer_in_the_database(
+                self.app['engine'],
+                consumer_ip='192.168.1.1'
+            )
+
+            query = sa.text('''
+                SELECT ip, status
+                FROM consumer
+                WHERE ip=:ip
+            ''')
+
+            async for row in await connection.execute(query, ip='192.168.1.1'):
+                assert row.ip == '192.168.1.1'
+                break

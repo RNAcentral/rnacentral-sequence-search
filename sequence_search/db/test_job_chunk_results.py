@@ -25,7 +25,7 @@ class SetJobChunkResultsTestCase(DBTestCase):
     """
     Run this test with the following command:
 
-    ENVIRONMENT=TEST python3 -m unittest consumer.db.test_job_chunk_results.SetJobChunkResultsTestCase
+    ENVIRONMENT=TEST python3 -m unittest sequence_search.db.test_job_chunk_results.SetJobChunkResultsTestCase
     """
     async def setUpAsync(self):
         await super().setUpAsync()

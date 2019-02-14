@@ -25,7 +25,7 @@ class SaveJobChunkTestCase(DBTestCase):
     """
     Run this test with the following command:
 
-    ENVIRONMENT=TEST python3 -m unittest producer.tests.db.test_job_chunks.SaveJobChunkTestCase
+    ENVIRONMENT=TEST python -m unittest sequence_search.db.test_job_chunks.SaveJobChunkTestCase
     """
     async def setUpAsync(self):
         await super().setUpAsync()
@@ -45,7 +45,7 @@ class FindHighestPriorityJobChunkTestCase(DBTestCase):
     """
     Run this test with the following command:
 
-    ENVIRONMENT=TEST python3 -m unittest producer.tests.db.test_job_chunks.FindHighestPriorityJobChunkTestCase
+    ENVIRONMENT=TEST python -m unittest sequence_search.db.test_job_chunks.FindHighestPriorityJobChunkTestCase
     """
     async def setUpAsync(self):
         await super().setUpAsync()
@@ -90,7 +90,7 @@ class GetConsumerIpFromJobChunkTestCase(DBTestCase):
     """
     Run this test with the following command:
 
-    ENVIRONMENT=TEST python3 -m unittest producer.tests.db.test_job_chunks.GetConsumerIpFromJobChunkTestCase
+    ENVIRONMENT=TEST python -m unittest sequence_search.db.test_job_chunks.GetConsumerIpFromJobChunkTestCase
     """
     async def setUpAsync(self):
         await super().setUpAsync()
@@ -125,7 +125,7 @@ class SetJobChunkStatusTestCase(DBTestCase):
     """
     Run this test with the following command:
 
-    ENVIRONMENT=TEST python3 -m unittest producer.tests.db.test_job_chunks.SetJobChunkStatusTestCase
+    ENVIRONMENT=TEST python -m unittest sequence_search.db.test_job_chunks.SetJobChunkStatusTestCase
     """
     async def setUpAsync(self):
         await super().setUpAsync()

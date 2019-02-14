@@ -16,11 +16,18 @@ import logging
 from aiohttp import web, web_middlewares
 from aiohttp.test_utils import AioHTTPTestCase
 
+from .models import init_pg
+from .settings import get_postgres_credentials
+
 
 class DBTestCase(AioHTTPTestCase):
+    """Base unit-test for all the tests in db"""
     async def get_application(self):
         logging.basicConfig(level=logging.ERROR)  # subdue messages like 'DEBUG:asyncio:Using selector: KqueueSelector'
         app = web.Application(middlewares=[web_middlewares.normalize_path_middleware(append_slash=True)])
+        settings = get_postgres_credentials(ENVIRONMENT='TEST')
+        app.update(name='test', settings=settings)
+        app.on_startup.append(init_pg)
         return app
 
     async def tearDownAsync(self):

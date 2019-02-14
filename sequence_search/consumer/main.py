@@ -23,6 +23,7 @@ from . import settings
 from ..db.models import init_pg
 from ..db.consumers import register_consumer_in_the_database
 from ..db.settings import get_postgres_credentials
+from .get_ip import get_ip
 from .urls import setup_routes
 
 """
@@ -35,6 +36,9 @@ python3 -m sequence_search.consumer.main
 
 
 def create_app():
+    import pdb
+    pdb.set_trace()
+
     logging.basicConfig(level=logging.DEBUG)
 
     app = web.Application(middlewares=[
@@ -62,7 +66,7 @@ def create_app():
     setup_aiojobs(app)
 
     # register self in the database
-    register_consumer_in_the_database(app['engine'], settings.HOST)
+    register_consumer_in_the_database(app['engine'], get_ip())
 
     # clear queries and results directories
     for name in os.listdir(settings.RESULTS_DIR):
