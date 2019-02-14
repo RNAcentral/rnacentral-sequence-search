@@ -23,7 +23,7 @@ if __name__ == "__main__":
 
     To apply this migration to the database, go two directories up and say:
 
-    $ python3 -m sequence_search.db.models
+    $ python3 -m sequence_search.db
     """
 
     ENVIRONMENT = os.getenv('ENVIRONMENT', 'LOCAL')

@@ -34,7 +34,6 @@ async def find_available_consumers(engine):
                 FROM consumer
                 WHERE status='available'
             ''')
-            result = await connection.execute(query)
 
         result = []
         async for row in connection.execute(query):
