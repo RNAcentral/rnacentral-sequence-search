@@ -1,10 +1,5 @@
 from . import PROJECT_ROOT
 
-# hostname to listen on
-HOST = 'localhost'
-
-# TCP port for the server to listen on
-PORT = 8000
 
 # in test save queries and results in a temporary folder
 TMP_DIR = PROJECT_ROOT / '.tmp'

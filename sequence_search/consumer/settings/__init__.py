@@ -59,6 +59,12 @@ elif ENVIRONMENT == "DOCKER-COMPOSE":
 elif ENVIRONMENT == "PRODUCTION":
     from .production import *
 
+# hostname to listen on
+HOST = '0.0.0.0'
+
+# TCP port for the server to listen on
+PORT = 8000
+
 
 def substitute_environment_variables():
     """

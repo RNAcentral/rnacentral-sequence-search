@@ -10,17 +10,17 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
 """
-import socket
 from collections import namedtuple
+import logging
 
 import sqlalchemy as sa
 from aiohttp import web
-import logging
+import psycopg2
+from netifaces import interfaces, ifaddresses, AF_INET
 
 from ..db.job_chunks import set_job_chunk_status, set_job_chunk_consumer
 from ..db.jobs import set_job_status
 from ..producer.consumer_client import ConsumerClient
-import psycopg2
 
 
 async def find_available_consumers(engine):
@@ -99,21 +99,50 @@ async def delegate_job_chunk_to_consumer(engine, consumer_ip, job_id, database, 
             await set_job_chunk_status(engine, job_id, database, status="error")
 
 
-def get_ip():
+def get_ip(app):
     """
     Stolen from:
     https://stackoverflow.com/questions/166506/finding-local-ip-addresses-using-pythons-stdlib?page=1&tab=active#tab-top
     """
-    s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-    try:
-        # doesn't even have to be reachable
-        s.connect(('10.255.255.255', 1))
-        IP = s.getsockname()[0]
-    except Exception:
-        IP = '127.0.0.1'
-    finally:
-        s.close()
-    return IP
+    # s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+    # try:
+    #     # doesn't even have to be reachable
+    #     s.connect(('10.255.255.255', 1))
+    #     IP = s.getsockname()[0]
+    # except Exception:
+    #     IP = '127.0.0.1'
+    # finally:
+    #     s.close()
+    # return IP
+
+    addresses = []
+    for ifaceName in interfaces():
+        for i in ifaddresses(ifaceName).setdefault(AF_INET, [{'addr': 'No IP addr'}]):
+            addresses.append(i['addr'])
+
+    # print(ifaceName, i['addr'])
+    #
+    # Example output:
+    #
+    # lo0 127.0.0.1
+    # gif0 No IP addr
+    # stf0 No IP addr
+    # en0 10.255.6.100
+    # en1 No IP addr
+    # en2 No IP addr
+    # bridge0 No IP addr
+    # p2p0 No IP addr
+    # awdl0 No IP addr
+    # utun0 No IP addr
+    # en4 172.22.70.60
+
+    addresses = [address for address in addresses if address != 'No IP addr']
+
+    # return first non-localhost IP, if available
+    if app['settings'].ENVIRONMENT == 'LOCAL':
+        return addresses[0]
+    else:
+        return addresses[1]
 
 
 async def register_consumer_in_the_database(app):
@@ -123,7 +152,7 @@ async def register_consumer_in_the_database(app):
             await connection.execute(sa.text('''
                 INSERT INTO consumer(ip, status)
                 VALUES (:consumer_ip, 'available')
-            '''), consumer_ip=get_ip())
+            '''), consumer_ip=get_ip(app))
     except psycopg2.Error as e:
         logging.error(str(e))
 
