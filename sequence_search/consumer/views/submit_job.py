@@ -110,5 +110,7 @@ async def submit_job(request):
 
     await spawn(request, nhmmer(request.app['engine'], job_id, sequence, database))
 
-    url = request.app.router['result'].url_for(result_id=str(job_id))
-    return web.HTTPFound(location=url)
+    # url = request.app.router['result'].url_for(result_id=str(job_id))
+    # return web.HTTPFound(location=url)
+
+    return web.HTTPCreated()
