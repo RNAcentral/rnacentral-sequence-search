@@ -10,22 +10,7 @@ Unfortunately, Red Hat OpenStack doesn't support the Magnum API that allows for 
 clusters from the console. Thus, we had to resort to Kubespray scipts.
 
 
-## How to use this
-
-### Installation
-
-Suppose that you want to install this set of Jenkins pipelines to an entirely new machine.
-
-Here are the steps required to do this:
-
-- Install and configure Jenkins on that machine
-- In Jenkins interface create a one-branch pipeline for each `*.jenkinsfile` in `/jenkins` folder
-- In Jenkins upload secret file `openstack.rc` copied from RedHat Horizon dashboard
- (Project -> Compute -> Access & Security -> API Access)
-- Install python-based dependencies via `pip install -r requirements.txt` (possibly, using a virtualenv)
-
-
-### Installation in development environments
+## Installation
 
 The project is supposed to be run in 4 environments:
  - local:
@@ -43,10 +28,49 @@ The project is supposed to be run in 4 environments:
     this is the real production environment, where the code is deployed
     to openstack cloud
 
- - how to build frontend in Docker-compose
+
+### Installation in local environment
+
+1. `$ git clone https://github.com/RNAcentral/rnacentral-sequence-search.git`
+2. `$ cd rnacentral-sequence-search`
+3. `$ virtualenv ENV --python=python3`
+4. `$ source ENV/bin/activate`
+5. `$ pip3 install -r requirements.txt`
+6. `$ pushd sequence_search/consumer`
+7. `$ curl -OL http://eddylab.org/software/hmmer/hmmer-3.2.1.tar.gz && \
+    tar -zxvf hmmer-3.2.1.tar.gz && \
+    cd hmmer-3.2.1 && \
+    ./configure --prefix /usr/local && \
+    make && \
+    make install && \
+    cd easel; make install`
+8. `$ rsync <> databases/` - copy `.fasta` files with databases we want to search against
+9. `$ popd`
+10. `$ cd sequence_search/producer/static`
+11. `$ npm install --save-dev && npm run build`
+12. `$ popd`
+13. `$ brew install postgres` - install a local postgres database and start it
+14. create role `burkov` with password `example` and database `producer` in your local postgres
 
 
-### How to create .iso image from databases folder on MacOS
+### Installation in docker-compose
+
+TODO
+
+### Installation in production
+
+Suppose that you want to install this set of Jenkins pipelines to an entirely new machine.
+
+Here are the steps required to do this:
+
+- Install and configure Jenkins on that machine
+- In Jenkins interface create a one-branch pipeline for each `*.jenkinsfile` in `/jenkins` folder
+- In Jenkins upload secret file `openstack.rc` copied from RedHat Horizon dashboard
+ (Project -> Compute -> Access & Security -> API Access)
+- Install python-based dependencies via `pip install -r requirements.txt` (possibly, using a virtualenv)
+
+
+#### How to create .iso image from databases folder on MacOS
 
  The command is like this:
 
