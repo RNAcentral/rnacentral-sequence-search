@@ -2,3 +2,15 @@ python-openstackclient
 python-neutronclient
 python-magnumclient
 ansible
+aiohttp
+jinja2
+sqlalchemy
+aiopg
+aiohttp_jinja2
+aiohttp-devtools
+aiohttp-swagger
+aiojobs
+requests
+netifaces
+gunicorn
+
