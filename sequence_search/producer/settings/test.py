@@ -5,4 +5,3 @@ HOST = 'localhost'
 PORT = 8002
 
 CONSUMER_PORT = '8000'
-CONSUMER_IPS = []

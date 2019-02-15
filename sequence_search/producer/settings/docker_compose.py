@@ -5,4 +5,3 @@ HOST = '0.0.0.0'
 PORT = 8002
 
 CONSUMER_PORT = '8000'
-CONSUMER_IPS = ["consumer"]
