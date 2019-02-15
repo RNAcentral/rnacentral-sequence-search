@@ -31,7 +31,7 @@ PROJECT_ROOT = pathlib.Path(__file__).parent.parent
 
 # list of rnacentral databases
 CONSUMER_DATABASES_DIRECTORY = PROJECT_ROOT.parent / 'consumer' / 'databases'
-RNACENTRAL_DATABASES = [file.name.strip('.fasta') for file in (CONSUMER_DATABASES_DIRECTORY).glob('*.fasta')]
+RNACENTRAL_DATABASES = [file.stem for file in (CONSUMER_DATABASES_DIRECTORY).glob('*.fasta')]
 
 CONSUMER_SUBMIT_JOB_URL = 'submit-job'
 
