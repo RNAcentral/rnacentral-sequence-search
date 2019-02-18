@@ -53,17 +53,27 @@ async def job_status(request):
 
     try:
         async with request.app['engine'].acquire() as connection:
-            query = (sa.select([Job.c.id, Job.c.status, JobChunk.c.job_id, JobChunk.c.database, JobChunk.c.status])
-                .select_from(sa.join(Job, JobChunk, Job.c.id == JobChunk.c.job_id))  # noqa
-                .where(Job.c.id == job_id)
-                .apply_labels())  # noqa
+            select_statement = sa.select(
+                [
+                    Job.c.id.label('id'),
+                    Job.c.status.label('job_status'),
+                    JobChunk.c.job_id.label('job_id'),
+                    JobChunk.c.database.label('database'),
+                    JobChunk.c.status.label('job_chunk_status')
+                ],
+                use_labels=True
+            )
+
+            query = (select_statement
+                     .select_from(sa.join(Job, JobChunk, Job.c.id == JobChunk.c.job_id))  # noqa
+                     .where(Job.c.id == job_id))  # noqa
 
             chunks = []
             async for row in connection.execute(query):
-                status = row[1]  # this is Job.c.status
+                status = row.job_status
                 chunks.append({
-                    "database": row[3],  # JobChunk.c.database
-                    "status": row[4]  # JobChunk.c.status
+                    "database": row.database,
+                    "status": row.job_chunk_status
                 })
     except Exception as e:
         raise web.HTTPNotFound(text=str(e)) from e
