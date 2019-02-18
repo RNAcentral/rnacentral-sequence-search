@@ -14,6 +14,7 @@ limitations under the License.
 from aiohttp import web
 
 from ...db.jobs import get_job_results
+from ...db import DatabaseConnectionError
 
 
 async def job_result(request):
@@ -102,6 +103,9 @@ async def job_result(request):
     """
     job_id = request.match_info['job_id']
 
-    results = get_job_results(request.app['engine'], job_id)
+    try:
+        results = get_job_results(request.app['engine'], job_id)
+    except DatabaseConnectionError as e:
+        raise web.HTTPNotFound() from e
 
     return web.json_response(results)

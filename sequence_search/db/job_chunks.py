@@ -94,10 +94,10 @@ async def get_consumer_ip_from_job_chunk(engine, job_chunk_id):
                 async for row in connection.execute(query):
                     return row[0]
             except Exception as e:
-                logging.error("Failed to get consumer ip from job_chunk, job_chunk_id = %s" % job_chunk_id)
+                raise DatabaseConnectionError("Failed to get consumer ip "
+                                              "from job_chunk, job_chunk_id = %s" % job_chunk_id) from e
     except psycopg2.Error as e:
-        logging.error(str(e))
-        return
+        raise DatabaseConnectionError(str(e)) from e
 
 
 async def set_job_chunk_status(engine, job_id, database, status):
@@ -127,10 +127,11 @@ async def set_job_chunk_status(engine, job_id, database, status):
                 #     '''.format(job_chunks='job_chunks', job_id=job_id, database=database, status=status)
                 # )
             except Exception as e:
-                logging.error("Failed to set_job_chunk_status in the database, job_id = %s, database = %s" % (job_id, database))
+                raise DatabaseConnectionError("Failed to set_job_chunk_status in the database,"
+                                              " job_id = %s, database = %s" % (job_id, database)) from e
     except psycopg2.Error as e:
-        logging.error("Failed to open connection to the database in "
-                      "set_job_chunk_status, job_id = %s, database = %s" % (job_id, database))
+        raise DatabaseConnectionError("Failed to open connection to the database in "
+                      "set_job_chunk_status, job_id = %s, database = %s" % (job_id, database)) from e
 
 
 async def set_job_chunk_consumer(engine, job_id, database, consumer_ip):
@@ -150,7 +151,8 @@ async def set_job_chunk_consumer(engine, job_id, database, consumer_ip):
 
                 return id
             except Exception as e:
-                logging.error("Failed to set_job_chunk_status in the database, job_id = %s, database = %s" % (job_id, database))
+                raise DatabaseConnectionError("Failed to set_job_chunk_status in the database, "
+                                              "job_id = %s, database = %s" % (job_id, database)) from e
     except psycopg2.Error as e:
-        logging.error("Failed to open connection to the database in "
-                      "set_job_chunk_status, job_id = %s, database = %s" % (job_id, database))
+        raise DatabaseConnectionError("Failed to open connection to the database in "
+                      "set_job_chunk_status, job_id = %s, database = %s" % (job_id, database)) from e

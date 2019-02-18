@@ -14,12 +14,12 @@ limitations under the License.
 import logging
 import datetime
 import uuid
-from collections import namedtuple
 
 import sqlalchemy as sa
 from aiohttp import web
 import psycopg2
 
+from . import DatabaseConnectionError
 from .models import Job, JobChunk, JobChunkResult
 
 
@@ -48,9 +48,10 @@ async def save_job(engine, query):
 
                 return job_id
             except Exception as e:
-                logging.error("Failed to save job for query = %s to the database" % query)
+                raise DatabaseConnectionError("Failed to save job for query = %s to the database" % query) from e
     except psycopg2.Error as e:
-        logging.error("Failed to open connection to the database in save_job() for job with job_id = %s" % job_id)
+        raise DatabaseConnectionError("Failed to open connection to the database in "
+                                "save_job() for job with job_id = %s" % job_id) from e
 
 
 async def set_job_status(engine, job_id, status):
@@ -60,9 +61,11 @@ async def set_job_status(engine, job_id, status):
                 query = sa.text('''UPDATE jobs SET status =:status WHERE id=:job_id''')
                 await connection.execute(query, job_id=job_id, status=status)
             except Exception as e:
-                logging.error("Failed to save job to the database about failed job, job_id = %s, status = %s" % (job_id, status))
+                raise DatabaseConnectionError("Failed to save job to the database about failed job, "
+                                              "job_id = %s, status = %s" % (job_id, status)) from e
     except psycopg2.Error as e:
-        logging.error("Failed to open connection to the database in set_job_status() for job with job_id = %s" % job_id)
+        raise DatabaseConnectionError("Failed to open connection to the database in set_job_status() "
+                                      "for job with job_id = %s" % job_id) from e
 
 
 async def get_job_chunks_status(engine, job_id):
@@ -101,9 +104,9 @@ async def get_job_chunks_status(engine, job_id):
                     return output
 
             except Exception as e:
-                logging.error("Failed to get job_chunk status, job_id = %s" % job_id)
+                raise DatabaseConnectionError("Failed to get job_chunk status, job_id = %s" % job_id) from e
     except Exception as e:
-        raise web.HTTPNotFound(text=str(e)) from e
+        raise DatabaseConnectionError(str(e)) from e
 
 
 async def check_job_chunks_status(engine, job_id):
@@ -123,10 +126,11 @@ async def check_job_chunks_status(engine, job_id):
 
                 return all_job_chunks_success
             except Exception as e:
-                logging.error("Failed to check job_chunk status, job_id = %s" % job_id)
+                raise DatabaseConnectionError("Failed to check job_chunk status, job_id = %s" % job_id) from e
 
     except psycopg2.Error as e:
-        logging.error("Failed to open connection to the database in check_job_chunks_status() for job with job_id = %s" % job_id)
+        raise DatabaseConnectionError("Failed to open connection to the database in "
+                                      "check_job_chunks_status() for job with job_id = %s" % job_id) from e
 
 
 async def job_exists(engine, job_id):
@@ -145,9 +149,10 @@ async def job_exists(engine, job_id):
                 return exists
 
             except Exception as e:
-                logging.error("Failed to check if job exists for job_id = %s" % job_id)
+                raise DatabaseConnectionError("Failed to check if job exists for job_id = %s" % job_id) from e
     except psycopg2.Error as e:
-        logging.error("Failed to open connection to the database in job_exists() for job with job_id = %s" % job_id)
+        raise DatabaseConnectionError("Failed to open connection to the database in "
+                                      "job_exists() for job with job_id = %s" % job_id) from e
 
 
 async def get_job_query(engine, job_id):
@@ -159,10 +164,11 @@ async def get_job_query(engine, job_id):
                 async for row in connection.execute(sql_query):
                     return row.query
             except Exception as e:
-                logging.error("Failed to get job query, job_id = %s" % job_id)
+                raise DatabaseConnectionError("Failed to get job query, job_id = %s" % job_id) from e
 
     except psycopg2.Error as e:
-        logging.error("Failed to open connection to the database in get_job_query() for job with job_id = %s" % job_id)
+        raise DatabaseConnectionError("Failed to open connection to the database in "
+                                      "get_job_query() for job with job_id = %s" % job_id) from e
 
 
 async def get_job_results(engine, job_id):
@@ -222,5 +228,4 @@ async def get_job_results(engine, job_id):
             return results
 
     except psycopg2.Error as e:
-        logging.error(str(e))
-        raise web.HTTPNotFound() from e
+        raise DatabaseConnectionError(str(e)) from e
