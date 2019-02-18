@@ -15,7 +15,7 @@ from aiohttp import web
 
 from ...db.consumers import delegate_job_chunk_to_consumer
 from ...db.job_chunks import find_highest_priority_job_chunk, set_job_chunk_status, get_consumer_ip_from_job_chunk
-from ...db.jobs import check_job_chunks_status, set_job_status, get_job_query
+from ...db.jobs import check_job_chunks_status, set_job_status, get_job_query, job_exists
 
 
 async def serialize(connection, request, data):
@@ -26,12 +26,8 @@ async def serialize(connection, request, data):
     except (KeyError, TypeError, ValueError) as e:
         raise web.HTTPBadRequest(text='Bad input') from e
 
-    # TODO: validate job_id
-    jobs = await connection.execute('''
-        SELECT *
-        FROM {job}
-        WHERE id={job_id}
-    '''.format(job='jobs', job_id=data['job_id']))
+    if not await job_exists(request.app['engine'], job_id):
+        raise web.HTTPBadRequest(text='Bad input')
 
     if data['database'].lower() not in request.app['settings'].RNACENTRAL_DATABASES:
         raise web.HTTPBadRequest(text="Database '%s' not in list of RNACentral databases" % data['database'])

@@ -26,14 +26,17 @@ async def save_job(engine, query):
     try:
         async with engine.acquire() as connection:
             try:
-                job_id = await connection.scalar(
+                job_id = uuid.uuid4()
+
+                await connection.execute(
                     Job.insert().values(
-                        id=uuid.uuid4(),
+                        id=job_id,
                         query=query,
                         submitted=datetime.datetime.now(),
                         status='started'
                     )
                 )
+
                 return job_id
             except Exception as e:
                 logging.error("Failed to save job for query = %s to the database" % query)
@@ -74,6 +77,27 @@ async def check_job_chunks_status(engine, job_id):
 
     except psycopg2.Error as e:
         logging.error("Failed to open connection to the database in check_job_chunks_status() for job with job_id = %s" % job_id)
+
+
+async def job_exists(engine, job_id):
+    try:
+        async with engine.acquire() as connection:
+            try:
+                sql_query = '''
+                    SELECT *
+                    FROM {job}
+                    WHERE id={job_id}
+                '''.format(job='jobs', job_id=job_id)
+
+                exists = False
+                async for row in connection.execute(sql_query):
+                    exists = True
+                return exists
+
+            except Exception as e:
+                logging.error("Failed to check if job exists for job_id = %s" % job_id)
+    except psycopg2.Error as e:
+        logging.error("Failed to open connection to the database in job_exists() for job with job_id = %s" % job_id)
 
 
 async def get_job_query(engine, job_id):
