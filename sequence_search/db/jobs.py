@@ -26,7 +26,7 @@ async def save_job(engine, query):
     try:
         async with engine.acquire() as connection:
             try:
-                job_id = uuid.uuid4()
+                job_id = str(uuid.uuid4())
 
                 await connection.execute(
                     Job.insert().values(
