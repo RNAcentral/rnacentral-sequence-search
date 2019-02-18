@@ -12,9 +12,8 @@ limitations under the License.
 """
 
 from aiohttp import web
-import sqlalchemy as sa
 
-from ...db.models import Job, JobChunk
+from ...db.jobs import get_job_chunks_status, JobNotFound
 
 
 async def job_status(request):
@@ -52,37 +51,12 @@ async def job_status(request):
     job_id = request.match_info['job_id']
 
     try:
-        async with request.app['engine'].acquire() as connection:
-            select_statement = sa.select(
-                [
-                    Job.c.id.label('id'),
-                    Job.c.status.label('job_status'),
-                    JobChunk.c.job_id.label('job_id'),
-                    JobChunk.c.database.label('database'),
-                    JobChunk.c.status.label('job_chunk_status')
-                ],
-                use_labels=True
-            )
-
-            query = (select_statement
-                     .select_from(sa.join(Job, JobChunk, Job.c.id == JobChunk.c.job_id))  # noqa
-                     .where(Job.c.id == job_id))  # noqa
-
-            chunks = []
-            async for row in connection.execute(query):
-                status = row.job_status
-                chunks.append({
-                    "database": row.database,
-                    "status": row.job_chunk_status
-                })
-    except Exception as e:
-        raise web.HTTPNotFound(text=str(e)) from e
-
-    if 'status' not in locals():
-        raise web.HTTPNotFound(text="Job '%s' not found" % job_id)
+        chunks = get_job_chunks_status(request.app['engine'], job_id)
+    except JobNotFound as e:
+        raise web.HTTPNotFound(text="Job '%s' not found" % job_id) from e
 
     return web.json_response({
         "job_id": job_id,
-        "status": status,
+        "status": chunks[0].status,
         "chunks": chunks
     })

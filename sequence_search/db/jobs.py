@@ -14,12 +14,21 @@ limitations under the License.
 import logging
 import datetime
 import uuid
+from collections import namedtuple
 
 import sqlalchemy as sa
 from aiohttp import web
 import psycopg2
 
 from .models import Job, JobChunk, JobChunkResult
+
+
+class JobNotFound(Exception):
+    def __init__(self, job_id):
+        self.job_id = job_id
+
+    def __str__(self):
+        return "Job '%s' not found" % self.job_id
 
 
 async def save_job(engine, query):
@@ -54,6 +63,49 @@ async def set_job_status(engine, job_id, status):
                 logging.error("Failed to save job to the database about failed job, job_id = %s, status = %s" % (job_id, status))
     except psycopg2.Error as e:
         logging.error("Failed to open connection to the database in set_job_status() for job with job_id = %s" % job_id)
+
+
+async def get_job_chunks_status(engine, job_id):
+    """Returns the status of the job and its job_chunks as a namedtuple"""
+    JobChunkStatus = namedtuple('JobStatus', ['job_id', 'job_status', 'job_chunk_database', 'job_chunk_status'])
+
+    try:
+        async with engine.acquire() as connection:
+            try:
+                # ambiguity in column names forces us to manually assign column labels
+                select_statement = sa.select(
+                    [
+                        Job.c.id.label('id'),
+                        Job.c.status.label('job_status'),
+                        JobChunk.c.job_id.label('job_id'),
+                        JobChunk.c.database.label('job_chunk_database'),
+                        JobChunk.c.status.label('job_chunk_status')
+                    ],
+                    use_labels=True
+                )
+
+                query = (select_statement
+                         .select_from(sa.join(Job, JobChunk, Job.c.id == JobChunk.c.job_id))  # noqa
+                         .where(Job.c.id == job_id))  # noqa
+
+                output = []
+                async for row in connection.execute(query):
+                    output.append(JobChunkStatus(
+                        job_id=row.job_id,
+                        job_status=row.job_status,
+                        job_chunk_database=row.job_chunk_database,
+                        job_chunk_status=row.job_chunk_status
+                    ))
+
+                if output == []:
+                    raise JobNotFound(job_id)
+                else:
+                    return output
+
+            except Exception as e:
+                logging.error("Failed to get job_chunk status, job_id = %s" % job_id)
+    except Exception as e:
+        raise web.HTTPNotFound(text=str(e)) from e
 
 
 async def check_job_chunks_status(engine, job_id):
