@@ -16,7 +16,7 @@ import datetime
 from aiohttp.test_utils import unittest_run_loop
 
 from .test_base import DBTestCase
-from .models import Job, JobChunk, JobChunkResult, Consumer
+from .models import Job, JobChunk, Consumer
 from .job_chunks import save_job_chunk, find_highest_priority_job_chunk, get_consumer_ip_from_job_chunk, \
     set_job_chunk_status
 

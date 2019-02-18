@@ -16,7 +16,7 @@ import datetime
 from aiohttp.test_utils import unittest_run_loop
 
 from .test_base import DBTestCase
-from .models import Job, JobChunk, JobChunkResult, Consumer
+from .models import Job
 from .jobs import save_job, set_job_status, get_job_query
 
 
