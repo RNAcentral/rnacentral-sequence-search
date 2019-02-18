@@ -13,6 +13,7 @@ limitations under the License.
 
 import logging
 import datetime
+import uuid
 
 import sqlalchemy as sa
 from aiohttp import web
@@ -27,6 +28,7 @@ async def save_job(engine, query):
             try:
                 job_id = await connection.scalar(
                     Job.insert().values(
+                        id=uuid.uuid4(),
                         query=query,
                         submitted=datetime.datetime.now(),
                         status='started'

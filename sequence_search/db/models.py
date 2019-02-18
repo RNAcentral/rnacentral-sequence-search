@@ -61,7 +61,7 @@ Consumer = sa.Table('consumer', metadata,
 
 """A search job that is divided into multiple job chunks per database"""
 Job = sa.Table('jobs', metadata,
-                 sa.Column('id', sa.Integer, primary_key=True),
+                 sa.Column('id', sa.String(36), primary_key=True),
                  sa.Column('query', sa.Text),
                  sa.Column('submitted', sa.DateTime),
                  sa.Column('finished', sa.DateTime, nullable=True),
@@ -70,7 +70,7 @@ Job = sa.Table('jobs', metadata,
 """Part of the search job, run against a specific database and assigned to a specific consumer"""
 JobChunk = sa.Table('job_chunks', metadata,
                   sa.Column('id', sa.Integer, primary_key=True),
-                  sa.Column('job_id', None, sa.ForeignKey('jobs.id')),
+                  sa.Column('job_id', sa.String(36), sa.ForeignKey('jobs.id')),
                   sa.Column('database', sa.String(255)),
                   sa.Column('submitted', sa.DateTime),
                   sa.Column('consumer', sa.ForeignKey('consumer.ip'), nullable=True),
@@ -130,7 +130,7 @@ async def migrate(ENVIRONMENT):
 
             await connection.execute('''
                 CREATE TABLE jobs (
-                  id serial PRIMARY KEY,
+                  id VARCHAR(36) PRIMARY KEY,
                   query TEXT,
                   submitted TIMESTAMP,
                   finished TIMESTAMP,
@@ -140,7 +140,7 @@ async def migrate(ENVIRONMENT):
             await connection.execute('''
                 CREATE TABLE job_chunks (
                   id serial PRIMARY KEY,
-                  job_id INT references jobs(id),
+                  job_id VARCHAR(36) references jobs(id),
                   database VARCHAR(255),
                   submitted TIMESTAMP,
                   consumer VARCHAR(15) references consumer(ip),
