@@ -67,8 +67,6 @@ async def set_job_status(engine, job_id, status):
 
 async def get_job_chunks_status(engine, job_id):
     """Returns the status of the job and its job_chunks as a namedtuple"""
-    JobChunkStatus = namedtuple('JobStatus', ['job_id', 'job_status', 'job_chunk_database', 'job_chunk_status'])
-
     try:
         async with engine.acquire() as connection:
             try:
@@ -78,8 +76,8 @@ async def get_job_chunks_status(engine, job_id):
                         Job.c.id.label('id'),
                         Job.c.status.label('job_status'),
                         JobChunk.c.job_id.label('job_id'),
-                        JobChunk.c.database.label('job_chunk_database'),
-                        JobChunk.c.status.label('job_chunk_status')
+                        JobChunk.c.database.label('database'),
+                        JobChunk.c.status.label('status')
                     ],
                     use_labels=True
                 )
@@ -90,12 +88,12 @@ async def get_job_chunks_status(engine, job_id):
 
                 output = []
                 async for row in connection.execute(query):
-                    output.append(JobChunkStatus(
-                        job_id=row.job_id,
-                        job_status=row.job_status,
-                        job_chunk_database=row.job_chunk_database,
-                        job_chunk_status=row.job_chunk_status
-                    ))
+                    output.append({
+                        'job_id': row.job_id,
+                        'job_status': row.job_status,
+                        'database': row.database,
+                        'status': row.status
+                    })
 
                 if output == []:
                     raise JobNotFound(job_id)

@@ -51,12 +51,14 @@ async def job_status(request):
     job_id = request.match_info['job_id']
 
     try:
-        chunks = get_job_chunks_status(request.app['engine'], job_id)
+        chunks = await get_job_chunks_status(request.app['engine'], job_id)
     except JobNotFound as e:
         raise web.HTTPNotFound(text="Job '%s' not found" % job_id) from e
 
-    return web.json_response({
+    data = {
         "job_id": job_id,
-        "status": chunks[0].status,
-        "chunks": chunks
-    })
+        "status": chunks[0]['job_status'],
+        "chunks": [{'database': chunk['database'], 'status': chunk['status']} for chunk in chunks]
+    }
+
+    return web.json_response(data)
