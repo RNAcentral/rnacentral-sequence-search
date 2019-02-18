@@ -17,6 +17,7 @@ import datetime
 import sqlalchemy as sa
 import psycopg2
 
+from . import DatabaseConnectionError
 from .models import Job, JobChunk
 
 
@@ -34,10 +35,11 @@ async def save_job_chunk(engine, job_id, database):
                 )
                 return job_chunk_id
             except Exception as e:
-                logging.error("Failed to save job_chunk for job_id = %s, database = %s", (job_id, database))
+                raise DatabaseConnectionError("Failed to save job_chunk for "
+                                              "job_id = %s, database = %s", (job_id, database)) from e
     except psycopg2.Error as e:
-        logging.error("Failed to open database connection in save_job_chunk for job_id = %s, database = %s" % (job_id, database))
-        return
+        raise DatabaseConnectionError("Failed to open database connection in save_job_chunk "
+                                      "for job_id = %s, database = %s" % (job_id, database)) from e
 
 
 async def find_highest_priority_job_chunk(engine):
@@ -50,24 +52,35 @@ async def find_highest_priority_job_chunk(engine):
     try:
         async with engine.acquire() as connection:
             try:
-                query = (sa.select([Job.c.id, Job.c.status, Job.c.submitted, JobChunk.c.job_id, JobChunk.c.id, JobChunk.c.database, JobChunk.c.status])
+                select_statement = sa.select(
+                    [
+                        Job.c.id.label('id'),
+                        Job.c.status.label('job_status'),
+                        Job.c.submitted.label('submitted'),
+                        JobChunk.c.job_id.label('job_id'),
+                        JobChunk.c.id.label('job_chunk_id'),
+                        JobChunk.c.database.label('database'),
+                        JobChunk.c.status.label('status')
+                    ],
+                    use_labels=True
+                )
+
+                query = (select_statement
                          .select_from(sa.join(Job, JobChunk, Job.c.id == JobChunk.c.job_id))  # noqa
                          .where(Job.c.status == 'started')
-                         .order_by(Job.c.submitted)
-                         .apply_labels())  # noqa
+                         .order_by(Job.c.submitted))  # noqa
 
                 # if there are started jobs and job_chunks, pick one from the earliest submitted job
                 async for row in connection.execute(query):  # select a job chunk to submit
-                    return row[0], row[4], row[5]
+                    return row.id, row.job_chunk_id, row.database
 
                 # if there are no running job_chunks, return None
                 return None, None, None
             except Exception as e:
-                logging.error("Failed to find highest priority job chunks")
+                raise DatabaseConnectionError("Failed to find highest priority job chunks") from e
 
     except psycopg2.Error as e:
-        logging.error(str(e))
-        return
+        raise DatabaseConnectionError(str(e)) from e
 
 
 async def get_consumer_ip_from_job_chunk(engine, job_chunk_id):
