@@ -16,7 +16,7 @@ import datetime
 import sqlalchemy as sa
 import psycopg2
 
-from . import DatabaseConnectionError
+from . import DatabaseConnectionError, SQLError
 from .models import Job, JobChunk
 
 
@@ -34,7 +34,7 @@ async def save_job_chunk(engine, job_id, database):
                 )
                 return job_chunk_id
             except Exception as e:
-                raise DatabaseConnectionError("Failed to save job_chunk for "
+                raise SQLError("Failed to save job_chunk for "
                                               "job_id = %s, database = %s", (job_id, database)) from e
     except psycopg2.Error as e:
         raise DatabaseConnectionError("Failed to open database connection in save_job_chunk "
@@ -76,7 +76,7 @@ async def find_highest_priority_job_chunk(engine):
                 # if there are no running job_chunks, return None
                 return None, None, None
             except Exception as e:
-                raise DatabaseConnectionError("Failed to find highest priority job chunks") from e
+                raise SQLError("Failed to find highest priority job chunks") from e
 
     except psycopg2.Error as e:
         raise DatabaseConnectionError(str(e)) from e
@@ -93,8 +93,7 @@ async def get_consumer_ip_from_job_chunk(engine, job_chunk_id):
                 async for row in connection.execute(query):
                     return row[0]
             except Exception as e:
-                raise DatabaseConnectionError("Failed to get consumer ip "
-                                              "from job_chunk, job_chunk_id = %s" % job_chunk_id) from e
+                raise SQLError("Failed to get consumer ip from job_chunk, job_chunk_id = %s" % job_chunk_id) from e
     except psycopg2.Error as e:
         raise DatabaseConnectionError(str(e)) from e
 
@@ -126,8 +125,8 @@ async def set_job_chunk_status(engine, job_id, database, status):
                 #     '''.format(job_chunks='job_chunks', job_id=job_id, database=database, status=status)
                 # )
             except Exception as e:
-                raise DatabaseConnectionError("Failed to set_job_chunk_status in the database,"
-                                              " job_id = %s, database = %s" % (job_id, database)) from e
+                raise SQLError("Failed to set_job_chunk_status in the database,"
+                               " job_id = %s, database = %s" % (job_id, database)) from e
     except psycopg2.Error as e:
         raise DatabaseConnectionError("Failed to open connection to the database in "
                       "set_job_chunk_status, job_id = %s, database = %s" % (job_id, database)) from e
@@ -150,8 +149,8 @@ async def set_job_chunk_consumer(engine, job_id, database, consumer_ip):
 
                 return id
             except Exception as e:
-                raise DatabaseConnectionError("Failed to set_job_chunk_status in the database, "
-                                              "job_id = %s, database = %s" % (job_id, database)) from e
+                raise SQLError("Failed to set_job_chunk_status in the database,"
+                               " job_id = %s, database = %s" % (job_id, database)) from e
     except psycopg2.Error as e:
         raise DatabaseConnectionError("Failed to open connection to the database in "
                       "set_job_chunk_status, job_id = %s, database = %s" % (job_id, database)) from e

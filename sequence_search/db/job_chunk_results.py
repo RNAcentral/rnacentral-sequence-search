@@ -14,7 +14,7 @@ limitations under the License.
 import sqlalchemy as sa
 import psycopg2
 
-from . import DatabaseConnectionError
+from . import DatabaseConnectionError, SQLError
 from .models import JobChunkResult
 
 
@@ -35,7 +35,7 @@ async def set_job_chunk_results(engine, job_id, database, results):
                 for result in results:
                     await connection.scalar(JobChunkResult.insert().values(job_chunk_id=job_chunk_id, **result))
             except Exception as e:
-                raise DatabaseConnectionError("Failed to set_job_chunk_results in the database, "
+                raise SQLError("Failed to set_job_chunk_results in the database, "
                                               "job_id = %s, database = %s" % (job_id, database)) from e
     except psycopg2.Error as e:
         raise DatabaseConnectionError("Failed to open connection to the database in "
