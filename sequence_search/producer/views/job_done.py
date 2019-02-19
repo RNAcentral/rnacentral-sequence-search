@@ -13,7 +13,7 @@ limitations under the License.
 
 from aiohttp import web
 
-from ...db.consumers import delegate_job_chunk_to_consumer
+from ...db.consumers import delegate_job_chunk_to_consumer, set_consumer_status
 from ...db.job_chunks import find_highest_priority_job_chunk, set_job_chunk_status, get_consumer_ip_from_job_chunk
 from ...db.jobs import check_job_chunks_status, set_job_status, get_job_query, job_exists
 
@@ -61,8 +61,10 @@ async def job_done(request):
 
         # if there are any pending jobs, try scheduling another job chunk for this consumer
         (job_id, job_chunk_id, database) = await find_highest_priority_job_chunk(request.app['engine'])
-        if job_id != None:
+        if job_id is not None:
             query = await get_job_query(request.app['engine'], job_id)
             await delegate_job_chunk_to_consumer(request.app['engine'], consumer_ip, job_id, database, query)
+        else:
+            await set_consumer_status(request.app['engine'], consumer_ip, 'available')
 
         return web.HTTPOk()
