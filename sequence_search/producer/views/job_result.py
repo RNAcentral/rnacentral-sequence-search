@@ -29,7 +29,7 @@ async def job_result(request):
       description: ID of job to display result for
       required: true
       schema:
-        type: integer
+        type: string
     responses:
       '200':
         description: Successfully returns result

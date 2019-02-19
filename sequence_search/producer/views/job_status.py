@@ -28,7 +28,7 @@ async def job_status(request):
       description: ID of job to display status for
       required: true
       schema:
-        type: integer
+        type: string
     responses:
       '200':
         description: Successfully returns results
@@ -38,13 +38,17 @@ async def job_status(request):
               type: object
               properties:
                 job_id:
-                  type: integer
+                  type: string
                 status:
                   type: string
                 chunks:
                   type: array
             example:
-              {job_id: 1, status: "started", chunks: [{'database': 'mirbase', 'status': 'started'}, {'database': 'pombase', 'status': 'started'}]}
+              {
+                job_id: "662c258b-04d8-4347-b8f5-3d9df82d769e",
+                status: "started",
+                chunks: [{'database': 'mirbase', 'status': 'started'}, {'database': 'pombase', 'status': 'started'}]
+              }
       '404':
         description: No status for given job_id (probably, job with this job_id doesn't exist)
     """

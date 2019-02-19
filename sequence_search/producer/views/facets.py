@@ -26,7 +26,7 @@ async def facets(request):
       description: ID of job to display facets for
       required: true
       schema:
-        type: integer
+        type: string
     responses:
       '200':
         description: Successful operation. Return sample facets json.
