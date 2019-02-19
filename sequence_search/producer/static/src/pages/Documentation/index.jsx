@@ -21,9 +21,15 @@ class Documentation extends React.Component {
     `;
 
     iframe.contentDocument.head.appendChild(style);
+
+    iframe.style.removeProperty("display");
   }
 
   render() {
+    let iframeStyle = {
+      display: "none"
+    };
+
     return (
       <div className="row">
         <div className="col-lg-12">
@@ -33,7 +39,7 @@ class Documentation extends React.Component {
             </div>
             <div className="panel-body">
               <div className="responsive-embed">
-                <iframe src="/api/doc" frameBorder="0" onLoad={this.onIframeLoad} id="swagger-iframe"></iframe>
+                <iframe id="swagger-iframe" src="/api/doc" frameBorder="0" onLoad={this.onIframeLoad} style={iframeStyle}></iframe>
               </div>
             </div>
           </div>
