@@ -15,5 +15,5 @@ from .views import post, get
 
 
 def setup_routes(app):
-    app.router.add_post('/post/{job_id:\d+}', post, name='post')
-    app.router.add_get('/get/{job_id:\d+}', get, name='get')
+    app.router.add_post('/post/{job_id:[A-Za-z0-9_-]+}', post, name='post')
+    app.router.add_get('/get/{job_id:[A-Za-z0-9_-]+}', get, name='get')
