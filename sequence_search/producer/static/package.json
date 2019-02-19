@@ -5,7 +5,7 @@
   "scripts": {
     "clean": "rm -rf dist/*",
     "build:prod": "node_modules/.bin/webpack -p --env.prod",
-    "build": "npm run build:prod",
+    "build": "npm run clean && npm run build:prod",
     "profile:build": "node_modules/.bin/webpack -p --env.prod --profile --json > webpack-stats.json",
     "serve": "node_modules/.bin/webpack-dev-server --progress --colors --history-api-fallback",
     "test": "echo \"Error: no test specified\" && exit 1"

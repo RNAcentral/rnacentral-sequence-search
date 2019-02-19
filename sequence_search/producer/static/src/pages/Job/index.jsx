@@ -45,6 +45,12 @@ class Job extends React.Component {
     this.getStatus();
   }
 
+  componentWillUnmount() {
+    if (this.statusTimeout) {
+      window.clearTimeout(this.statusTimeout);
+    }
+  }
+
   render() {
     return (
       <div className="row">
