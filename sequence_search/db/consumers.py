@@ -154,5 +154,7 @@ async def register_consumer_in_the_database(app):
                 INSERT INTO consumer(ip, status)
                 VALUES (:consumer_ip, 'available')
             '''), consumer_ip=get_ip(app))
+    except psycopg2.IntegrityError as e:
+        pass  # this is usually a duplicate key error - which is acceptable
     except psycopg2.Error as e:
         raise DatabaseConnectionError(str(e)) from e
