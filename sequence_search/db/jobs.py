@@ -135,15 +135,10 @@ async def job_exists(engine, job_id):
     try:
         async with engine.acquire() as connection:
             try:
-                sql_query = '''
-                    SELECT *
-                    FROM {job}
-                    WHERE id={job_id}
-                '''.format(job='jobs', job_id=job_id)
-
                 exists = False
-                async for row in connection.execute(sql_query):
+                async for row in connection.execute(sa.text('''SELECT * FROM jobs WHERE id=:job_id'''), job_id=job_id):
                     exists = True
+                    break
                 return exists
 
             except Exception as e:

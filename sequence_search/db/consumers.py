@@ -19,9 +19,9 @@ from aiohttp import web
 import psycopg2
 from netifaces import interfaces, ifaddresses, AF_INET
 
-from ..db import DatabaseConnectionError
-from ..db.jobs import set_job_status
-from ..db.job_chunks import set_job_chunk_status, set_job_chunk_consumer
+from . import DatabaseConnectionError
+from .jobs import set_job_status
+from .job_chunks import set_job_chunk_status, set_job_chunk_consumer
 from ..producer.consumer_client import ConsumerClient
 
 
@@ -44,7 +44,7 @@ async def find_available_consumers(engine):
         return result
 
     except psycopg2.Error as e:
-        raise DatabaseConnectionError(str(e))
+        raise DatabaseConnectionError(str(e)) from e
 
 
 async def get_consumer_status(engine, consumer_ip):
@@ -59,7 +59,7 @@ async def get_consumer_status(engine, consumer_ip):
             async for row in connection.execute(query, consumer_ip=consumer_ip):
                 return row.status
     except psycopg2.Error as e:
-        raise DatabaseConnectionError(str(e))
+        raise DatabaseConnectionError(str(e)) from e
 
 
 async def set_consumer_status(engine, consumer_ip, status):
@@ -75,7 +75,7 @@ async def set_consumer_status(engine, consumer_ip, status):
             result = await connection.execute(query, consumer_ip=consumer_ip, status=status)
 
     except psycopg2.Error as e:
-        raise DatabaseConnectionError(str(e))
+        raise DatabaseConnectionError(str(e)) from e
 
 
 async def delegate_job_chunk_to_consumer(engine, consumer_ip, job_id, database, query):
@@ -155,4 +155,4 @@ async def register_consumer_in_the_database(app):
                 VALUES (:consumer_ip, 'available')
             '''), consumer_ip=get_ip(app))
     except psycopg2.Error as e:
-        raise DatabaseConnectionError(str(e))
+        raise DatabaseConnectionError(str(e)) from e

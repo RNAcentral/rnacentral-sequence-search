@@ -11,11 +11,6 @@ See the License for the specific language governing permissions and
 limitations under the License.
 """
 
-from .test_consumers import *
-from .test_job_chunk_results import *
-from .test_job_chunks import *
-from .test_jobs import *
-
 
 class DatabaseConnectionError(Exception):
     def __init__(self, text):
