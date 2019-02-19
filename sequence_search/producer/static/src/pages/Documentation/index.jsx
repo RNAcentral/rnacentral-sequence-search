@@ -2,6 +2,27 @@ import React from 'react';
 
 
 class Documentation extends React.Component {
+  onIframeLoad() {
+    let iframe = document.getElementById('swagger-iframe');
+    let style = document.createElement('style');
+
+    style.textContent = `
+      .swagger-section #header {
+        display: none;
+      }
+      
+      .swagger-section #api_info {
+        display: none;
+      }
+      
+      .swagger-section #message-bar {
+        display: none;
+      }
+    `;
+
+    iframe.contentDocument.head.appendChild(style);
+  }
+
   render() {
     return (
       <div className="row">
@@ -11,9 +32,9 @@ class Documentation extends React.Component {
               <h1>Documentation</h1>
             </div>
             <div className="panel-body">
-              <p>
-                <a href="/api/doc">API documentation</a>
-              </p>
+              <div className="responsive-embed">
+                <iframe src="/api/doc" frameBorder="0" onLoad={this.onIframeLoad} id="swagger-iframe"></iframe>
+              </div>
             </div>
           </div>
         </div>
