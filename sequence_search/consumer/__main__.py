@@ -12,6 +12,7 @@ limitations under the License.
 """
 
 import logging
+import os
 
 import aiohttp_jinja2
 import jinja2
@@ -20,16 +21,32 @@ from aiohttp import web, web_middlewares
 
 from . import settings
 from ..db.models import init_pg
+from ..db.consumers import register_consumer_in_the_database
 from ..db.settings import get_postgres_credentials
 from .urls import setup_routes
 
 """
 Run either of the following commands from the parent of current directory:
 
-adev runserver producer --livereload
+adev runserver consumer --livereload
 
-python3 -m producer.main
+python3 -m sequence_search.consumer
 """
+
+
+async def on_startup(app):
+    # initialize database connection
+    await init_pg(app)
+
+    # register self in the database
+    await register_consumer_in_the_database(app)
+
+    # clear queries and results directories
+    for name in os.listdir(settings.RESULTS_DIR):
+        os.remove(settings.RESULTS_DIR / name)
+
+    for name in os.listdir(settings.QUERY_DIR):
+        os.remove(settings.QUERY_DIR / name)
 
 
 def create_app():
@@ -39,18 +56,16 @@ def create_app():
         web_middlewares.normalize_path_middleware(append_slash=True),
     ], client_max_size=4096**2)
 
-    app.update(name='producer', settings=settings)
+    app.update(name='consumer', settings=settings)
 
-    # setup Jinja2 template renderer; jinja2 contains various loaders, can also try PackageLoader etc.
-    aiohttp_jinja2.setup(app, loader=jinja2.FileSystemLoader(str(settings.PROJECT_ROOT / 'static')))
+    # setup Jinja2 template renderer
+    aiohttp_jinja2.setup(app, loader=jinja2.PackageLoader('sequence_search', 'consumer', 'templates'))
 
     # create db connection on startup, shutdown on exit
     for key, value in get_postgres_credentials(settings.ENVIRONMENT)._asdict().items():
         setattr(app['settings'], key, value)
 
-    # create db connection on startup, shutdown on exit
-    app.on_startup.append(init_pg)
-    # app.on_cleanup.append(close_pg)
+    app.on_startup.append(on_startup)
 
     # setup views and routes
     setup_routes(app)
@@ -68,9 +83,9 @@ app = create_app()
 
 
 if __name__ == '__main__':
-    web.run_app(app, host=app['settings'].HOST, port=app['settings'].PORT)
+    web.run_app(app, host=settings.HOST, port=settings.PORT)
 
-# Why using thread pool at all? Because there can be blocking calls: https://pymotw.com/3/asyncio/executors.html
-# pool = ThreadPoolExecutor(max_workers=1)
-# loop.run_in_executor(self.pool, get_request, url)
-# data = deque([])
+    # Why using thread pool at all? Because there can be blocking calls: https://pymotw.com/3/asyncio/executors.html
+    # pool = ThreadPoolExecutor(max_workers=1)
+    # loop.run_in_executor(self.pool, get_request, url)
+    # data = deque([])

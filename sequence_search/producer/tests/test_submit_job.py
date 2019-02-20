@@ -16,7 +16,7 @@ import logging
 
 from aiohttp.test_utils import unittest_run_loop
 
-from ..main import create_app
+from ..__main__ import create_app
 from aiohttp.test_utils import AioHTTPTestCase
 
 
