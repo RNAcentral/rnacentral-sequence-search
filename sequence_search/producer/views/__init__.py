@@ -13,7 +13,6 @@ limitations under the License.
 
 from .index import index
 from .job_chunk_heartbeat import job_chunk_heartbeat
-from .job_done import job_done
 from .job_status import job_status
 from .job_result import job_result
 from .submit_job import submit_job
