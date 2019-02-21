@@ -26,3 +26,12 @@ class SQLError(Exception):
 
     def __str__(self):
         return self.text
+
+
+class DoesNotExist(Exception):
+    def __init__(self, key, value):
+        self.key = key
+        self.value = value
+
+    def __str__(self):
+        return "%s: %s not found" % (self.key, self.value)

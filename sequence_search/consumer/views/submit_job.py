@@ -22,6 +22,8 @@ from ..nhmmer_search import nhmmer_search
 from ..filenames import query_file_path, result_file_path
 from ..producer_client import ProducerClient
 from ...db.job_chunk_results import set_job_chunk_results
+from ...db.job_chunks import get_consumer_ip_from_job_chunk, get_job_chunk_from_job_and_database
+from ...db.consumers import set_consumer_status
 
 
 async def nhmmer(engine, job_id, sequence, database):
@@ -58,7 +60,13 @@ async def nhmmer(engine, job_id, sequence, database):
     headers = {'content-type': 'application/json'}
 
     try:
+        job_chunk_id = await get_job_chunk_from_job_and_database(engine, job_id, database)
+        consumer_ip = await get_consumer_ip_from_job_chunk(engine, job_chunk_id)
+
         await set_job_chunk_results(engine, job_id, database, results)
+        await set_consumer_status('engine', consumer_ip, 'available')
+
+
     except Exception as e:
         return web.HTTPInternalServerError(text=str(e))
 

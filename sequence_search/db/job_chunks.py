@@ -16,8 +16,27 @@ import datetime
 import sqlalchemy as sa
 import psycopg2
 
-from . import DatabaseConnectionError, SQLError
+from . import DatabaseConnectionError, SQLError, DoesNotExist
 from .models import Job, JobChunk
+
+
+async def get_job_chunk_from_job_and_database(engine, job_id, database):
+    try:
+        async with engine.acquire() as connection:
+            query = (
+                sa.select([JobChunk.c.id, JobChunk.c.job_id, JobChunk.c.database])
+                .select_from(JobChunk)
+                .where(sa.and_(JobChunk.c.job_id == job_id, JobChunk.c.database == database))
+            )
+
+            async for row in await connection.execute(query):
+                return row.id
+
+            raise DoesNotExist("JobChunk", "job_id = %s, database = %s" % (job_id, database))
+
+    except psycopg2.Error as e:
+        raise DatabaseConnectionError("Failed to open database connection in get_job_chunk_from_job_and_database "
+                                      "for job_id = %s, database = %s" % (job_id, database)) from e
 
 
 async def save_job_chunk(engine, job_id, database):

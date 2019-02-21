@@ -12,13 +12,66 @@ limitations under the License.
 """
 
 import datetime
+import uuid
 
 from aiohttp.test_utils import unittest_run_loop
 
 from .test_base import DBTestCase
+from . import DoesNotExist
 from .models import Job, JobChunk, Consumer
 from .job_chunks import save_job_chunk, find_highest_priority_job_chunk, get_consumer_ip_from_job_chunk, \
-    set_job_chunk_status
+    set_job_chunk_status, get_job_chunk_from_job_and_database
+
+
+class GetJobChunkFromJobAndDatabase(DBTestCase):
+    """
+    Run this test with the following command:
+
+    ENVIRONMENT=TEST python -m unittest sequence_search.db.test_job_chunks.GetJobChunkFromJobAndDatabase
+    """
+    async def setUpAsync(self):
+        await super().setUpAsync()
+
+        async with self.app['engine'].acquire() as connection:
+            self.job_id = str(uuid.uuid4())
+
+            await connection.execute(
+                Job.insert().values(
+                    id=self.job_id,
+                    query='AACAGCATGAGTGCGCTGGATGCTG',
+                    submitted=datetime.datetime.now(),
+                    status='started'
+                )
+            )
+
+            self.job_chunk_id = await connection.scalar(
+                JobChunk.insert().values(
+                    job_id=self.job_id,
+                    database='mirbase',
+                    submitted=datetime.datetime.now(),
+                    status='pending'
+                )
+            )
+
+    @unittest_run_loop
+    async def test_get_job_chunk_from_job_and_database_success(self):
+        job_chunk_id = await get_job_chunk_from_job_and_database(
+            self.app['engine'],
+            job_id=self.job_id,
+            database='mirbase'
+        )
+        assert job_chunk_id == self.job_chunk_id
+
+    @unittest_run_loop
+    async def test_get_job_chunk_from_job_and_database_does_not_exist(self):
+        try:
+            job_chunk_id = await get_job_chunk_from_job_and_database(
+                self.app['engine'],
+                job_id=str(uuid.uuid4()),
+                database='mirbase'
+            )
+        except Exception as e:
+            assert type(e) == DoesNotExist
 
 
 class SaveJobChunkTestCase(DBTestCase):
@@ -52,7 +105,7 @@ class FindHighestPriorityJobChunkTestCase(DBTestCase):
 
         async with self.app['engine'].acquire() as connection:
             self.job_id = await connection.scalar(
-                Job.insert().values(query='AACAGCATGAGTGCGCTGGATGCTG', submitted=datetime.datetime.now(), status='started')
+                Job.insert().values(id=uuid.uuid4(), query='AACAGCATGAGTGCGCTGGATGCTG', submitted=datetime.datetime.now(), status='started')
             )
 
             self.job_id2 = await connection.scalar(
