@@ -12,7 +12,6 @@ limitations under the License.
 """
 
 from .test_submit_job import *
-from .test_job_done import *
 from .test_job_status import *
 from .test_job_result import *
 from .test_facets_search import *
