@@ -39,7 +39,13 @@ class Result extends React.Component {
    */
   fetchSearchResults(resultId, query, page, page_size) {
     return fetch(routes.facetsSearch(resultId, query, page, page_size))
-      .then(response => response.json());
+      .then((response) => {
+        if (response.ok) {
+          return response.json();
+        } else {
+          throw new Error(response.statusText);
+        }
+      });
   }
 
   /**

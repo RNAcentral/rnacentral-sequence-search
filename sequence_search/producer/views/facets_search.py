@@ -15,7 +15,7 @@ import logging
 
 from aiohttp import web
 
-from ...db.jobs import get_job_results
+from ...db.jobs import get_job_results, job_exists
 from ..text_search_client import get_text_search_results, ProxyConnectionError, EBITextSearchConnectionError
 
 
@@ -197,6 +197,9 @@ async def facets_search(request):
         description: Could not connect to EBI search proxy
     """
     job_id = request.match_info['job_id']
+
+    if not await job_exists(request.app['engine'], job_id):
+        return web.HTTPNotFound(text="Job %s does not exist" % job_id)
 
     query = request.query['query'] if 'query' in request.query else 'rna'
     page = request.query['page'] if 'page' in request.query else 1
