@@ -12,6 +12,7 @@ limitations under the License.
 """
 
 import logging
+import asyncio
 
 import aiohttp_jinja2
 import jinja2
@@ -67,8 +68,35 @@ def create_app():
 app = create_app()
 
 
+def create_consumer_scheduler():
+    """
+    Periodically runs a task that checks the status of consumers in the database and
+     - collects results from finished jobs
+     - schedules job_chunks to run on consumers
+
+     TODO:
+     - restarts failed job chunks
+     - if consumer takes too long to process a task - possibly it crashed
+
+    Stolen from:
+    https://stackoverflow.com/questions/37512182/how-can-i-periodically-execute-a-function-with-asyncio
+    """
+    async def periodic():
+        while True:
+            print('Running a periodic polling loop')
+            await asyncio.sleep(5)
+
+    try:
+        loop = asyncio.get_event_loop()
+        task = loop.create_task(periodic())
+    except asyncio.CancelledError:
+        pass
+
+
 if __name__ == '__main__':
+    create_consumer_scheduler()
     web.run_app(app, host=app['settings'].HOST, port=app['settings'].PORT)
+
 
 # Why using thread pool at all? Because there can be blocking calls: https://pymotw.com/3/asyncio/executors.html
 # pool = ThreadPoolExecutor(max_workers=1)
