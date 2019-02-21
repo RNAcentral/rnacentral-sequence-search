@@ -65,6 +65,8 @@ async def create_consumer_scheduler(app):
                 query = await get_job_query(app['engine'], job_id)
                 await delegate_job_chunk_to_consumer(app['engine'], consumers[0].ip, job_id, database, query)
 
+            print("periodic scheduler started, consumers = %s, job_chunk_id = %s" % (consumers, job_chunk_id))
+
             await asyncio.sleep(5)
 
     loop = asyncio.get_event_loop()

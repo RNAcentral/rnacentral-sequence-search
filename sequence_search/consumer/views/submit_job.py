@@ -61,7 +61,7 @@ async def nhmmer(engine, job_id, sequence, database):
 
     # update consumer status
     consumer_ip = await get_consumer_ip_from_job_chunk(engine, job_chunk_id)
-    await set_consumer_status('engine', consumer_ip, 'available')
+    await set_consumer_status(engine, consumer_ip, 'available')
 
 
 def serialize(request, data):
