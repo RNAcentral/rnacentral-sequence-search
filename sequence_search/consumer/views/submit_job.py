@@ -20,9 +20,9 @@ from .. import settings
 from ..nhmmer_parse import nhmmer_parse
 from ..nhmmer_search import nhmmer_search
 from ..filenames import query_file_path, result_file_path
-from ..producer_client import ProducerClient
 from ...db.job_chunk_results import set_job_chunk_results
-from ...db.job_chunks import get_consumer_ip_from_job_chunk, get_job_chunk_from_job_and_database
+from ...db.job_chunks import get_consumer_ip_from_job_chunk, get_job_chunk_from_job_and_database, set_job_chunk_status
+from ...db.jobs import check_job_chunks_status, set_job_status
 from ...db.consumers import set_consumer_status
 
 
@@ -36,41 +36,32 @@ async def nhmmer(engine, job_id, sequence, database):
     :param database: name of the database to search against
     :return:
     """
-
-    # TODO: recoverable errors handling
-    # TODO: irrecoverable errors handling
-
     logger = logging.Logger('aiohttp.web')
-    logger.info('Job %s spawned' % job_id)
 
-    filename = await nhmmer_search(sequence=sequence, job_id=job_id, database=database)
-    logger.info('Nhmmer search finished processing %s' % job_id)
-
-    results = []
-    for record in nhmmer_parse(filename=filename):
-        results.append(record)
-
-    await done(engine, job_id, sequence, database)
-
-
-async def done(engine, job_id, sequence, database):
     job_chunk_id = await get_job_chunk_from_job_and_database(engine, job_id, database)
-    consumer_ip = await get_consumer_ip_from_job_chunk(engine, job_chunk_id)
 
-        await set_job_chunk_results(engine, job_id, database, results)
-        await set_consumer_status('engine', consumer_ip, 'available')
-
-
-    except Exception as e:
-        return web.HTTPInternalServerError(text=str(e))
-
+    logger.info('Nhmmer search started for: job_id = %s, database = %s' % (job_id, database))
     try:
-        await ProducerClient().report_job_chunk_done(response_url, headers, job_id, database)
+        filename = await nhmmer_search(sequence=sequence, job_id=job_id, database=database)
+        logger.info('Nhmmer search success for: job_id = %s, database = %s' % (job_id, database))
     except Exception as e:
-        logger.error('Job %s erred: %s' % (job_id, str(e)))
-        return web.HTTPBadGateway(text=str(e))
+        # TODO: recoverable errors handling
+        # TODO: irrecoverable errors handling
+        logger.error('Nhmmer search error for: job_id = %s, database = %s' % (job_id, database))
 
+    results = [record for record in nhmmer_parse(filename=filename)]  # parse nhmmer results to python
 
+    # update job_chunk in the database
+    await set_job_chunk_status(engine, job_id, database, status='success')
+    await set_job_chunk_results(engine, job_id, database, results)
+
+    # update job in the database, if the whole job's done
+    if await check_job_chunks_status(engine, job_id):
+        await set_job_status(engine, job_id, 'success')
+
+    # update consumer status
+    consumer_ip = await get_consumer_ip_from_job_chunk(engine, job_chunk_id)
+    await set_consumer_status('engine', consumer_ip, 'available')
 
 
 def validate_job_data(job_id, sequence, database):
