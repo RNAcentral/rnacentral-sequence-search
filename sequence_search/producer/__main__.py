@@ -21,6 +21,9 @@ from aiohttp import web, web_middlewares
 
 from . import settings
 from ..db.models import init_pg
+from ..db.job_chunks import find_highest_priority_job_chunk
+from ..db.jobs import get_job_query
+from ..db.consumers import delegate_job_chunk_to_consumer, find_available_consumers
 from ..db.settings import get_postgres_credentials
 from .urls import setup_routes
 
@@ -31,6 +34,41 @@ adev runserver producer --livereload
 
 python3 -m sequence_search.producer
 """
+
+
+async def on_startup(app):
+    # initialize database connection
+    await init_pg(app)
+
+    # initialize scheduling tasks to consumers in background
+    await create_consumer_scheduler(app)
+
+
+async def create_consumer_scheduler(app):
+    """
+    Periodically runs a task that checks the status of consumers in the database and
+     - schedules job_chunks to run on consumers
+     - TODO: restarts failed job chunks
+     - TODO: if consumer takes too long to process a task - possibly it crashed
+
+    Stolen from:
+    https://stackoverflow.com/questions/37512182/how-can-i-periodically-execute-a-function-with-asyncio
+    """
+    async def periodic():
+        while True:
+            # if there are any pending jobs and free consumers, schedule their execution
+            (job_id, job_chunk_id, database) = await find_highest_priority_job_chunk(app['engine'])
+            consumers = await find_available_consumers(app['engine'])
+
+            # TODO: we're starting just 1 job_chunk at a time, but nothing prevents us from starting them all
+            if job_id is not None and len(consumers) > 0:
+                query = await get_job_query(app['engine'], job_id)
+                await delegate_job_chunk_to_consumer(app['engine'], consumers[0].ip, job_id, database, query)
+
+            await asyncio.sleep(5)
+
+    loop = asyncio.get_event_loop()
+    task = loop.create_task(periodic())
 
 
 def create_app():
@@ -50,7 +88,7 @@ def create_app():
         setattr(app['settings'], key, value)
 
     # create db connection on startup, shutdown on exit
-    app.on_startup.append(init_pg)
+    app.on_startup.append(on_startup)
     # app.on_cleanup.append(close_pg)
 
     # setup views and routes
@@ -65,36 +103,9 @@ def create_app():
     return app
 
 
-app = create_app()
-
-
-def create_consumer_scheduler():
-    """
-    Periodically runs a task that checks the status of consumers in the database and
-     - collects results from finished jobs
-     - schedules job_chunks to run on consumers
-
-     TODO:
-     - restarts failed job chunks
-     - if consumer takes too long to process a task - possibly it crashed
-
-    Stolen from:
-    https://stackoverflow.com/questions/37512182/how-can-i-periodically-execute-a-function-with-asyncio
-    """
-    async def periodic():
-        while True:
-            print('Running a periodic polling loop')
-            await asyncio.sleep(5)
-
-    try:
-        loop = asyncio.get_event_loop()
-        task = loop.create_task(periodic())
-    except asyncio.CancelledError:
-        pass
-
-
 if __name__ == '__main__':
-    create_consumer_scheduler()
+    app = create_app()
+    create_consumer_scheduler(app)
     web.run_app(app, host=app['settings'].HOST, port=app['settings'].PORT)
 
 

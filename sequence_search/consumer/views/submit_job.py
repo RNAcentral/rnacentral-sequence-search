@@ -95,7 +95,7 @@ async def submit_job(request):
     try:
         data = serialize(request, data)
     except (KeyError, TypeError, ValueError) as e:
-        raise web.HTTPBadRequest(text='Bad input: %s' % str(e)) from e
+        raise web.HTTPBadRequest(text=str(e)) from e
 
     await spawn(request, nhmmer(request.app['engine'], data['job_id'], data['sequence'], data['database']))
 
