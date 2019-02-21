@@ -50,18 +50,12 @@ async def nhmmer(engine, job_id, sequence, database):
     for record in nhmmer_parse(filename=filename):
         results.append(record)
 
-    response_url = "{protocol}://{host}:{port}/{url}".format(
-        protocol=settings.PRODUCER_PROTOCOL,
-        host=settings.PRODUCER_HOST,
-        port=settings.PRODUCER_PORT,
-        url=settings.PRODUCER_JOB_DONE_URL
-    )
+    await done(engine, job_id, sequence, database)
 
-    headers = {'content-type': 'application/json'}
 
-    try:
-        job_chunk_id = await get_job_chunk_from_job_and_database(engine, job_id, database)
-        consumer_ip = await get_consumer_ip_from_job_chunk(engine, job_chunk_id)
+async def done(engine, job_id, sequence, database):
+    job_chunk_id = await get_job_chunk_from_job_and_database(engine, job_id, database)
+    consumer_ip = await get_consumer_ip_from_job_chunk(engine, job_chunk_id)
 
         await set_job_chunk_results(engine, job_id, database, results)
         await set_consumer_status('engine', consumer_ip, 'available')
@@ -75,6 +69,8 @@ async def nhmmer(engine, job_id, sequence, database):
     except Exception as e:
         logger.error('Job %s erred: %s' % (job_id, str(e)))
         return web.HTTPBadGateway(text=str(e))
+
+
 
 
 def validate_job_data(job_id, sequence, database):

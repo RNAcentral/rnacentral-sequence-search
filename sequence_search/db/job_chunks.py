@@ -104,15 +104,14 @@ async def find_highest_priority_job_chunk(engine):
 async def get_consumer_ip_from_job_chunk(engine, job_chunk_id):
     try:
         async with engine.acquire() as connection:
-            try:
-                query = (sa.select([JobChunk.c.consumer])
-                         .select_from(JobChunk)
-                         .where(JobChunk.c.id == job_chunk_id)
-                         .apply_labels())
-                async for row in connection.execute(query):
-                    return row[0]
-            except Exception as e:
-                raise SQLError("Failed to get consumer ip from job_chunk, job_chunk_id = %s" % job_chunk_id) from e
+            query = (sa.select([JobChunk.c.consumer])
+                     .select_from(JobChunk)
+                     .where(JobChunk.c.id == job_chunk_id)
+                     .apply_labels())
+            async for row in connection.execute(query):
+                return row[0]
+
+            raise DoesNotExist("JobChunk", "job_chunk_id = %s" % job_chunk_id)
     except psycopg2.Error as e:
         raise DatabaseConnectionError(str(e)) from e
 
