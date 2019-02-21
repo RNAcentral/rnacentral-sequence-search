@@ -20,28 +20,30 @@ from ...db.job_chunks import save_job_chunk
 
 
 def serialize(request, data):
-    """Validates and normalizes input data."""
-    try:
-        query = data['query']
-        databases = data['databases']
-    except (KeyError, TypeError, ValueError) as e:
-        raise web.HTTPBadRequest(text='Bad input') from e
+    """
+    Validates and normalizes input data.
+
+    :param request:
+    :param data:
+    :return: Normalized data
+    :raise: KeyError, TypeError, ValueError
+    """
+    query = data['query']
+    databases = data['databases']
 
     # validate query
-    for char in data['query']:
+    for char in query:
         if char not in ['A', 'T', 'G', 'C', 'U']:
-            raise web.HTTPBadRequest(
-                text="Input query should be a nucleotide sequence"
-                     " and contain only {ATGCU} characters, found: '%s'." % data['query']
-            )
+            raise ValueError(text="Input query should be a nucleotide sequence "
+                                  "and contain only {ATGCU} characters, found: '%s'." % query)
 
     # normalize query: convert nucleotides to RNA
-    data['query'] = data['query'].replace('T', 'U')
+    data['query'] = query.replace('T', 'U')
 
     # validate databases
-    for database in data['databases']:
+    for database in databases:
         if database.lower() not in request.app['settings'].RNACENTRAL_DATABASES:
-            raise web.HTTPBadRequest(text="Database '%s' not in list of RNAcentral databases" % database)
+            raise ValueError(text="Database '%s' not in list of RNAcentral databases" % database)
 
     # normalize databases: convert them to lower case
     data['databases'] = [datum.lower() for datum in data['databases']]
@@ -56,18 +58,6 @@ async def save(request, data):
         for database in data['databases']:
             job_chunk_id = await save_job_chunk(request.app['engine'], job_id, database)
     return job_id
-
-
-async def get_job_chunk_by_job_id_and_database(request, job_id, database):
-    async with request.app['engine'].acquire() as connection:
-        query = sa.text('''  
-            SELECT id
-            FROM job_chunks
-            WHERE job_id={job_id} AND database='{database}'
-        ''').format(job_id=job_id, database=database)
-        result = await connection.execute(query)
-
-        return result
 
 
 async def submit_job(request):
@@ -113,20 +103,27 @@ async def submit_job(request):
     """
 
     data = await request.json()
-    data = serialize(request, data)
 
-    job_id = await save(request, data)
+    try:
+        data = serialize(request, data)
+    except (KeyError, TypeError, ValueError) as e:
+        raise web.HTTPBadRequest(text=str(e)) from e
+
+    # save metadata about this job and job_chunks to the database
+    job_id = await save_job(request.app['engine'], data['query'])
+    for database in data['databases']:
+        job_chunk_id = await save_job_chunk(request.app['engine'], job_id, database)
+
+    # TODO: what if Job was saved and JobChunk was not? Need transactions?
 
     consumers = await find_available_consumers(request.app['engine'])
-    databases_copy = data['databases']
-
-    for consumer in consumers:
+    for index in range(min(len(consumers), len(data['databases']))):
         try:
             await delegate_job_chunk_to_consumer(
                 engine=request.app['engine'],
-                consumer_ip=consumer.ip,
+                consumer_ip=consumers[index].ip,
                 job_id=job_id,
-                database=databases_copy.pop(),
+                database=data['databases'][index],
                 query=data['query']
             )
         except Exception as e:

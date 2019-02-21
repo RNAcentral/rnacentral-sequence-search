@@ -64,23 +64,24 @@ async def nhmmer(engine, job_id, sequence, database):
     await set_consumer_status('engine', consumer_ip, 'available')
 
 
-def validate_job_data(job_id, sequence, database):
+def serialize(request, data):
     """Ad-hoc validator for input JSON data"""
+    job_id = data['job_id']
+    sequence = data['sequence']
+    database = data['database']
+
     if os.path.isfile(query_file_path(job_id, database)) or os.path.isfile(result_file_path(job_id, database)):
-        raise web.HTTPBadRequest(text="job with id '%s' has already been submitted" % job_id)
+        raise ValueError(text="job with id '%s' has already been submitted" % job_id)
 
     if database not in settings.RNACENTRAL_DATABASES:
-        raise web.HTTPBadRequest(
-            text="Database argument is wrong: '%s' is not"
-                 " one of RNAcentral databases." % database
-        )
+        raise ValueError(text="Database argument is wrong: '%s' is not one of RNAcentral databases." % database)
 
     for char in sequence:
         if char not in ['A', 'T', 'G', 'C', 'U']:
-            raise web.HTTPBadRequest(
-                text="Input sequence should be nucleotide sequence"
-                     " and contain only {ATGCU} characters, found: '%s'." % sequence
-            )
+            raise ValueError(text="Input sequence should be nucleotide sequence "
+                                  "and contain only {ATGCU} characters, found: '%s'." % sequence)
+
+    return data
 
 
 async def submit_job(request):
@@ -89,23 +90,13 @@ async def submit_job(request):
 
     curl -H "Content-Type:application/json" -d "{\"job_id\": 1, \"database\": \"miRBase\", \"sequence\": \"AAAAGGTCGGAGCGAGGCAAAATTGGCTTTCAAACTAGGTTCTGGGTTCACATAAGACCT\"}" localhost:8000/submit-job
     """
-    logger = logging.Logger('aiohttp.web')
-
     data = await request.json()
-    logger.info('Job %s submitted ' % data['job_id'])
+
     try:
-        job_id = data['job_id']
-        sequence = data['sequence']
-        database = data['database']
+        data = serialize(request, data)
     except (KeyError, TypeError, ValueError) as e:
         raise web.HTTPBadRequest(text='Bad input: %s' % str(e)) from e
 
-    logger.info('Job %s data validated' % data['job_id'])
-    validate_job_data(job_id, sequence, database)
-
-    await spawn(request, nhmmer(request.app['engine'], job_id, sequence, database))
-
-    # url = request.app.router['result'].url_for(result_id=str(job_id))
-    # return web.HTTPFound(location=url)
+    await spawn(request, nhmmer(request.app['engine'], data['job_id'], data['sequence'], data['database']))
 
     return web.HTTPCreated()
