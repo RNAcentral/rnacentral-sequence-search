@@ -66,11 +66,13 @@ module.exports = function(env) {
         }
       ]
     },
+    // A good explanation of how contentBase and publicPath work:
+    // https://github.com/webpack/docs/wiki/webpack-dev-server
     devServer: {
-      publicPath: '/dist',
-      contentBase: './dist',
+      publicPath: '/dist', // suffix of bundle url in index.html that makes it localhost:8080<publicPath>/app.4d9882a.js
+      contentBase: './', // location of index.html that webpack-dev-server creates in memory-fs
       hot: true,
-      proxy: {
+      proxy: { // requests to these urls are proxied to the real backend server
         '/api': {
             target: 'http://localhost:8002',
             secure: false
