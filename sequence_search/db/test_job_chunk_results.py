@@ -16,7 +16,7 @@ import datetime
 from aiohttp.test_utils import unittest_run_loop
 import sqlalchemy as sa
 
-from .models import Job, JobChunk
+from .models import Job, JobChunk, JOB_STATUS_CHOICES
 from .job_chunk_results import set_job_chunk_results
 from .test_base import DBTestCase
 
@@ -32,7 +32,11 @@ class SetJobChunkResultsTestCase(DBTestCase):
 
         async with self.app['engine'].acquire() as connection:
             self.job_id = await connection.scalar(
-                Job.insert().values(query='AACAGCATGAGTGCGCTGGATGCTG', submitted=datetime.datetime.now(), status='started')
+                Job.insert().values(
+                    query='AACAGCATGAGTGCGCTGGATGCTG',
+                    submitted=datetime.datetime.now(),
+                    status=JOB_STATUS_CHOICES.started
+                )
             )
 
             self.job_chunk_id = await connection.scalar(

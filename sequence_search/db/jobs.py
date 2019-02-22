@@ -18,7 +18,7 @@ import sqlalchemy as sa
 import psycopg2
 
 from . import DatabaseConnectionError, SQLError
-from .models import Job, JobChunk, JobChunkResult
+from .models import Job, JobChunk, JobChunkResult, JOB_STATUS_CHOICES
 
 
 class JobNotFound(Exception):
@@ -40,7 +40,7 @@ async def save_job(engine, query):
                         id=job_id,
                         query=query,
                         submitted=datetime.datetime.now(),
-                        status='started'
+                        status=JOB_STATUS_CHOICES.started
                     )
                 )
 

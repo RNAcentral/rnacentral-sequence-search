@@ -16,7 +16,7 @@ import datetime
 from aiohttp.test_utils import unittest_run_loop
 import sqlalchemy as sa
 
-from .models import Job, JobChunk, Consumer
+from .models import Job, JobChunk, Consumer, CONSUMER_STATUS_CHOICES, JOB_STATUS_CHOICES
 from .consumers import get_consumer_status, set_consumer_status, find_available_consumers, \
     delegate_job_chunk_to_consumer, register_consumer_in_the_database
 from .test_base import DBTestCase
@@ -36,21 +36,21 @@ class FindAvailableConsumersTestCase(DBTestCase):
             await connection.execute(
                 Consumer.insert().values(
                     ip='192.168.0.2',
-                    status='available'
+                    status=CONSUMER_STATUS_CHOICES.available
                 )
             )
 
             await connection.execute(
                 Consumer.insert().values(
                     ip='192.168.0.3',
-                    status='busy'
+                    status=CONSUMER_STATUS_CHOICES.busy
                 )
             )
 
             await connection.execute(
                 Consumer.insert().values(
                     ip='192.168.0.4',
-                    status='available'
+                    status=CONSUMER_STATUS_CHOICES.available
                 )
             )
 
@@ -61,10 +61,10 @@ class FindAvailableConsumersTestCase(DBTestCase):
         for index, row in enumerate(consumers):
             if index == 0:
                 assert row.ip == '192.168.0.2'
-                assert row.status == 'available'
+                assert row.status == CONSUMER_STATUS_CHOICES.available
             elif index == 1:
                 assert row.ip == '192.168.0.4'
-                assert row.status == 'available'
+                assert row.status == CONSUMER_STATUS_CHOICES.available
 
 
 class GetConsumerStatusTestCase(DBTestCase):
@@ -80,12 +80,12 @@ class GetConsumerStatusTestCase(DBTestCase):
             self.consumer_ip = '192.168.1.1'
             Consumer.insert().values(
                 ip=self.consumer_ip,
-                status='available'
+                status=CONSUMER_STATUS_CHOICES.available
             )
 
     async def test_get_consumer_status(self):
         consumer_status = await get_consumer_status(self.app['engine'], '192.168.0.2')
-        assert consumer_status == 'available'
+        assert consumer_status == CONSUMER_STATUS_CHOICES.available
 
 
 class SetConsumerStatusTestCase(DBTestCase):
@@ -102,12 +102,16 @@ class SetConsumerStatusTestCase(DBTestCase):
             await connection.execute(
                 Consumer.insert().values(
                     ip=self.consumer_ip,
-                    status='busy'
+                    status=CONSUMER_STATUS_CHOICES.busy
                 )
             )
 
             self.job_id = await connection.scalar(
-                Job.insert().values(query='AACAGCATGAGTGCGCTGGATGCTG', submitted=datetime.datetime.now(), status='started')
+                Job.insert().values(
+                    query='AACAGCATGAGTGCGCTGGATGCTG',
+                    submitted=datetime.datetime.now(),
+                    status=JOB_STATUS_CHOICES.started
+                )
             )
 
             self.job_chunk_id = await connection.scalar(
@@ -115,18 +119,18 @@ class SetConsumerStatusTestCase(DBTestCase):
                     job_id=self.job_id,
                     database='mirbase',
                     submitted=datetime.datetime.now(),
-                    status='started',
+                    status=JOB_STATUS_CHOICES.started,
                     consumer=self.consumer_ip
                 )
             )
 
     @unittest_run_loop
     async def test_set_consumer_status(self):
-        await set_consumer_status(self.app['engine'], '192.168.0.2', 'available')
+        await set_consumer_status(self.app['engine'], '192.168.0.2', CONSUMER_STATUS_CHOICES.available)
 
         async with self.app['engine'].acquire() as connection:
             consumer_status = await get_consumer_status(self.app['engine'], self.consumer_ip)
-            assert consumer_status == 'busy'
+            assert consumer_status == CONSUMER_STATUS_CHOICES.busy
 
 
 class DelegateJobChunkToConsumerTestCase(DBTestCase):
@@ -148,7 +152,7 @@ class DelegateJobChunkToConsumerTestCase(DBTestCase):
             )
 
             self.job_id = await connection.scalar(
-                Job.insert().values(query='AACAGCATGAGTGCGCTGGATGCTG', submitted=datetime.datetime.now(), status='started')
+                Job.insert().values(query='AACAGCATGAGTGCGCTGGATGCTG', submitted=datetime.datetime.now(), status=JOB_STATUS_CHOICES.started)
             )
 
             self.job_chunk_id = await connection.scalar(
@@ -156,7 +160,7 @@ class DelegateJobChunkToConsumerTestCase(DBTestCase):
                     job_id=self.job_id,
                     database='mirbase',
                     submitted=datetime.datetime.now(),
-                    status='started',
+                    status=JOB_STATUS_CHOICES.started,
                     consumer=self.consumer_ip
                 )
             )
@@ -172,7 +176,7 @@ class DelegateJobChunkToConsumerTestCase(DBTestCase):
         )
 
         consumer_status = await get_consumer_status(self.app['engine'], self.consumer_ip)
-        assert consumer_status == 'busy'
+        assert consumer_status == CONSUMER_STATUS_CHOICES.busy
 
 
 class RegisterConsumerInTheDatabaseTestCase(DBTestCase):

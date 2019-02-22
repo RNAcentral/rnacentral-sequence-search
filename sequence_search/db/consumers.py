@@ -23,6 +23,7 @@ from . import DatabaseConnectionError
 from .jobs import set_job_status
 from .job_chunks import set_job_chunk_status, set_job_chunk_consumer
 from ..producer.consumer_client import ConsumerClient
+from .models import CONSUMER_STATUS_CHOICES
 
 
 async def find_available_consumers(engine):
@@ -34,11 +35,11 @@ async def find_available_consumers(engine):
             query = sa.text('''
                 SELECT ip, status
                 FROM consumer
-                WHERE status='available'
+                WHERE status=:available
             ''')
 
         result = []
-        async for row in connection.execute(query):
+        async for row in connection.execute(query, available=CONSUMER_STATUS_CHOICES.available):
             result.append(Consumer(row[0], row[1]))
 
         return result
@@ -85,7 +86,7 @@ async def delegate_job_chunk_to_consumer(engine, consumer_ip, job_id, database, 
             response = await ConsumerClient().submit_job(consumer_ip, job_id, database, query)
 
             if response.status < 400:
-                await set_consumer_status(engine, consumer_ip, 'busy')
+                await set_consumer_status(engine, consumer_ip, CONSUMER_STATUS_CHOICES.busy)
                 await set_job_chunk_status(engine, job_id, database, status="started")
                 await set_job_chunk_consumer(engine, job_id, database, consumer_ip)
             else:  # TODO: attempt retry upon a failed delivery?
@@ -152,8 +153,8 @@ async def register_consumer_in_the_database(app):
         async with app['engine'].acquire() as connection:
             await connection.execute(sa.text('''
                 INSERT INTO consumer(ip, status)
-                VALUES (:consumer_ip, 'available')
-            '''), consumer_ip=get_ip(app))
+                VALUES (:consumer_ip, :available)
+            '''), consumer_ip=get_ip(app), available=CONSUMER_STATUS_CHOICES.available)
     except psycopg2.IntegrityError as e:
         pass  # this is usually a duplicate key error - which is acceptable
     except psycopg2.Error as e:

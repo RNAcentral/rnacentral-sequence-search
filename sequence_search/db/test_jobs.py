@@ -17,7 +17,7 @@ from aiohttp.test_utils import unittest_run_loop
 
 from .test_base import DBTestCase
 from .models import Job
-from .jobs import save_job, set_job_status, get_job_query
+from .jobs import save_job, set_job_status, get_job_query, JOB_STATUS_CHOICES
 
 
 class SaveJobTestCase(DBTestCase):
@@ -46,7 +46,11 @@ class SetJobStatusTestCase(DBTestCase):
 
         async with self.app['engine'].acquire() as connection:
             self.job_id = await connection.scalar(
-                Job.insert().values(query='AACAGCATGAGTGCGCTGGATGCTG', submitted=datetime.datetime.now(), status='started')
+                Job.insert().values(
+                    query='AACAGCATGAGTGCGCTGGATGCTG',
+                    submitted=datetime.datetime.now(),
+                    status=JOB_STATUS_CHOICES.started
+                )
             )
 
     @unittest_run_loop
@@ -65,7 +69,11 @@ class GetJobQueryTestCase(DBTestCase):
 
         async with self.app['engine'].acquire() as connection:
             self.job_id = await connection.scalar(
-                Job.insert().values(query='AACAGCATGAGTGCGCTGGATGCTG', submitted=datetime.datetime.now(), status='started')
+                Job.insert().values(
+                    query='AACAGCATGAGTGCGCTGGATGCTG',
+                    submitted=datetime.datetime.now(),
+                    status=JOB_STATUS_CHOICES.started
+                )
             )
 
     @unittest_run_loop

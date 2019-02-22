@@ -18,7 +18,7 @@ from aiohttp.test_utils import unittest_run_loop
 from aiohttp.test_utils import AioHTTPTestCase
 
 from ..__main__ import create_app
-from ...db.models import Job, JobChunk, JobChunkResult
+from ...db.models import Job, JobChunk, JobChunkResult, JOB_STATUS_CHOICES
 
 
 """
@@ -41,7 +41,11 @@ class EBISearchProxyTestCase(AioHTTPTestCase):
 
         async with self.app['engine'].acquire() as connection:
             self.job_id = await connection.scalar(
-                Job.insert().values(query='', submitted=datetime.datetime.now(), status='started')
+                Job.insert().values(
+                    query='',
+                    submitted=datetime.datetime.now(),
+                    status=JOB_STATUS_CHOICES.started
+                )
             )
 
             self.job_chunk_id1 = await connection.scalar(
@@ -49,7 +53,7 @@ class EBISearchProxyTestCase(AioHTTPTestCase):
                     job_id=self.job_id,
                     database='mirbase',
                     submitted=datetime.datetime.now(),
-                    status='started'
+                    status=JOB_STATUS_CHOICES.started
                 )
             )
             await connection.scalar(
@@ -57,7 +61,7 @@ class EBISearchProxyTestCase(AioHTTPTestCase):
                     job_id=self.job_id,
                     database='pombase',
                     submitted=datetime.datetime.now(),
-                    status='started'
+                    status=JOB_STATUS_CHOICES.started
                 )
             )
 
