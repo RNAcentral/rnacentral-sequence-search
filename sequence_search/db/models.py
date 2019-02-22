@@ -11,8 +11,6 @@ See the License for the specific language governing permissions and
 limitations under the License.
 """
 
-from enum import Enum
-
 import logging
 import sqlalchemy as sa
 from aiopg.sa import create_engine
@@ -41,14 +39,14 @@ async def init_pg(app):
 # Models schema
 # -------------
 
-class JOB_STATUS_CHOICES(Enum):
+class JOB_STATUS_CHOICES(object):
     pending = 'pending'
     started = 'started'
     success = 'success'
     error = 'error'
 
 
-class CONSUMER_STATUS_CHOICES(Enum):
+class CONSUMER_STATUS_CHOICES(object):
     available = 'available'
     busy = 'busy'
 

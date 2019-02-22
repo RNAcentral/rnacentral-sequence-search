@@ -151,10 +151,11 @@ async def register_consumer_in_the_database(app):
     """Utility for consumer to register itself in the database."""
     try:
         async with app['engine'].acquire() as connection:
-            await connection.execute(sa.text('''
+            sql_query = sa.text('''
                 INSERT INTO consumer(ip, status)
                 VALUES (:consumer_ip, :available)
-            '''), consumer_ip=get_ip(app), available=CONSUMER_STATUS_CHOICES.available)
+            ''')
+            await connection.execute(sql_query, consumer_ip=get_ip(app), available=CONSUMER_STATUS_CHOICES.available)
     except psycopg2.IntegrityError as e:
         pass  # this is usually a duplicate key error - which is acceptable
     except psycopg2.Error as e:
