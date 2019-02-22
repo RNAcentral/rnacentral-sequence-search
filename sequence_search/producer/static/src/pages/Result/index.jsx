@@ -145,7 +145,7 @@ class Result extends React.Component {
   render() {
     return (
       <div className="row">
-        <h1 className="margin-top-large margin-bottom-large">Results: { this.state.status === "loading" ? <i className="icon icon-functional spin" data-icon="s"/> : <small>{ this.state.entries.length } total</small> }</h1>
+        <h1 className="margin-top-large margin-bottom-large">Results: { this.state.status === "loading" ? <i className="icon icon-functional spin" data-icon="s"/> : <small>{ this.state.hitCount } total</small> }</h1>
         <div className="small-12 medium-10 medium-push-2 columns">
           <section>
             { this.state.entries.map((entry, index) => (

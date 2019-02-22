@@ -70,7 +70,7 @@ module.exports = function(env) {
     // https://github.com/webpack/docs/wiki/webpack-dev-server
     devServer: {
       publicPath: '/dist', // suffix of bundle url in index.html that makes it localhost:8080<publicPath>/app.4d9882a.js
-      contentBase: './', // location of index.html that webpack-dev-server creates in memory-fs
+      // contentBase: './', // location of index.html that webpack-dev-server creates in memory-fs
       hot: true,
       proxy: { // requests to these urls are proxied to the real backend server
         '/api': {
