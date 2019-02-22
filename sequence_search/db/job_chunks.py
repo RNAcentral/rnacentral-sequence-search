@@ -48,7 +48,7 @@ async def save_job_chunk(engine, job_id, database):
                         job_id=job_id,
                         database=database,
                         submitted=datetime.datetime.now(),
-                        status='pending'
+                        status=JOB_STATUS_CHOICES.pending
                     )
                 )
                 return job_chunk_id

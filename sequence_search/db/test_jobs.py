@@ -55,7 +55,7 @@ class SetJobStatusTestCase(DBTestCase):
 
     @unittest_run_loop
     async def test_set_job_status_error(self):
-        await set_job_status(self.app['engine'], self.job_id, 'error')
+        await set_job_status(self.app['engine'], self.job_id, JOB_STATUS_CHOICES.error)
 
 
 class GetJobQueryTestCase(DBTestCase):

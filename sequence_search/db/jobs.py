@@ -120,7 +120,7 @@ async def check_job_chunks_status(engine, job_id):
 
                 all_job_chunks_success = True
                 async for row in connection.execute(query):
-                    if row.status != 'success':
+                    if row.status != JOB_STATUS_CHOICES.success:
                         all_job_chunks_success = False
                         break
 

@@ -44,7 +44,7 @@ class SetJobChunkResultsTestCase(DBTestCase):
                     job_id=self.job_id,
                     database='mirbase',
                     submitted=datetime.datetime.now(),
-                    status='pending'
+                    status=JOB_STATUS_CHOICES.pending
                 )
             )
 

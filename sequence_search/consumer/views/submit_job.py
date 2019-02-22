@@ -20,7 +20,7 @@ from .. import settings
 from ..nhmmer_parse import nhmmer_parse
 from ..nhmmer_search import nhmmer_search
 from ..filenames import query_file_path, result_file_path
-from ...db.models import CONSUMER_STATUS_CHOICES
+from ...db.models import CONSUMER_STATUS_CHOICES, JOB_STATUS_CHOICES
 from ...db.job_chunk_results import set_job_chunk_results
 from ...db.job_chunks import get_consumer_ip_from_job_chunk, get_job_chunk_from_job_and_database, set_job_chunk_status
 from ...db.jobs import check_job_chunks_status, set_job_status
@@ -53,12 +53,12 @@ async def nhmmer(engine, job_id, sequence, database):
     results = [record for record in nhmmer_parse(filename=filename)]  # parse nhmmer results to python
 
     # update job_chunk in the database
-    await set_job_chunk_status(engine, job_id, database, status='success')
+    await set_job_chunk_status(engine, job_id, database, status=JOB_STATUS_CHOICES.success)
     await set_job_chunk_results(engine, job_id, database, results)
 
     # update job in the database, if the whole job's done
     if await check_job_chunks_status(engine, job_id):
-        await set_job_status(engine, job_id, 'success')
+        await set_job_status(engine, job_id, JOB_STATUS_CHOICES.success)
 
     # update consumer status
     consumer_ip = await get_consumer_ip_from_job_chunk(engine, job_chunk_id)

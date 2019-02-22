@@ -42,10 +42,10 @@ async def init_pg(app):
 # -------------
 
 class JOB_STATUS_CHOICES(Enum):
-    pending = 'pendind'
+    pending = 'pending'
     started = 'started'
     success = 'success'
-    failed = 'failed'
+    error = 'error'
 
 
 class CONSUMER_STATUS_CHOICES(Enum):
