@@ -1,5 +1,5 @@
 variable "image" {
-  default = "CentOS7-1612"
+  default = "CentOS7"
 }
 
 variable "flavor" {
