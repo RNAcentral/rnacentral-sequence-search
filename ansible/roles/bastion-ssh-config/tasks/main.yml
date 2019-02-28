@@ -13,5 +13,5 @@
     become: false
     copy:
       src: "../terraform/sequence_search_rsa"
-      dest: "~/.ssh/id_rsa"
+      dest: "~/.ssh/sequence_search_rsa"
       mode: 0400
