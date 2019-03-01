@@ -1,6 +1,3 @@
-python-openstackclient
-python-neutronclient
-python-magnumclient
 ansible
 aiohttp
 jinja2
