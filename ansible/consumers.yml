@@ -5,6 +5,6 @@
   become: true
   become_method: sudo
   vars:
-    ansible_ssh_private_key_file: "../terraform/terraform_rsa"
+    ansible_ssh_private_key_file: "../terraform/sequence_search_rsa"
   roles:
     - {role: consumer, tags: 'consumer'}

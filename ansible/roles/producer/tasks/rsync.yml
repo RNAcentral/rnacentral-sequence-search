@@ -2,12 +2,12 @@
 
   - name: Rsync aiohttp code
     synchronize:
-      src: ../../../producer
+      src: ../../../../sequence_search
       dest: /srv
 
   - name: Chown aiohttp code
     file:
-      path: /srv/producer
+      path: /srv/sequence_search
       owner: centos
       group: centos
       mode: 0755
