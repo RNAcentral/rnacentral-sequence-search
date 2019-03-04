@@ -4,6 +4,10 @@
     synchronize:
       src: ../../../../sequence_search
       dest: /srv
+      rsync_opts:
+        - "--exclude=/sequence_search/consumer/databases.iso"
+        - "--exclude=/sequence_search/consumer/databases"
+        - "--exclude=/sequence_search/consumer/databases_back"
 
   - name: Chown aiohttp code
     file:

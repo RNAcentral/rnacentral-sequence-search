@@ -28,7 +28,7 @@
 
   - name: Umount volume for databases (so that chown doesn't complain)
     mount:
-      path: /srv/consumer/consumer/databases
+      path: /srv/sequence_search/consumer/databases
       src: /dev/vdb
       fstype: iso9660
       state: unmounted
@@ -36,7 +36,7 @@
 
   - name: Chown aiohttp code
     file:
-      path: /srv/consumer
+      path: /srv/sequence_search
       owner: centos
       group: centos
       mode: 0755
@@ -45,11 +45,11 @@
   - name: Install pip3 requirements
     shell: /usr/local/bin/pip install -r requirements.txt
     args:
-      chdir: /srv/consumer
+      chdir: /srv/sequence_search/consumer
 
   - name: Mount volume for databases
     mount:
-      path: /srv/consumer/consumer/databases
+      path: /srv/sequence_search/consumer/databases
       src: /dev/vdb
       fstype: iso9660
       state: mounted
