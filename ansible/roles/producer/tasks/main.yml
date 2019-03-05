@@ -11,7 +11,7 @@
   - name: Install requirements
     shell: /usr/local/bin/pip install -r requirements.txt
     args:
-      chdir: /srv/producer
+      chdir: /srv/sequence_search
 
   - import_tasks: logs.yml
     tags: [ producer-logs ]
@@ -21,8 +21,8 @@
 
   - name: Apply migrations to the database
     shell:
-      chdir: /srv/producer
-      cmd: ENVIRONMENT=PRODUCTION python36 -m producer.models
+      chdir: /srv/sequence_search
+      cmd: ENVIRONMENT=PRODUCTION python36 -m sequence_search.db
 
   - import_tasks: restart.yml
     tags: [ producer-restart ]

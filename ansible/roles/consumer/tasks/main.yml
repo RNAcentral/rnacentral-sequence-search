@@ -6,13 +6,14 @@
 
   - name: Rsync aiohttp code
     synchronize:
-      src: ../../../consumer
+      src: ../../../../sequence_search
       dest: /srv
       rsync_opts:
-        - "--exclude=databases"
-        - "--exclude=databases.iso"
-        - "--exclude=queries/*.fasta"
-        - "--exclude=results/*.fasta"
+        - "--exclude=/sequence_search/consumer/databases.iso"
+        - "--exclude=/sequence_search/consumer/databases"
+        - "--exclude=/sequence_search/consumer/databases_back"
+        - "--exclude=/sequence_search/consumer/queries/*.fasta"
+        - "--exclude=/sequence_search/consumer/results/*.fasta"
 
   - import_tasks: logs.yml
     tags: [ consumer-logs ]
