@@ -46,7 +46,7 @@
   - name: Install pip3 requirements
     shell: /usr/local/bin/pip install -r requirements.txt
     args:
-      chdir: /srv/sequence_search/consumer
+      chdir: /srv/sequence_search
 
   - name: Mount volume for databases
     mount:
