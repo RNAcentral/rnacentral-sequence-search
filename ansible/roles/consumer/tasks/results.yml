@@ -2,12 +2,12 @@
 
   - name: Delete results directory
     file:
-      path: /srv/consumer/consumer/results
+      path: /srv/sequence_search/consumer/results
       state: absent
 
   - name: Create results directory
     file:
-      path: /srv/consumer/consumer/results
+      path: /srv/sequence_search/consumer/results
       state: directory
       owner: centos
       group: centos

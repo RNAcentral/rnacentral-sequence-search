@@ -2,12 +2,12 @@
 
   - name: Delete queries directory
     file:
-      path: /srv/consumer/consumer/queries
+      path: /srv/sequence_search/consumer/queries
       state: absent
 
   - name: Create queries directory
     file:
-      path: /srv/consumer/consumer/queries
+      path: /srv/sequence_search/consumer/queries
       state: directory
       owner: centos
       group: centos

@@ -30,6 +30,6 @@
 
   - name: Run consumer service
     shell:
-      chdir: /srv/consumer
+      chdir: /srv
 #      cmd: /usr/local/bin/gunicorn consumer.main:app --daemon --bind 0.0.0.0:8000 --worker-class aiohttp.worker.GunicornWebWorker --access-logfile /var/log/gunicorn/access_log --error-logfile /var/log/gunicorn/error_log --env ENVIRONMENT=PRODUCTION --log-level=DEBUG
-      cmd: ENVIRONMENT=PRODUCTION nohup python36 -m consumer.main &> /var/log/gunicorn/access_log &
+      cmd: ENVIRONMENT=PRODUCTION nohup python36 -m sequence_search.consumer &> /var/log/gunicorn/access_log &
