@@ -1,8 +1,54 @@
 ---
   # This role is about consumer installation
 
-  - import_tasks: install_deps.yml
+  - name: Enable epel repository
+    yum_repository:
+      name: epel
+      baseurl: https://download.fedoraproject.org/pub/epel/$releasever/$basearch/
+      enabled: yes
+      state: present
+      description: epel repostiory
+      gpgcheck: no
     tags: [ consumer-install-deps ]
+
+  - name: Install yum dependencies
+    yum:
+      name:
+      - curl
+      - gcc
+      - git
+      - libaio
+      - openssl
+      - openssl-devel
+      - tar
+      - unzip
+      - wget
+      - zlib-devel
+      - gcc-c++
+      - make
+      - python36
+      - python36-devel
+      - python36-setuptools
+      - postgresql.x86_64
+    tags: [ consumer-install-deps ]
+
+  - name: Install pip3
+    shell: easy_install-3.6 pip
+    tags: [ consumer-install-deps ]
+
+
+
+  - name: Install nhmmer
+    shell: |
+      curl -OL http://eddylab.org/software/hmmer/hmmer-3.2.1.tar.gz
+      tar -zxvf hmmer-3.2.1.tar.gz
+      cd hmmer-3.2.1
+      ./configure --prefix /usr/local
+      make
+      make install
+      cd easel; make install
+
+
 
   - name: Rsync aiohttp code
     synchronize:
@@ -15,14 +61,59 @@
         - "--exclude=/sequence_search/consumer/queries/*.fasta"
         - "--exclude=/sequence_search/consumer/results/*.fasta"
 
-  - import_tasks: logs.yml
+
+
+  - name: Delete logs directory
+    file:
+      path: /var/log/gunicorn
+      state: absent
+    ignore_errors: yes
     tags: [ consumer-logs ]
 
-  - import_tasks: queries.yml
+  - name: Create logs directory
+    file:
+      path: /var/log/gunicorn
+      state: directory
+      owner: centos
+      group: centos
+      mode: 0755
+    tags: [ consumer-logs ]
+
+
+
+  - name: Delete queries directory
+    file:
+      path: /srv/sequence_search/consumer/queries
+      state: absent
     tags: [ consumer-queries ]
 
-  - import_tasks: results.yml
+  - name: Create queries directory
+    file:
+      path: /srv/sequence_search/consumer/queries
+      state: directory
+      owner: centos
+      group: centos
+      mode: 0755
+    tags: [ consumer-queries ]
+
+
+
+  - name: Delete results directory
+    file:
+      path: /srv/sequence_search/consumer/results
+      state: absent
     tags: [ consumer-results ]
+
+  - name: Create results directory
+    file:
+      path: /srv/sequence_search/consumer/results
+      state: directory
+      owner: centos
+      group: centos
+      mode: 0755
+    tags: [ consumer-results ]
+
+
 
   - name: Umount volume for databases (so that chown doesn't complain)
     mount:
@@ -52,5 +143,44 @@
       fstype: iso9660
       state: mounted
 
-  - import_tasks: restart.yml
+
+
+  - name: Get running processes
+#    shell: "sudo kill $(ps -ef | grep -v grep | grep -w gunicorn | awk '{print $2}')"
+    shell: "sudo kill $(ps -ef | grep -v grep | grep -w consumer | awk '{print $2}')"
+    register: running_processes
+    ignore_errors: yes
+    tags: [ consumer-restart ]
+
+  - name: Kill running processes
+    shell: "kill {{ item }}"
+    with_items: "{{ running_processes.stdout_lines }}"
+    tags: [ consumer-restart ]
+
+  # copied over from: https://stackoverflow.com/questions/46515704/how-to-kill-a-running-process-using-ansible
+  - wait_for:
+      path: "/proc/{{ item }}/status"
+      state: absent
+    with_items: "{{ running_processes.stdout_lines }}"
+    ignore_errors: yes
+    register: killed_processes
+    tags: [ consumer-restart ]
+
+  - name: Force kill stuck processes
+    shell: "kill -9 {{ item }}"
+    with_items: "{{ killed_processes.results | select('failed') | map(attribute='item') | list }}"
+    tags: [ consumer-restart ]
+
+  - wait_for:
+      path: "/proc/{{ item }}/status"
+      state: absent
+    with_items: "{{ running_processes.stdout_lines }}"
+    ignore_errors: yes
+    tags: [ consumer-restart ]
+
+  - name: Run consumer service
+    shell:
+      chdir: /srv
+#      cmd: /usr/local/bin/gunicorn consumer.main:app --daemon --bind 0.0.0.0:8000 --worker-class aiohttp.worker.GunicornWebWorker --access-logfile /var/log/gunicorn/access_log --error-logfile /var/log/gunicorn/error_log --env ENVIRONMENT=PRODUCTION --log-level=DEBUG
+      cmd: ENVIRONMENT=PRODUCTION nohup python36 -m sequence_search.consumer &> /var/log/gunicorn/access_log &
     tags: [ consumer-restart ]
