@@ -2,27 +2,196 @@
 
 ---
   # This role is related to producer installation
-  - import_tasks: install_deps.yml
+  - name: Enable epel repository
+    yum_repository:
+      name: epel
+      baseurl: https://download.fedoraproject.org/pub/epel/$releasever/$basearch/
+      enabled: yes
+      state: present
+      description: epel repostiory
+      gpgcheck: no
     tags: [ producer-install-deps ]
 
-  - import_tasks: rsync.yml
+  - name: Install yum dependencies
+    yum:
+      name:
+      - curl
+      - gcc
+      - git
+      - libaio
+      - openssl
+      - openssl-devel
+      - tar
+      - unzip
+      - wget
+      - zlib-devel
+      - gcc-c++
+      - make
+      - python36
+      - python36-devel
+      - python36-setuptools
+      - nodejs
+      - postgresql.x86_64
+    tags: [ producer-install-deps ]
+
+  - name: Install pip3
+    shell: easy_install-3.6 pip
+    tags: [ producer-install-deps ]
+
+
+
+  - name: Rsync aiohttp code
+    synchronize:
+      src: ../../../../sequence_search
+      dest: /srv
+      rsync_opts:
+        - "--exclude=/sequence_search/consumer/databases.iso"
+        - "--exclude=/sequence_search/consumer/databases"
+        - "--exclude=/sequence_search/consumer/databases_back"
+        - "--exclude=/sequence_search/consumer/queries/*.fasta"
+        - "--exclude=/sequence_search/consumer/results/*.fasta"
     tags: [ producer-rsync ]
 
-  - name: Install requirements
+  - name: Umount volume for databases (so that chown doesn't complain)
+    mount:
+      path: /srv/sequence_search/consumer/databases
+      src: /dev/vdb
+      fstype: iso9660
+      state: unmounted
+    ignore_errors: yes
+    tags: [ producer-rsync ]
+
+  - name: Chown aiohttp code
+    file:
+      path: /srv/sequence_search
+      owner: centos
+      group: centos
+      mode: 0755
+      recurse: yes
+    tags: [ producer-rsync ]
+
+
+
+  - name: Install pip3 requirements
     shell: /usr/local/bin/pip install -r requirements.txt
     args:
       chdir: /srv/sequence_search
+    tags: [ producer-pip-requirements ]
 
-  - import_tasks: logs.yml
+
+
+  - name: Delete logs directory
+    file:
+      path: /var/log/gunicorn
+      state: absent
+    ignore_errors: yes
     tags: [ producer-logs ]
 
-  - import_tasks: build_frontend.yml
+  - name: Create logs directory
+    file:
+      path: /var/log/gunicorn
+      state: directory
+      owner: centos
+      group: centos
+      mode: 0755
+    tags: [ producer-logs ]
+
+  - name: Create access log
+    file:
+      path: /var/log/gunicorn/access_log
+      state: file
+      owner: centos
+      group: centos
+      mode: 0755
+      state: touch
+    tags: [ producer-logs ]
+
+
+
+  - name: Mount volume for databases
+    mount:
+      path: /srv/sequence_search/consumer/databases
+      src: /dev/vdb
+      fstype: iso9660
+      state: mounted
+
+
+
+  - name: Remove node_modules, copied over from local machine (if any)
+    shell:
+      chdir: /srv/sequence_search/producer/static
+      cmd: rm -rf node_modules
     tags: [ producer-frontend ]
+
+  - name: Remove package-lock.json, copied over from local machine (if any)
+    shell:
+      chdir: /srv/sequence_search/producer/static
+      cmd: rm package-lock.json
+    tags: [ producer-frontend ]
+
+  - name: Install node_modules
+    shell:
+      chdir: /srv/sequence_search/producer/static
+      cmd: "npm install"
+    become: false
+    tags: [ producer-frontend ]
+
+  - name: Clean dist directory
+    shell:
+     chdir: /srv/sequence_search/producer/static
+     cmd: "npm run clean"
+    tags: [ producer-frontend ]
+
+  - name: Build frontend code bundle in dist
+    shell:
+      chdir: /srv/sequence_search/producer/static
+      cmd: "npm run build"
+    tags: [ producer-frontend ]
+
+
 
   - name: Apply migrations to the database
     shell:
-      chdir: /srv/sequence_search
+      chdir: /srv
       cmd: ENVIRONMENT=PRODUCTION python36 -m sequence_search.db
 
-  - import_tasks: restart.yml
+
+
+  - name: Get running processes
+    shell: "ps -ef | grep -v grep | grep -w producer | awk '{print $2}'"
+    #    shell: "sudo kill $(ps -ef | grep -v grep | grep -w producer | awk '{print $2}')"
+    register: running_processes
+    tags: [ producer-restart ]
+
+  - name: Kill running processes
+    shell: "kill {{ item }}"
+    with_items: "{{ running_processes.stdout_lines }}"
+    tags: [ producer-restart ]
+
+  # copied over from: https://stackoverflow.com/questions/46515704/how-to-kill-a-running-process-using-ansible
+  - wait_for:
+      path: "/proc/{{ item }}/status"
+      state: absent
+    with_items: "{{ running_processes.stdout_lines }}"
+    ignore_errors: yes
+    register: killed_processes
+    tags: [ producer-restart ]
+
+  - name: Force kill stuck processes
+    shell: "kill -9 {{ item }}"
+    with_items: "{{ killed_processes.results | select('failed') | map(attribute='item') | list }}"
+    tags: [ producer-restart ]
+
+  - wait_for:
+      path: "/proc/{{ item }}/status"
+      state: absent
+    with_items: "{{ running_processes.stdout_lines }}"
+    ignore_errors: yes
+    tags: [ producer-restart ]
+
+  - name: Run producer service
+    shell:
+      chdir: /srv/sequence_search
+#      cmd: /usr/local/bin/gunicorn producer.main:app --daemon --bind 0.0.0.0:8002 --worker-class aiohttp.worker.GunicornWebWorker --access-logfile /var/log/gunicorn/access_log --error-logfile /var/log/gunicorn/error_log --env ENVIRONMENT=PRODUCTION --log-level=DEBUG --timeout 120
+      cmd: ENVIRONMENT=PRODUCTION nohup python36 -m producer &> /var/log/gunicorn/access_log &
     tags: [ producer-restart ]
