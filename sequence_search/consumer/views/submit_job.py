@@ -27,6 +27,14 @@ from ...db.jobs import check_job_chunks_status, set_job_status
 from ...db.consumers import set_consumer_status
 
 
+class NhmmerError(Exception):
+    def __init__(self, text):
+        self.text = text
+
+    def __str__(self):
+        return str(self.text)
+
+
 async def nhmmer(engine, job_id, sequence, database):
     """
     Function that performs nhmmer search and then reports the result to provider API.
@@ -49,6 +57,7 @@ async def nhmmer(engine, job_id, sequence, database):
         # TODO: recoverable errors handling
         # TODO: irrecoverable errors handling
         logger.error('Nhmmer search error for: job_id = %s, database = %s' % (job_id, database))
+        raise NhmmerError('Nhmmer search error for: job_id = %s, database = %s' % (job_id, database)) from e
 
     results = [record for record in nhmmer_parse(filename=filename)]  # parse nhmmer results to python
 
