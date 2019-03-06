@@ -24,9 +24,6 @@
   - import_tasks: results.yml
     tags: [ consumer-results ]
 
-  - import_tasks: logs.yml
-    tags: [ consumer-logs ]
-
   - name: Umount volume for databases (so that chown doesn't complain)
     mount:
       path: /srv/sequence_search/consumer/databases
