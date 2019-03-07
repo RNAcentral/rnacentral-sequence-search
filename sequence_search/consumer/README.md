@@ -53,6 +53,12 @@ To generate an ISO on MacOS:
 
  `hdiutil makehybrid -o ~/Desktop/image.iso ~/path/to/folder/to/be/converted -iso -joliet`
 
+e.g.
+
+ `cd sequence_search/consumer`
+ `hdiutil makehybrid -o databases.iso databases -iso -joliet`
+
+
 To generate an ISO on Linux (Debian):
 
  `genisoimage -o output_image.iso directory_name`
