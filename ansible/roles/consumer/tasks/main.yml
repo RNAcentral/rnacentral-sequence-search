@@ -136,6 +136,12 @@
     args:
       chdir: /srv/sequence_search
 
+  - name: Create a ext4 filesystem on /dev/vdb
+    filesystem:
+      fstype: ext4
+      dev: /dev/vdb
+    ignore_errors: yes
+
   - name: Mount volume for databases
     mount:
       path: /srv/sequence_search/consumer/databases
