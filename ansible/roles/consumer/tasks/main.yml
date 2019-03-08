@@ -119,7 +119,7 @@
     mount:
       path: /srv/sequence_search/consumer/databases
       src: /dev/vdb
-      fstype: iso9660
+      fstype: ext4
       state: unmounted
     ignore_errors: yes
 
@@ -140,7 +140,7 @@
     mount:
       path: /srv/sequence_search/consumer/databases
       src: /dev/vdb
-      fstype: iso9660
+      fstype: ext4
       state: mounted
 
 
