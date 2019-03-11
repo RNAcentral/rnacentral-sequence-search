@@ -81,14 +81,14 @@ def serialize(request, data):
     database = data['database']
 
     if os.path.isfile(query_file_path(job_id, database)) or os.path.isfile(result_file_path(job_id, database)):
-        raise ValueError(text="job with id '%s' has already been submitted" % job_id)
+        raise ValueError("job with id '%s' has already been submitted" % job_id)
 
     if database not in settings.RNACENTRAL_DATABASES:
-        raise ValueError(text="Database argument is wrong: '%s' is not one of RNAcentral databases." % database)
+        raise ValueError("Database argument is wrong: '%s' is not one of RNAcentral databases." % database)
 
     for char in sequence:
         if char not in ['A', 'T', 'G', 'C', 'U']:
-            raise ValueError(text="Input sequence should be nucleotide sequence "
+            raise ValueError("Input sequence should be nucleotide sequence "
                                   "and contain only {ATGCU} characters, found: '%s'." % sequence)
 
     return data

@@ -34,7 +34,7 @@ def serialize(request, data):
     # validate query
     for char in query:
         if char not in ['A', 'T', 'G', 'C', 'U']:
-            raise ValueError(text="Input query should be a nucleotide sequence "
+            raise ValueError("Input query should be a nucleotide sequence "
                                   "and contain only {ATGCU} characters, found: '%s'." % query)
 
     # normalize query: convert nucleotides to RNA
@@ -43,7 +43,7 @@ def serialize(request, data):
     # validate databases
     for database in databases:
         if database.lower() not in request.app['settings'].RNACENTRAL_DATABASES:
-            raise ValueError(text="Database '%s' not in list of RNAcentral databases" % database)
+            raise ValueError("Database '%s' not in list of RNAcentral databases" % database)
 
     # normalize databases: convert them to lower case
     data['databases'] = [datum.lower() for datum in data['databases']]
