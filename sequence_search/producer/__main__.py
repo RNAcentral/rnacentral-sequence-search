@@ -20,7 +20,7 @@ from aiojobs.aiohttp import setup as setup_aiojobs
 from aiohttp import web, web_middlewares
 
 from . import settings
-from ..db.models import init_pg
+from ..db.models import init_pg, migrate
 from ..db.job_chunks import find_highest_priority_job_chunk
 from ..db.jobs import get_job_query
 from ..db.consumers import delegate_job_chunk_to_consumer, find_available_consumers
@@ -39,6 +39,9 @@ python3 -m sequence_search.producer
 async def on_startup(app):
     # initialize database connection
     await init_pg(app)
+
+    # create initial migrations in the database
+    await migrate(app['settings'].ENVIRONMENT)
 
     # initialize scheduling tasks to consumers in background
     await create_consumer_scheduler(app)
@@ -64,8 +67,6 @@ async def create_consumer_scheduler(app):
             if job_id is not None and len(consumers) > 0:
                 query = await get_job_query(app['engine'], job_id)
                 await delegate_job_chunk_to_consumer(app['engine'], consumers[0].ip, job_id, database, query)
-
-            print("periodic scheduler started, consumers = %s, job_chunk_id = %s" % (consumers, job_chunk_id))
 
             await asyncio.sleep(5)
 
@@ -107,7 +108,6 @@ def create_app():
 
 if __name__ == '__main__':
     app = create_app()
-    create_consumer_scheduler(app)
     web.run_app(app, host=app['settings'].HOST, port=app['settings'].PORT)
 
 
