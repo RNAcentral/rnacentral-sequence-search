@@ -45,7 +45,7 @@ MAX_RUN_TIME = 60 * 60  # seconds
 
 # list of rnacentral databases
 CONSUMER_DATABASES_DIRECTORY = PROJECT_ROOT / 'databases'
-RNACENTRAL_DATABASES = [file.name.strip('.fasta') for file in (CONSUMER_DATABASES_DIRECTORY).glob('*.fasta')]
+RNACENTRAL_DATABASES = [file.stem for file in (CONSUMER_DATABASES_DIRECTORY).glob('*.fasta')]
 
 ENVIRONMENT = os.getenv('ENVIRONMENT', 'LOCAL')
 
