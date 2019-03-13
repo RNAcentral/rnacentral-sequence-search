@@ -19,7 +19,8 @@ class Result extends React.Component {
       page_size: 20,
       page: 1,
       selectedFacets: {},  // e.g. { facetId1: [facetValue1.value, facetValue2.value], facetId2: [facetValue3.value] }
-      alignmentsCollapsed: true
+      alignmentsCollapsed: true,
+      textSearchError: false
     };
 
     this.onToggleAlignmentsCollapsed = this.onToggleAlignmentsCollapsed.bind(this);
@@ -114,7 +115,11 @@ class Result extends React.Component {
           (state, props) => (state.page === this.state.page ? { page: this.state.page + 1, status: "loading" } : { status: "loading" }),
           () => {
             this.fetchSearchResults(this.props.match.params.resultId, this.buildQuery(), this.state.page, this.state.page_size)
-              .then(data => { this.setState({entries: [...this.state.entries, ...data.entries], status: "success"}) })
+              .then(data => { this.setState({
+                status: "success",
+                entries: [...this.state.entries, ...data.entries],
+                textSearchError: data.textSearchError
+              }) })
               .catch(reason => this.setState({ status: "error" }));
           }
         );
@@ -134,6 +139,7 @@ class Result extends React.Component {
           facets: [...data.facets],
           hitCount: data.hitCount,
           selectedFacets: selectedFacets,
+          textSearchError: textSearchError
         });
       })
       .catch(reason => this.setState({ status: "error" }));

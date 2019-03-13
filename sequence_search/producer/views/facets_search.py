@@ -218,10 +218,13 @@ async def facets_search(request):
                 if result['rnacentral_id'] == entry['id']:
                     entry.update(result)
 
+        # text search worked successfully, add a notice about this
+        text_search_data['textSearchError'] = False
+
     except (ProxyConnectionError, EBITextSearchConnectionError) as e:
         # text search is not available, pad output with facets stub, indicate that
         logger.warning(str(e))
-        text_search_data = {'entries': [], 'facets': [], 'hitCount': len(results)}
+        text_search_data = {'entries': [], 'facets': [], 'hitCount': len(results), 'textSearchError': True}
 
         for result in results:
             # TODO: possibly update results fields, not sure about structure
