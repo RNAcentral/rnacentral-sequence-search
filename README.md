@@ -75,6 +75,7 @@ Here are the steps required to do this:
 1. To create an .iso image from databases folder on your MacOS:
 
  `cd sequence_search/consumer`
+
  `hdiutil makehybrid -o databases.iso databases -iso -joliet`
 
 2. To upload image to the cloud first download openstack.rc from Horizon dashboard
