@@ -10,3 +10,4 @@ aiojobs
 requests
 netifaces
 gunicorn
+glance

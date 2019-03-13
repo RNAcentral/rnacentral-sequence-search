@@ -70,11 +70,21 @@ Here are the steps required to do this:
 - Install python-based dependencies via `pip install -r requirements.txt` (possibly, using a virtualenv)
 
 
-#### How to create .iso image from databases folder on MacOS
+#### How to upload image with databases to openstack
 
- The command is like this:
+1. To create an .iso image from databases folder on your MacOS:
 
- `hdiutil makehybrid -o ~/Desktop/image.iso ~/path/to/folder/to/be/converted -iso -joliet`
+ `cd sequence_search/consumer`
+ `hdiutil makehybrid -o databases.iso databases -iso -joliet`
+
+2. To upload image to the cloud first download openstack.rc from Horizon dashboard
+
+3. Source it: `source openstack.rc`, enter your user's password
+
+4. Create a glance image:
+
+ `glance image-create --name sequence_search_databases --disk-format=iso --container-format=bare --file databases.iso`
+
 
  Links:
 
