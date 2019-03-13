@@ -135,7 +135,7 @@
 #      recurse: yes
 
   - name: Chown aiohttp code
-    command: "chown -R centos/centos /srv/sequence_search"
+    command: "chown -R centos:centos /srv/sequence_search"
     changed_when: false
 
   - name: Chmod aiohttp code
