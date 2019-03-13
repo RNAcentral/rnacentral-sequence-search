@@ -61,14 +61,23 @@
     ignore_errors: yes
     tags: [ producer-rsync ]
 
+# Ansible chown is slow, cause it checks ownership before assigning it - so just run chown imperatively
+# https://groups.google.com/forum/#!topic/ansible-project/2O5u8GIZ5Rw
+
+# Alternatively:
+#    file:
+#      path: /srv/sequence_search
+#      owner: centos
+#      group: centos
+#      mode: 0755
+#      recurse: yes
+
   - name: Chown aiohttp code
-    file:
-      path: /srv/sequence_search
-      owner: centos
-      group: centos
-      mode: 0755
-      recurse: yes
-    tags: [ producer-rsync ]
+    command: "chown -R centos/centos /srv/sequence_search"
+    changed_when: false
+
+  - name: Chmod aiohttp code
+    command: "chmod 755 /srv/sequence_search"
 
 
 
