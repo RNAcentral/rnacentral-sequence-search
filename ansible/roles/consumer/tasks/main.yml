@@ -69,7 +69,7 @@
       path: /var/log/gunicorn
       state: absent
     ignore_errors: yes
-    tags: [ consumer-logs ]
+    tags: [ consumer-logs, consumer-quick ]
 
   - name: Create logs directory
     file:
@@ -78,7 +78,7 @@
       owner: centos
       group: centos
       mode: 0755
-    tags: [ consumer-logs ]
+    tags: [ consumer-logs, consumer-quick ]
 
 
 
@@ -86,7 +86,7 @@
     file:
       path: /srv/sequence_search/consumer/queries
       state: absent
-    tags: [ consumer-queries ]
+    tags: [ consumer-queries, consumer-quick ]
 
   - name: Create queries directory
     file:
@@ -95,7 +95,7 @@
       owner: centos
       group: centos
       mode: 0755
-    tags: [ consumer-queries ]
+    tags: [ consumer-queries, consumer-quick ]
 
 
 
@@ -103,7 +103,7 @@
     file:
       path: /srv/sequence_search/consumer/results
       state: absent
-    tags: [ consumer-results ]
+    tags: [ consumer-results, cosumer-quick ]
 
   - name: Create results directory
     file:
@@ -112,7 +112,7 @@
       owner: centos
       group: centos
       mode: 0755
-    tags: [ consumer-results ]
+    tags: [ consumer-results, consumer-quick ]
 
 
 

@@ -31,7 +31,8 @@ class Job extends React.Component {
           this.statusTimeout = setTimeout(this.getStatus, 1000);
           this.setState(data);
         }
-      });
+      })
+      .catch(reason => this.setState({ status: "error" }));
   }
 
   displayStatusIcon(status) {

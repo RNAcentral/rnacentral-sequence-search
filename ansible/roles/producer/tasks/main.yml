@@ -50,6 +50,8 @@
         - "--exclude=/sequence_search/consumer/databases_back"
         - "--exclude=/sequence_search/consumer/queries/*.fasta"
         - "--exclude=/sequence_search/consumer/results/*.fasta"
+        - "--exclude=/sequence_search/producer/static/node_modules"
+        - "--exclude=/sequence_search/producer/static/package-lock.json"
     tags: [ producer-rsync, producer-quick ]
 
   - name: Umount volume for databases (so that chown doesn't complain)
@@ -59,25 +61,16 @@
       fstype: iso9660
       state: unmounted
     ignore_errors: yes
-    tags: [ producer-rsync ]
-
-# Ansible chown is slow, cause it checks ownership before assigning it - so just run chown imperatively
-# https://groups.google.com/forum/#!topic/ansible-project/2O5u8GIZ5Rw
-
-# Alternatively:
-#    file:
-#      path: /srv/sequence_search
-#      owner: centos
-#      group: centos
-#      mode: 0755
-#      recurse: yes
+    tags: [ producer-rsync, producer-quick ]
 
   - name: Chown aiohttp code
     command: "chown -R centos:centos /srv/sequence_search"
     changed_when: false
+    tags: [ producer-quick ]
 
   - name: Chmod aiohttp code
     command: "chmod 755 /srv/sequence_search"
+    tags: [ producer-quick ]
 
 
 
@@ -121,22 +114,9 @@
       src: /dev/vdb
       fstype: iso9660
       state: mounted
-    tags:
-      - producer-volume
-      - producer-volume-mount
+    tags: [ producer-volume, producer-volume-mount, producer-quick ]
 
 
-  - name: Remove node_modules, copied over from local machine (if any)
-    shell:
-      chdir: /srv/sequence_search/producer/static
-      cmd: rm -rf node_modules
-    tags: [ producer-frontend ]
-
-  - name: Remove package-lock.json, copied over from local machine (if any)
-    shell:
-      chdir: /srv/sequence_search/producer/static
-      cmd: rm package-lock.json
-    tags: [ producer-frontend ]
 
   - name: Install node_modules
     shell:
