@@ -130,6 +130,7 @@ resource "openstack_blockstorage_volume_v2" "sequence_search_consumer_databases"
   count = 10
   size = 12
   name = "sequence-search-consumer-databases-${count.index + 1}"
+  image_id = "sequence_search_databases"
 }
 
 resource "openstack_compute_volume_attach_v2" "attach_databases_to_consumers" {
@@ -141,6 +142,7 @@ resource "openstack_compute_volume_attach_v2" "attach_databases_to_consumers" {
 resource "openstack_blockstorage_volume_v2" "sequence_search_producer_databases" {
   size = 12
   name = "sequence-search-producer-databases"
+  image_id = "sequence_search_databases"
 }
 
 resource "openstack_compute_volume_attach_v2" "attach_databases_to_producer" {

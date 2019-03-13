@@ -56,7 +56,7 @@
     mount:
       path: /srv/sequence_search/consumer/databases
       src: /dev/vdb
-      fstype: ext4
+      fstype: iso9660
       state: unmounted
     ignore_errors: yes
     tags: [ producer-rsync ]
@@ -99,42 +99,22 @@
   - name: Create access log
     file:
       path: /var/log/gunicorn/access_log
-      state: file
+      state: touch
       owner: centos
       group: centos
       mode: 0755
-      state: touch
     tags: [ producer-logs ]
 
-
-
-  - name: Create a ext4 filesystem on /dev/vdb
-    filesystem:
-      fstype: ext4
-      dev: /dev/vdb
-    ignore_errors: yes
-    tags:
-      - producer-volume
-      - producer-volume-mkfs
 
   - name: Mount volume for databases
     mount:
       path: /srv/sequence_search/consumer/databases
       src: /dev/vdb
-      fstype: ext4
+      fstype: iso9660
       state: mounted
     tags:
       - producer-volume
       - producer-volume-mount
-
-  - name: Download .fasta files with databases
-    get_url:
-      url: ftp://ftp.ebi.ac.uk/pub/databases/RNAcentral/releases/10.0/.search
-      dest: /srv/sequence_search/consumer/databases
-      mode: 0755
-    tags:
-      - producer-volume
-      - producer-volume-load-databases
 
 
   - name: Remove node_modules, copied over from local machine (if any)
