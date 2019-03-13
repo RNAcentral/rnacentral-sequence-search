@@ -50,7 +50,7 @@
         - "--exclude=/sequence_search/consumer/databases_back"
         - "--exclude=/sequence_search/consumer/queries/*.fasta"
         - "--exclude=/sequence_search/consumer/results/*.fasta"
-    tags: [ producer-rsync ]
+    tags: [ producer-rsync, producer-quick ]
 
   - name: Umount volume for databases (so that chown doesn't complain)
     mount:
@@ -149,13 +149,13 @@
     shell:
      chdir: /srv/sequence_search/producer/static
      cmd: "npm run clean"
-    tags: [ producer-frontend ]
+    tags: [ producer-frontend, producer-quick ]
 
   - name: Build frontend code bundle in dist
     shell:
       chdir: /srv/sequence_search/producer/static
       cmd: "npm run build"
-    tags: [ producer-frontend ]
+    tags: [ producer-frontend, producer-quick ]
 
 
 
@@ -170,12 +170,12 @@
     shell: "ps -ef | grep -v grep | grep -w producer | awk '{print $2}'"
     #    shell: "sudo kill $(ps -ef | grep -v grep | grep -w producer | awk '{print $2}')"
     register: running_processes
-    tags: [ producer-restart ]
+    tags: [ producer-restart, producer-quick ]
 
   - name: Kill running processes
     shell: "kill {{ item }}"
     with_items: "{{ running_processes.stdout_lines }}"
-    tags: [ producer-restart ]
+    tags: [ producer-restart, producer-quick ]
 
   # copied over from: https://stackoverflow.com/questions/46515704/how-to-kill-a-running-process-using-ansible
   - wait_for:
@@ -184,23 +184,23 @@
     with_items: "{{ running_processes.stdout_lines }}"
     ignore_errors: yes
     register: killed_processes
-    tags: [ producer-restart ]
+    tags: [ producer-restart, producer-quick ]
 
   - name: Force kill stuck processes
     shell: "kill -9 {{ item }}"
     with_items: "{{ killed_processes.results | select('failed') | map(attribute='item') | list }}"
-    tags: [ producer-restart ]
+    tags: [ producer-restart, producer-quick ]
 
   - wait_for:
       path: "/proc/{{ item }}/status"
       state: absent
     with_items: "{{ running_processes.stdout_lines }}"
     ignore_errors: yes
-    tags: [ producer-restart ]
+    tags: [ producer-restart, producer-quick ]
 
   - name: Run producer service
     shell:
       chdir: /srv
 #      cmd: /usr/local/bin/gunicorn producer.main:app --daemon --bind 0.0.0.0:8002 --worker-class aiohttp.worker.GunicornWebWorker --access-logfile /var/log/gunicorn/access_log --error-logfile /var/log/gunicorn/error_log --env ENVIRONMENT=PRODUCTION --log-level=DEBUG --timeout 120
       cmd: ENVIRONMENT=PRODUCTION nohup python36 -m sequence_search.producer &> /var/log/gunicorn/access_log &
-    tags: [ producer-restart ]
+    tags: [ producer-restart, producer-quick ]

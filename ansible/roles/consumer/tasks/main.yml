@@ -60,6 +60,7 @@
         - "--exclude=/sequence_search/consumer/databases_back"
         - "--exclude=/sequence_search/consumer/queries/*.fasta"
         - "--exclude=/sequence_search/consumer/results/*.fasta"
+      tags: [ consumer-quick ]
 
 
 
@@ -162,12 +163,12 @@
     shell: "sudo kill $(ps -ef | grep -v grep | grep -w consumer | awk '{print $2}')"
     register: running_processes
     ignore_errors: yes
-    tags: [ consumer-restart ]
+    tags: [ consumer-restart, consumer-quick ]
 
   - name: Kill running processes
     shell: "kill {{ item }}"
     with_items: "{{ running_processes.stdout_lines }}"
-    tags: [ consumer-restart ]
+    tags: [ consumer-restart, consumer-quick ]
 
   # copied over from: https://stackoverflow.com/questions/46515704/how-to-kill-a-running-process-using-ansible
   - wait_for:
@@ -176,23 +177,23 @@
     with_items: "{{ running_processes.stdout_lines }}"
     ignore_errors: yes
     register: killed_processes
-    tags: [ consumer-restart ]
+    tags: [ consumer-restart, consumer-quick ]
 
   - name: Force kill stuck processes
     shell: "kill -9 {{ item }}"
     with_items: "{{ killed_processes.results | select('failed') | map(attribute='item') | list }}"
-    tags: [ consumer-restart ]
+    tags: [ consumer-restart, consumer-quick ]
 
   - wait_for:
       path: "/proc/{{ item }}/status"
       state: absent
     with_items: "{{ running_processes.stdout_lines }}"
     ignore_errors: yes
-    tags: [ consumer-restart ]
+    tags: [ consumer-restart, consumer-quick ]
 
   - name: Run consumer service
     shell:
       chdir: /srv
 #      cmd: /usr/local/bin/gunicorn consumer.main:app --daemon --bind 0.0.0.0:8000 --worker-class aiohttp.worker.GunicornWebWorker --access-logfile /var/log/gunicorn/access_log --error-logfile /var/log/gunicorn/error_log --env ENVIRONMENT=PRODUCTION --log-level=DEBUG
       cmd: ENVIRONMENT=PRODUCTION nohup python36 -m sequence_search.consumer &> /var/log/gunicorn/access_log &
-    tags: [ consumer-restart ]
+    tags: [ consumer-restart, consumer-quick ]
