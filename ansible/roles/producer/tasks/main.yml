@@ -52,7 +52,7 @@
         - "--exclude=/sequence_search/consumer/results/*.fasta"
         - "--exclude=/sequence_search/producer/static/node_modules"
         - "--exclude=/sequence_search/producer/static/package-lock.json"
-    tags: [ producer-rsync, producer-quick ]
+    tags: [ producer-rsync, quick ]
 
   - name: Umount volume for databases (so that chown doesn't complain)
     mount:
@@ -61,16 +61,16 @@
       fstype: iso9660
       state: unmounted
     ignore_errors: yes
-    tags: [ producer-rsync, producer-quick ]
+    tags: [ producer-rsync, quick ]
 
   - name: Chown aiohttp code
     command: "chown -R centos:centos /srv/sequence_search"
     changed_when: false
-    tags: [ producer-quick ]
+    tags: [ quick ]
 
   - name: Chmod aiohttp code
     command: "chmod 755 /srv/sequence_search"
-    tags: [ producer-quick ]
+    tags: [ quick ]
 
 
 
@@ -114,7 +114,7 @@
       src: /dev/vdb
       fstype: iso9660
       state: mounted
-    tags: [ producer-volume, producer-volume-mount, producer-quick ]
+    tags: [ producer-volume, producer-volume-mount, quick ]
 
 
 
@@ -129,13 +129,13 @@
     shell:
      chdir: /srv/sequence_search/producer/static
      cmd: "npm run clean"
-    tags: [ producer-frontend, producer-quick ]
+    tags: [ producer-frontend, quick ]
 
   - name: Build frontend code bundle in dist
     shell:
       chdir: /srv/sequence_search/producer/static
       cmd: "npm run build"
-    tags: [ producer-frontend, producer-quick ]
+    tags: [ producer-frontend, quick ]
 
 
 
@@ -150,12 +150,12 @@
     shell: "ps -ef | grep -v grep | grep -w producer | awk '{print $2}'"
     #    shell: "sudo kill $(ps -ef | grep -v grep | grep -w producer | awk '{print $2}')"
     register: running_processes
-    tags: [ producer-restart, producer-quick ]
+    tags: [ producer-restart, quick ]
 
   - name: Kill running processes
     shell: "kill {{ item }}"
     with_items: "{{ running_processes.stdout_lines }}"
-    tags: [ producer-restart, producer-quick ]
+    tags: [ producer-restart, quick ]
 
   # copied over from: https://stackoverflow.com/questions/46515704/how-to-kill-a-running-process-using-ansible
   - wait_for:
@@ -164,23 +164,23 @@
     with_items: "{{ running_processes.stdout_lines }}"
     ignore_errors: yes
     register: killed_processes
-    tags: [ producer-restart, producer-quick ]
+    tags: [ producer-restart, quick ]
 
   - name: Force kill stuck processes
     shell: "kill -9 {{ item }}"
     with_items: "{{ killed_processes.results | select('failed') | map(attribute='item') | list }}"
-    tags: [ producer-restart, producer-quick ]
+    tags: [ producer-restart, quick ]
 
   - wait_for:
       path: "/proc/{{ item }}/status"
       state: absent
     with_items: "{{ running_processes.stdout_lines }}"
     ignore_errors: yes
-    tags: [ producer-restart, producer-quick ]
+    tags: [ producer-restart, quick ]
 
   - name: Run producer service
     shell:
       chdir: /srv
 #      cmd: /usr/local/bin/gunicorn producer.main:app --daemon --bind 0.0.0.0:8002 --worker-class aiohttp.worker.GunicornWebWorker --access-logfile /var/log/gunicorn/access_log --error-logfile /var/log/gunicorn/error_log --env ENVIRONMENT=PRODUCTION --log-level=DEBUG --timeout 120
       cmd: ENVIRONMENT=PRODUCTION nohup python36 -m sequence_search.producer &> /var/log/gunicorn/access_log &
-    tags: [ producer-restart, producer-quick ]
+    tags: [ producer-restart, quick ]
