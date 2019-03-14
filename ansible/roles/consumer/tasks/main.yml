@@ -60,7 +60,7 @@
         - "--exclude=/sequence_search/consumer/databases_back"
         - "--exclude=/sequence_search/consumer/queries/*.fasta"
         - "--exclude=/sequence_search/consumer/results/*.fasta"
-      tags: [ consumer-quick ]
+      tags: [ quick ]
 
 
 
@@ -69,7 +69,7 @@
       path: /var/log/gunicorn
       state: absent
     ignore_errors: yes
-    tags: [ consumer-logs, consumer-quick ]
+    tags: [ consumer-logs ]
 
   - name: Create logs directory
     file:
@@ -78,7 +78,7 @@
       owner: centos
       group: centos
       mode: 0755
-    tags: [ consumer-logs, consumer-quick ]
+    tags: [ consumer-logs ]
 
 
 
@@ -86,7 +86,7 @@
     file:
       path: /srv/sequence_search/consumer/queries
       state: absent
-    tags: [ consumer-queries, consumer-quick ]
+    tags: [ consumer-queries, quick ]
 
   - name: Create queries directory
     file:
@@ -95,7 +95,7 @@
       owner: centos
       group: centos
       mode: 0755
-    tags: [ consumer-queries, consumer-quick ]
+    tags: [ consumer-queries, quick ]
 
 
 
@@ -103,7 +103,7 @@
     file:
       path: /srv/sequence_search/consumer/results
       state: absent
-    tags: [ consumer-results, cosumer-quick ]
+    tags: [ consumer-results, quick ]
 
   - name: Create results directory
     file:
@@ -112,7 +112,7 @@
       owner: centos
       group: centos
       mode: 0755
-    tags: [ consumer-results, consumer-quick ]
+    tags: [ consumer-results, quick ]
 
 
 
@@ -123,6 +123,7 @@
       fstype: iso9660
       state: unmounted
     ignore_errors: yes
+    tags: [ quick ]
 
 # Ansible chown is slow, cause it checks ownership before assigning it - so just run chown imperatively
 # https://groups.google.com/forum/#!topic/ansible-project/2O5u8GIZ5Rw
@@ -138,10 +139,11 @@
   - name: Chown aiohttp code
     command: "chown -R centos:centos /srv/sequence_search"
     changed_when: false
+    tags: [ quick ]
 
   - name: Chmod aiohttp code
     command: "chmod 755 /srv/sequence_search"
-
+    tags: [ quick ]
 
 
   - name: Install pip3 requirements
@@ -163,12 +165,12 @@
     shell: "sudo kill $(ps -ef | grep -v grep | grep -w consumer | awk '{print $2}')"
     register: running_processes
     ignore_errors: yes
-    tags: [ consumer-restart, consumer-quick ]
+    tags: [ consumer-restart, quick ]
 
   - name: Kill running processes
     shell: "kill {{ item }}"
     with_items: "{{ running_processes.stdout_lines }}"
-    tags: [ consumer-restart, consumer-quick ]
+    tags: [ consumer-restart, quick ]
 
   # copied over from: https://stackoverflow.com/questions/46515704/how-to-kill-a-running-process-using-ansible
   - wait_for:
@@ -177,23 +179,23 @@
     with_items: "{{ running_processes.stdout_lines }}"
     ignore_errors: yes
     register: killed_processes
-    tags: [ consumer-restart, consumer-quick ]
+    tags: [ consumer-restart, quick ]
 
   - name: Force kill stuck processes
     shell: "kill -9 {{ item }}"
     with_items: "{{ killed_processes.results | select('failed') | map(attribute='item') | list }}"
-    tags: [ consumer-restart, consumer-quick ]
+    tags: [ consumer-restart, quick ]
 
   - wait_for:
       path: "/proc/{{ item }}/status"
       state: absent
     with_items: "{{ running_processes.stdout_lines }}"
     ignore_errors: yes
-    tags: [ consumer-restart, consumer-quick ]
+    tags: [ consumer-restart, quick ]
 
   - name: Run consumer service
     shell:
       chdir: /srv
 #      cmd: /usr/local/bin/gunicorn consumer.main:app --daemon --bind 0.0.0.0:8000 --worker-class aiohttp.worker.GunicornWebWorker --access-logfile /var/log/gunicorn/access_log --error-logfile /var/log/gunicorn/error_log --env ENVIRONMENT=PRODUCTION --log-level=DEBUG
       cmd: ENVIRONMENT=PRODUCTION nohup python36 -m sequence_search.consumer &> /var/log/gunicorn/access_log &
-    tags: [ consumer-restart, consumer-quick ]
+    tags: [ consumer-restart, quick ]
