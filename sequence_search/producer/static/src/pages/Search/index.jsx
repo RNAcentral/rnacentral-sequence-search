@@ -12,6 +12,7 @@ class Search extends React.Component {
 
     this.state = {
       rnacentralDatabases: [],
+      rnacentralDatabaseLabels: {},
       selectedDatabases: {},
       sequence: "",
       submissionError: ""
@@ -125,7 +126,7 @@ class Search extends React.Component {
                     <h4>RNA databases:</h4>
                     <ul id="rnacentralDatabases" className="facets">
                       {this.state.rnacentralDatabases.map(database =>
-                        <li key={database}><span className="facet"><input id={database} type="checkbox" checked={this.state.selectedDatabases[database]} onChange={(e) => this.onDatabaseCheckboxToggle(e)} /><label htmlFor={database}>{database}</label></span></li>
+                        <li key={database}><span className="facet"><input id={database} type="checkbox" checked={this.state.selectedDatabases[database]} onChange={(e) => this.onDatabaseCheckboxToggle(e)} /><label htmlFor={database}>{ this.state.rnacentralDatabaseLabels[database] }</label></span></li>
                       )}
                     </ul>
                     <p>
@@ -154,9 +155,21 @@ class Search extends React.Component {
     fetch(routes.rnacentralDatabases())
       .then(response => response.json())
       .then(data => {
+
+        let rnacentralDatabases = data.map(database => database.id);
+
         let selectedDatabases = {};
-        data.map(database => {selectedDatabases[database] = true});
-        this.setState({ rnacentralDatabases: data, selectedDatabases: selectedDatabases });
+        data.map(database => { selectedDatabases[database.id] = false });
+
+        let rnacentralDatabaseLabels = {};
+        data.map(database => { rnacentralDatabaseLabels[database.id] =  database.label });
+
+        this.setState({
+          rnacentralDatabases: rnacentralDatabases,
+          selectedDatabases: selectedDatabases,
+          rnacentralDatabaseLabels: rnacentralDatabaseLabels
+        });
+
       });
   }
 
