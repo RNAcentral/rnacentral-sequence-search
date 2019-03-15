@@ -16,7 +16,7 @@ from collections import namedtuple
 from .settings import PROJECT_ROOT
 
 
-RnacentralDatabases = namedtuple("rnacentral_databases", ["filename_stem", "verbose_name"])
+RnacentralDatabases = namedtuple("rnacentral_databases", ["id", "label"])
 
 rnacentral_databases = [
     RnacentralDatabases("ena", "ENA"),
@@ -37,15 +37,6 @@ rnacentral_databases = [
 ]
 
 
-def check_consistency():
-    """
-    Run this function on startup to check, if the names of files in DATABASES_DIRECTORY
-    are consistent with rnacentral_databases config.
-    """
-    filename_stems = [file.stem for file in get_database_files()]
-    pass
-
-
 def get_database_files():
     """Returns the list of database files in DATABASES_DIRECTORY as pathlib/PosixPath objects"""
     # list of rnacentral databases
@@ -54,7 +45,7 @@ def get_database_files():
 
 
 def producer_validator(databases):
-    database_keys = [ db.filename_stem for db in rnacentral_databases ]
+    database_keys = [ db.id for db in rnacentral_databases ]
 
     for db in databases:
         if db not in database_keys:
@@ -93,7 +84,7 @@ def producer_to_consumers_databases(databases):
 
 
 def consumer_validator(databases):
-    filename_stems = [file.name for file in get_database_files()]
+    ids = [file.name for file in get_database_files()]
 
     for db in databases:
-        assert db in filename_stems
+        assert db in ids
