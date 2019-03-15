@@ -54,7 +54,11 @@ def get_database_files():
 
 
 def producer_validator(databases):
-    pass
+    database_keys = [ db.filename_stem for db in rnacentral_databases ]
+
+    for db in databases:
+        if db not in database_keys:
+            raise ValueError("Database %s is not a valid RNAcentral database" % db)
 
 
 def producer_to_consumers_databases(databases):
@@ -88,5 +92,8 @@ def producer_to_consumers_databases(databases):
     return output
 
 
-def consumer_validator(database):
-    pass
+def consumer_validator(databases):
+    filename_stems = [file.name for file in get_database_files()]
+
+    for db in databases:
+        assert db in filename_stems
