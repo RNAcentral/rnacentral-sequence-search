@@ -13,9 +13,9 @@ limitations under the License.
 
 from aiohttp import web
 
-from ...consumer.rnacentral_databases import rnacentral_databases
+from ...consumer.rnacentral_databases import rnacentral_databases as databases
 
 
 async def rnacentral_databases(request):
-    output = [ { "id": db.id, "label": db.label } for db in rnacentral_databases ]
+    output = [{"id": db.id, "label": db.label} for db in databases]
     return web.json_response(output)
