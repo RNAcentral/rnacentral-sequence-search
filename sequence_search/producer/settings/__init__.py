@@ -29,10 +29,6 @@ Or, passing the custom setting as a keyword argument when initialising settings 
 # producer folder, where media, static, templates and other subfolders are located
 PROJECT_ROOT = pathlib.Path(__file__).parent.parent
 
-# list of rnacentral databases
-CONSUMER_DATABASES_DIRECTORY = PROJECT_ROOT.parent / 'consumer' / 'databases'
-RNACENTRAL_DATABASES = [file.stem for file in (CONSUMER_DATABASES_DIRECTORY).glob('*.fasta')]
-
 CONSUMER_SUBMIT_JOB_URL = 'submit-job'
 
 ENVIRONMENT = os.getenv('ENVIRONMENT', 'LOCAL')

@@ -28,9 +28,6 @@ Or, passing the custom setting as a keyword argument when initialising settings 
 # consumer folder, where media, static, templates and other subfolders are located
 PROJECT_ROOT = pathlib.Path(__file__).parent.parent
 
-# full path to sequence database
-SEQDATABASES = PROJECT_ROOT / 'databases'
-
 # minimum query sequence length
 MIN_LENGTH = 10
 
@@ -42,10 +39,6 @@ EXPIRATION = 60 * 60 * 24 * 7  # seconds
 
 # maximum time to run nhmmer
 MAX_RUN_TIME = 60 * 60  # seconds
-
-# list of rnacentral databases
-CONSUMER_DATABASES_DIRECTORY = PROJECT_ROOT / 'databases'
-RNACENTRAL_DATABASES = [file.stem for file in (CONSUMER_DATABASES_DIRECTORY).glob('*.fasta')]
 
 ENVIRONMENT = os.getenv('ENVIRONMENT', 'LOCAL')
 
