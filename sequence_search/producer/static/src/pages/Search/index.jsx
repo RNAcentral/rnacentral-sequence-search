@@ -123,8 +123,8 @@ class Search extends React.Component {
                 </div>}
                 <div>
                   <fieldset>
-                    <h4>RNA databases:</h4>
-                    <ul id="rnacentralDatabases" className="facets">
+                    <h4>Search against specific RNA databases:</h4>
+                    <ul id="rnacentralDatabases" className="facets databases-collapsed">
                       {this.state.rnacentralDatabases.map(database =>
                         <li key={database}><span className="facet"><input id={database} type="checkbox" checked={this.state.selectedDatabases[database]} onChange={(e) => this.onDatabaseCheckboxToggle(e)} /><label htmlFor={database}>{ this.state.rnacentralDatabaseLabels[database] }</label></span></li>
                       )}

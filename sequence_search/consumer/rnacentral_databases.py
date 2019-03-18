@@ -21,19 +21,19 @@ RnacentralDatabases = namedtuple("rnacentral_databases", ["id", "label"])
 rnacentral_databases = [
     RnacentralDatabases("ena", "ENA"),
     RnacentralDatabases("greengenes", "GreenGenes"),
-    RnacentralDatabases("lncrnadb", "lncrnadb"),
-    RnacentralDatabases("mirbase", "mirbase"),
-    RnacentralDatabases("pdbe", "pdbe"),
-    RnacentralDatabases("pombase", "pombase"),
-    RnacentralDatabases("rdp", "rdp"),
-    RnacentralDatabases("refseq", "refseq"),
-    RnacentralDatabases("rfam", "rfam"),
-    RnacentralDatabases("rgd", "rgd"),
-    RnacentralDatabases("sgd", "sgd"),
-    RnacentralDatabases("snopy", "snopy"),
-    RnacentralDatabases("srpdb", "srpdb"),
-    RnacentralDatabases("tair", "tair"),
-    RnacentralDatabases("tmrna_web", "tmrna_web")
+    RnacentralDatabases("lncrnadb", "lncRNAdb"),
+    RnacentralDatabases("mirbase", "miRBase"),
+    RnacentralDatabases("pdbe", "PDBe"),
+    RnacentralDatabases("pombase", "PomBase"),
+    RnacentralDatabases("rdp", "RDP"),
+    RnacentralDatabases("refseq", "RefSeq"),
+    RnacentralDatabases("rfam", "Rfam"),
+    RnacentralDatabases("rgd", "RGD"),
+    RnacentralDatabases("sgd", "SGD"),
+    RnacentralDatabases("snopy", "snOPY"),
+    RnacentralDatabases("srpdb", "SRPDB"),
+    RnacentralDatabases("tair", "TAIR"),
+    RnacentralDatabases("tmrna_web", "tmRNA Website")
 ]
 
 

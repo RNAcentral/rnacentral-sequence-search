@@ -12,11 +12,11 @@ limitations under the License.
 """
 
 from aiohttp import web
-import sqlalchemy as sa
 
 from ...db.consumers import delegate_job_chunk_to_consumer, find_available_consumers
 from ...db.jobs import save_job
 from ...db.job_chunks import save_job_chunk
+from ...consumer.rnacentral_databases import producer_validator, producer_to_consumers_databases
 
 
 def serialize(request, data):
@@ -31,22 +31,17 @@ def serialize(request, data):
     query = data['query']
     databases = data['databases']
 
-    # validate query
-    for char in query:
-        if char not in ['A', 'T', 'G', 'C', 'U']:
-            raise ValueError("Input query should be a nucleotide sequence "
-                                  "and contain only {ATGCU} characters, found: '%s'." % query)
+    # TODO: validate query
+    # for char in query:
+    #     if char not in ['A', 'T', 'G', 'C', 'U']:
+    #         raise ValueError("Input query should be a nucleotide sequence "
+    #                               "and contain only {ATGCU} characters, found: '%s'." % query)
 
     # normalize query: convert nucleotides to RNA
     data['query'] = query.replace('T', 'U')
 
     # validate databases
-    for database in databases:
-        if database.lower() not in request.app['settings'].RNACENTRAL_DATABASES:
-            raise ValueError("Database '%s' not in list of RNAcentral databases" % database)
-
-    # normalize databases: convert them to lower case
-    data['databases'] = [datum.lower() for datum in data['databases']]
+    producer_validator(databases)
 
     return data
 
@@ -111,19 +106,21 @@ async def submit_job(request):
 
     # save metadata about this job and job_chunks to the database
     job_id = await save_job(request.app['engine'], data['query'])
-    for database in data['databases']:
+
+    databases = producer_to_consumers_databases(data['databases'])
+    for database in databases:
         job_chunk_id = await save_job_chunk(request.app['engine'], job_id, database)
 
     # TODO: what if Job was saved and JobChunk was not? Need transactions?
 
     consumers = await find_available_consumers(request.app['engine'])
-    for index in range(min(len(consumers), len(data['databases']))):
+    for index in range(min(len(consumers), len(databases))):
         try:
             await delegate_job_chunk_to_consumer(
                 engine=request.app['engine'],
                 consumer_ip=consumers[index].ip,
                 job_id=job_id,
-                database=data['databases'][index],
+                database=databases[index],
                 query=data['query']
             )
         except Exception as e:
