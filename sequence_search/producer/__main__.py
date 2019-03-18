@@ -11,6 +11,7 @@ See the License for the specific language governing permissions and
 limitations under the License.
 """
 
+import argparse
 import logging
 import asyncio
 
@@ -40,8 +41,9 @@ async def on_startup(app):
     # initialize database connection
     await init_pg(app)
 
-    # create initial migrations in the database
-    await migrate(app['settings'].ENVIRONMENT)
+    if app['settings'].MIGRATE:
+        # create initial migrations in the database
+        await migrate(app['settings'].ENVIRONMENT)
 
     # initialize scheduling tasks to consumers in background
     await create_consumer_scheduler(app)
@@ -107,6 +109,20 @@ def create_app():
 
 
 if __name__ == '__main__':
+    parser = argparse.ArgumentParser()
+    parser.add_argument(
+        '--migrate',
+        dest='MIGRATE',
+        default=False,
+        action='store_true',
+        help='Should migrations (that clean the database) be applied on producer startup'
+    )
+    args = parser.parse_args()
+
+    # update settings with args
+    for key, value in vars(args).items():
+        setattr(settings, key, value)
+
     app = create_app()
     web.run_app(app, host=app['settings'].HOST, port=app['settings'].PORT)
 
