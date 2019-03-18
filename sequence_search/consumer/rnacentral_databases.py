@@ -35,7 +35,8 @@ rnacentral_databases = [
     RnacentralDatabases("snopy", "snOPY"),
     RnacentralDatabases("srpdb", "SRPDB"),
     RnacentralDatabases("tair", "TAIR"),
-    RnacentralDatabases("tmrna_web", "tmRNA Website")
+    RnacentralDatabases("tmrna_web", "tmRNA Website"),
+    RnacentralDatabases("wormbase", "WormBase")
 ]
 
 
