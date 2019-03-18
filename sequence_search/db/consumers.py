@@ -93,7 +93,8 @@ async def delegate_job_chunk_to_consumer(engine, consumer_ip, job_id, database, 
                 await set_job_chunk_status(engine, job_id, database, status="error")
                 await set_job_status(engine, job_id, status="error")
 
-                raise web.HTTPBadRequest(text=await response.text())
+                text = await response.text()
+                raise web.HTTPBadRequest(text=text)
     except psycopg2.Error as e:
         logging.error(str(e))
 

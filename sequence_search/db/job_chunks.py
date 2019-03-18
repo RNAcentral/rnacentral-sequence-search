@@ -85,7 +85,7 @@ async def find_highest_priority_job_chunk(engine):
 
                 query = (select_statement
                          .select_from(sa.join(Job, JobChunk, Job.c.id == JobChunk.c.job_id))  # noqa
-                         .where(Job.c.status == JOB_STATUS_CHOICES.started)
+                         .where(sa.and_(Job.c.status == JOB_STATUS_CHOICES.started, JobChunk.c.status == JOB_STATUS_CHOICES.pending))
                          .order_by(Job.c.submitted))  # noqa
 
                 # if there are started jobs and job_chunks, pick one from the earliest submitted job

@@ -85,10 +85,11 @@ def serialize(request, data):
 
     consumer_validator(database)
 
-    for char in sequence:
-        if char not in ['A', 'T', 'G', 'C', 'U']:
-            raise ValueError("Input sequence should be nucleotide sequence "
-                                  "and contain only {ATGCU} characters, found: '%s'." % sequence)
+    # TODO: maybe, validate the sequence
+    # for char in sequence:
+    #     if char not in ['A', 'T', 'G', 'C', 'U']:
+    #         raise ValueError("Input sequence should be nucleotide sequence "
+    #                               "and contain only {ATGCU} characters, found: '%s'." % sequence)
 
     return data
 
