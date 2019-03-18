@@ -15,7 +15,7 @@ import shlex
 import asyncio.subprocess
 
 from . import settings
-from .filenames import query_file_path, result_file_path
+from sequence_search.consumer.rnacentral_databases import query_file_path, result_file_path, database_file_path
 
 
 class NhmmerError(Exception):
@@ -43,7 +43,7 @@ async def nhmmer_search(sequence, job_id, database):
         'query': query_file_path(job_id, database),
         'output': result_file_path(job_id, database),
         'nhmmer': settings.NHMMER_EXECUTABLE,
-        'db': settings.SEQDATABASES / (database + '.fasta'),
+        'db': database_file_path(database),
         'cpu': 4,
         'incE': e_value,
         'E': e_value

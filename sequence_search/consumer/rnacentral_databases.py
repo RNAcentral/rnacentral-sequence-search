@@ -11,8 +11,10 @@ See the License for the specific language governing permissions and
 limitations under the License.
 """
 
+import os
 from collections import namedtuple
 
+from sequence_search.consumer.settings import QUERY_DIR, RESULTS_DIR
 from .settings import PROJECT_ROOT
 
 
@@ -83,8 +85,26 @@ def producer_to_consumers_databases(databases):
     return output
 
 
-def consumer_validator(databases):
+def consumer_validator(database):
     ids = [file.name for file in get_database_files()]
 
-    for db in databases:
-        assert db in ids
+    if database not in ids:
+        raise ValueError("Database %s is not a valid RNAcentral database" % database)
+
+
+def query_file_path(job_id, database):
+    """Returns path to the file with nhmmer query sequence"""
+    return os.path.join(QUERY_DIR, '%s_%s' % (job_id, database))
+
+
+def result_file_path(job_id, database):
+    """Returns path to the file with nhmmer search results"""
+    return os.path.join(RESULTS_DIR, '%s_%s' % (job_id, database))
+
+
+def database_file_path(database):
+    """
+    Returns path to the file with rnacentral database chunk
+    (e.g. ena1.fasta or all-except-rrna1.fasta).
+    """
+    return PROJECT_ROOT / 'databases' / database

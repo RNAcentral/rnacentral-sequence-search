@@ -16,10 +16,10 @@ import logging
 from aiohttp import web
 from aiojobs.aiohttp import spawn
 
-from .. import settings
 from ..nhmmer_parse import nhmmer_parse
 from ..nhmmer_search import nhmmer_search
-from ..filenames import query_file_path, result_file_path
+from ..rnacentral_databases import query_file_path, result_file_path, consumer_validator
+
 from ...db.models import CONSUMER_STATUS_CHOICES, JOB_STATUS_CHOICES
 from ...db.job_chunk_results import set_job_chunk_results
 from ...db.job_chunks import get_consumer_ip_from_job_chunk, get_job_chunk_from_job_and_database, set_job_chunk_status
@@ -83,8 +83,7 @@ def serialize(request, data):
     if os.path.isfile(query_file_path(job_id, database)) or os.path.isfile(result_file_path(job_id, database)):
         raise ValueError("job with id '%s' has already been submitted" % job_id)
 
-    if database not in settings.RNACENTRAL_DATABASES:
-        raise ValueError("Database argument is wrong: '%s' is not one of RNAcentral databases." % database)
+    consumer_validator(database)
 
     for char in sequence:
         if char not in ['A', 'T', 'G', 'C', 'U']:
