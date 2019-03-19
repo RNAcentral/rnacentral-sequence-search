@@ -19,7 +19,7 @@ class Hit extends React.Component {
               { this.props.alignmentsCollapsed ? <span><i className="icon icon-functional" data-icon="9" /> show alignments</span> : <span><i className="icon icon-functional" data-icon="8"/> hide alignments</span> }
             </a>
           </small>
-          <div className="callout alignment alignment-collapsed">
+          <div className={`callout alignment ${this.props.alignmentsCollapsed ? 'alignment-collapsed' : ''}`}>
             <table className="responsive-table">
               <thead>
                 <tr>
