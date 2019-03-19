@@ -139,10 +139,12 @@ class Result extends React.Component {
           facets: [...data.facets],
           hitCount: data.hitCount,
           selectedFacets: selectedFacets,
-          textSearchError: textSearchError
+          textSearchError: data.textSearchError
         });
       })
-      .catch(reason => this.setState({ status: "error" }));
+      .catch(reason => {
+        this.setState({ status: "error" })
+      });
 
     // When user scrolls down to the bottom of the component, load more entries, if available.
     window.onscroll = this.onScroll;
