@@ -55,7 +55,9 @@ async def nhmmer(engine, job_id, sequence, database):
         logger.info('Nhmmer search success for: job_id = %s, database = %s' % (job_id, database))
     except Exception as e:
         # TODO: recoverable errors handling
-        # TODO: irrecoverable errors handling
+        await set_job_chunk_status(engine, job_id, database, status=JOB_STATUS_CHOICES.error)
+        await set_job_status(engine, job_id, status=JOB_STATUS_CHOICES.error)
+
         logger.error('Nhmmer search error for: job_id = %s, database = %s' % (job_id, database))
         raise NhmmerError('Nhmmer search error for: job_id = %s, database = %s' % (job_id, database)) from e
 
@@ -85,7 +87,9 @@ def serialize(request, data):
 
     consumer_validator(database)
 
-    # TODO: maybe, validate the sequence
+    if not sequence:
+        raise ValueError("sequence should be non-empty")
+    # TODO: maybe, validate the sequence characters
     # for char in sequence:
     #     if char not in ['A', 'T', 'G', 'C', 'U']:
     #         raise ValueError("Input sequence should be nucleotide sequence "

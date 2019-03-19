@@ -31,6 +31,8 @@ def serialize(request, data):
     query = data['query']
     databases = data['databases']
 
+    if not query:
+        raise ValueError("Empty query")
     # TODO: validate query
     # for char in query:
     #     if char not in ['A', 'T', 'G', 'C', 'U']:

@@ -13,6 +13,7 @@ class Search extends React.Component {
     this.state = {
       rnacentralDatabases: [],
       rnacentralDatabaseLabels: {},
+      databasesCollapsed: true,
       selectedDatabases: {},
       sequence: "",
       submissionError: ""
@@ -20,23 +21,30 @@ class Search extends React.Component {
 
     this.onSelectAllDatabases = this.onSelectAllDatabases.bind(this);
     this.onDeselectAllDatabases = this.onDeselectAllDatabases.bind(this);
+    this.onToggleDatabasesCollapsed = this.onToggleDatabasesCollapsed.bind(this);
     this.onExampleSequence = this.onExampleSequence.bind(this);
     this.onClearSequence = this.onClearSequence.bind(this);
     this.onFileUpload = this.onFileUpload.bind(this);
   }
 
   onSubmit(event) {
-    event.preventDefault();
+    // if sequence is not given - ignore submit
+    if (this.state.sequence) {
 
-    fetch(routes.submitJob(), {
-      method: 'post',
-      headers: {
-        'Accept': 'application/json, text/plain, */*',
-        'Content-Type': 'application/json'
-      },
-      body: JSON.stringify({query: this.state.sequence, databases: Object.keys(this.state.selectedDatabases).filter(key => this.state.selectedDatabases[key]) })
-    })
-      .then(function(response) {
+      event.preventDefault();
+
+      fetch(routes.submitJob(), {
+        method: 'post',
+        headers: {
+          'Accept': 'application/json, text/plain, */*',
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          query: this.state.sequence,
+          databases: Object.keys(this.state.selectedDatabases).filter(key => this.state.selectedDatabases[key])
+        })
+      })
+      .then(function (response) {
         if (response.ok) {
           return response.json();
         } else {
@@ -44,7 +52,8 @@ class Search extends React.Component {
         }
       })
       .then(data => this.props.history.push(`/job/${data.job_id}`))
-      .catch(error => this.setState({ submissionError: error.toString() }));
+      .catch(error => this.setState({submissionError: error.toString()}));
+    }
   }
 
   onSequenceTextareaChange(event) {
@@ -67,6 +76,11 @@ class Search extends React.Component {
     let selectedDatabases = {};
     this.state.rnacentralDatabases.map(db => { selectedDatabases[db] = false; });
     this.setState({ selectedDatabases: selectedDatabases });
+  }
+
+  onToggleDatabasesCollapsed(event) {
+    $('#rnacentralDatabaseCollapsible').toggleClass('databases-collapsed');
+    this.setState({ databasesCollapsed: !this.state.databasesCollapsed });
   }
 
   onExampleSequence(sequence) {
@@ -123,17 +137,19 @@ class Search extends React.Component {
                 </div>}
                 <div>
                   <fieldset>
-                    <h4>Search against specific RNA databases:</h4>
-                    <ul id="rnacentralDatabases" className="facets databases-collapsed">
-                      {this.state.rnacentralDatabases.map(database =>
-                        <li key={database}><span className="facet"><input id={database} type="checkbox" checked={this.state.selectedDatabases[database]} onChange={(e) => this.onDatabaseCheckboxToggle(e)} /><label htmlFor={database}>{ this.state.rnacentralDatabaseLabels[database] }</label></span></li>
-                      )}
-                    </ul>
-                    <p>
-                      <label>
-                        <a id="selectAllDatabases" onClick={this.onSelectAllDatabases}>Select all</a> | <a id="deselectAllDatabases" onClick={this.onDeselectAllDatabases}>Deselect all</a>
-                      </label>
-                    </p>
+                    <h4><a onClick={ this.onToggleDatabasesCollapsed }><small>{ this.state.databasesCollapsed ? <i className="icon icon-functional" data-icon="9" /> : <i className="icon icon-functional" data-icon="8"/> } search against specific RNA databases</small></a></h4>
+                    <div id="rnacentralDatabaseCollapsible" className="databases-collapsed">
+                      <ul id="rnacentralDatabases" className="facets">
+                        {this.state.rnacentralDatabases.map(database =>
+                          <li key={database}><span className="facet"><input id={database} type="checkbox" checked={this.state.selectedDatabases[database]} onChange={(e) => this.onDatabaseCheckboxToggle(e)} /><label htmlFor={database}>{ this.state.rnacentralDatabaseLabels[database] }</label></span></li>
+                        )}
+                      </ul>
+                      <p>
+                        <label>
+                          <a id="selectAllDatabases" onClick={this.onSelectAllDatabases}>Select all</a> | <a id="deselectAllDatabases" onClick={this.onDeselectAllDatabases}>Deselect all</a>
+                        </label>
+                      </p>
+                    </div>
                   </fieldset>
                 </div>
                 <div>
