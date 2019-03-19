@@ -28,11 +28,10 @@ class Search extends React.Component {
   }
 
   onSubmit(event) {
+    event.preventDefault();
+
     // if sequence is not given - ignore submit
     if (this.state.sequence) {
-
-      event.preventDefault();
-
       fetch(routes.submitJob(), {
         method: 'post',
         headers: {
