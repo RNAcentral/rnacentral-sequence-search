@@ -60,7 +60,7 @@
         - "--exclude=/sequence_search/consumer/databases_back"
         - "--exclude=/sequence_search/consumer/queries/*.fasta"
         - "--exclude=/sequence_search/consumer/results/*.fasta"
-      tags: [ quick ]
+    tags: [ quick ]
 
 
 
