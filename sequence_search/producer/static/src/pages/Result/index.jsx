@@ -39,7 +39,9 @@ class Result extends React.Component {
    * @returns {Promise<any>}
    */
   fetchSearchResults(resultId, query, page, page_size) {
-    return fetch(routes.facetsSearch(resultId, query, page, page_size))
+    let request = routes.facetsSearch(resultId, query, page, page_size);
+
+    return fetch(request)
       .then((response) => {
         if (response.ok) {
           return response.json();
@@ -85,12 +87,19 @@ class Result extends React.Component {
     }
 
     // start loading from the first page again
-    this.setState({ page : 1 });
     this.fetchSearchResults(this.props.match.params.resultId, this.buildQuery(), 1, this.state.page_size)
       .then(data => {
-        this.setState({selectedFacets: selectedFacets, facets: data.facets, result: data.entries, status: "success"});
+        this.setState({
+          selectedFacets: selectedFacets,
+          facets: data.facets,
+          result: data.entries,
+          status: "success",
+          page: 1
+        });
       })
-      .catch(reason => this.setState({ status: "error" }));
+      .catch(reason => {
+        this.setState({ status: "error", page: 1 });
+      });
   }
 
   /**

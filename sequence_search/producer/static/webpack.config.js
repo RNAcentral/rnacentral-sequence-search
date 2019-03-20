@@ -77,7 +77,7 @@ module.exports = function(env) {
             target: 'http://localhost:8002',
             secure: false
         }
-    }
+      }
     },
     devtool: "source-map"
   };
