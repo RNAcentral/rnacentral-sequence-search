@@ -14,14 +14,36 @@ limitations under the License.
 from aiohttp import web
 
 from ...db.jobs import get_job_results
+from ..text_search_client import rnacentral_ids_file_path
 
 
 async def list_rnacentral_ids(request):
+    """
+    In order to have a text search, this endpoint has to pass a list of rnacentral_ids to
+    EBI search (which will be able to provide facets then).
+
+    In production environment list of rnacentral_ids is constructed from the database data.
+
+    Other environments have to send a request to production machine's post-rnacentral-ids
+    endpoint and it would save a list of rnacentral_ids in its cache directory.
+    """
+
     # TODO: validate job_id and the fact that job finished
     job_id = request.match_info['job_id']
 
-    # get sequence search results from the database, return as plaintext list
-    results = await get_job_results(request.app['engine'], job_id)
-    ids = [result['rnacentral_id'] for result in results]
-    text = "\n".join(ids)
-    return web.Response(text=text)
+    # try getting ids list from cache first
+    try:
+        file = open(rnacentral_ids_file_path(job_id))
+        text = file.read()
+        return web.Response(text=text)
+    except Exception as e:
+        pass
+
+    # try getting sequence search results from the database, return as plaintext list
+    try:
+        results = await get_job_results(request.app['engine'], job_id)
+        ids = [result['rnacentral_id'] for result in results]
+        text = "\n".join(ids)
+        return web.Response(text=text)
+    except Exception as e:
+        return web.HTTPNotFound()

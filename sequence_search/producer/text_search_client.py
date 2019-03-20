@@ -11,17 +11,11 @@ See the License for the specific language governing permissions and
 limitations under the License.
 """
 
+import os
+
 import aiohttp
 
-from .settings import EBI_SEARCH_PROXY_URL
-
-
-# if we fail to retrieve facets,
-text_search_data_stub = {
-    "hitCount": 0,
-    "entries": [],  # {id: , source: , highlights: }
-    "facets": [],
-}
+from .settings import EBI_SEARCH_PROXY_URL, PROJECT_ROOT
 
 
 class ProxyConnectionError(Exception):
@@ -36,23 +30,35 @@ class EBITextSearchConnectionError(Exception):
         return "EBI text search connection error"
 
 
-async def get_text_search_results(results, job_id, query, page, page_size):
-    """
-    Post text search results to our proxy, so that EBI_SEARCH could retrieve it and index.
-    Request text search facets from EBI_SEARCH, and return those data.
-    """
-    # send the list of rnacentral_ids to the proxy, fallback to returning the plain results, if text search unavailable
-    rnacentral_ids = "\n".join([result['rnacentral_id'] for result in results])
-    url = EBI_SEARCH_PROXY_URL + '/' + job_id
-    headers = {'content-type': 'text/plain'}
+def rnacentral_ids_cache_directory_path():
+    return PROJECT_ROOT / 'producer' / 'cache'
 
-    try:
-        async with aiohttp.ClientSession() as session:
-            async with session.post(url, data=rnacentral_ids, headers=headers) as response:
-                if response.status >= 400:
-                    raise ProxyConnectionError()
-    except Exception as e:
-        raise ProxyConnectionError() from e
+
+def rnacentral_ids_file_path(job_id):
+    return rnacentral_ids_cache_directory_path() / job_id
+
+
+async def get_text_search_results(results, job_id, query, page, page_size, ENVIRONMENT):
+    """
+    For local development local server has to POST list of RNAcentral ids
+    to the EMBASSY cloud machine and retrieve results from there.
+    """
+
+    if ENVIRONMENT != "PRODUCTION":
+        # send the list of rnacentral_ids to the proxy, fallback to
+        # returning the plain results, if text search unavailable
+
+        rnacentral_ids = "\n".join([result['rnacentral_id'] for result in results])
+        url = EBI_SEARCH_PROXY_URL + '/' + job_id
+        headers = {'content-type': 'text/plain'}
+
+        try:
+            async with aiohttp.ClientSession() as session:
+                async with session.post(url, data=rnacentral_ids, headers=headers) as response:
+                    if response.status >= 400:
+                        raise ProxyConnectionError()
+        except Exception as e:
+            raise ProxyConnectionError() from e
 
     # request facets from ebi text search
     fields = [

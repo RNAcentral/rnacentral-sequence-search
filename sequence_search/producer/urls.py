@@ -13,7 +13,7 @@ limitations under the License.
 
 from aiohttp_swagger import setup_swagger
 from .views import index, submit_job, job_status, job_result, rnacentral_databases, job_results_urs_list, \
-    facets, facets_search, list_rnacentral_ids
+    facets, facets_search, list_rnacentral_ids, post_rnacentral_ids
 from . import settings
 
 
@@ -25,7 +25,8 @@ def setup_routes(app):
     app.router.add_get('/api/job-results-urs-list/{job_id:[A-Za-z0-9_-]+}', job_results_urs_list, name='job-results-urs-list')
     app.router.add_get('/api/facets/{job_id:[A-Za-z0-9_-]+}', facets, name='facets')
     app.router.add_get('/api/facets-search/{job_id:[A-Za-z0-9_-]+}', facets_search, name='facets-search')
-    app.router.add_get('/api/list-rnacentral-ids/{job_id:[A-Za-z0-9_-]+}', list_rnacentral_ids, name='list-rnacentral-ids')
+    app.router.add_get('/api/list-rnacentral-ids/{job_id:[A-Za-z0-9_-]+}', list_rnacentral_ids, name='list-rnacentral-ids'),
+    app.router.add_post('/api/post-rnacentral-ids/{job_id:[A-Za-z0-9_-]+}', post_rnacentral_ids, name='post-rnacentral-ids')
     setup_static_routes(app)
 
     # setup swagger documentation

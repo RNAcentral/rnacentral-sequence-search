@@ -11,14 +11,24 @@ See the License for the specific language governing permissions and
 limitations under the License.
 """
 
-from .index import index
-from .job_chunk_heartbeat import job_chunk_heartbeat
-from .job_status import job_status
-from .job_result import job_result
-from .submit_job import submit_job
-from .rnacentral_databases import rnacentral_databases
-from .job_results_urs_list import job_results_urs_list
-from .facets import facets
-from .facets_search import facets_search
-from .list_rnacentral_ids import list_rnacentral_ids
-from .post_rnacentral_ids import post_rnacentral_ids
+import os
+
+from aiohttp import web
+
+from ..text_search_client import rnacentral_ids_file_path
+
+
+async def post_rnacentral_ids(request):
+    job_id = request.match_info['job_id']
+
+    if os.path.isfile(rnacentral_ids_file_path(job_id)):
+        os.remove(rnacentral_ids_file_path(job_id))
+
+    try:
+        file = open(rnacentral_ids_file_path(job_id), 'wb')
+        data = await request.content.read()
+        file.write(data)
+        file.flush()
+        return web.HTTPCreated()
+    except Exception as e:
+        return web.HTTPBadRequest(text=str(e))
