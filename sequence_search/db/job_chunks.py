@@ -54,7 +54,7 @@ async def save_job_chunk(engine, job_id, database):
                 return job_chunk_id
             except Exception as e:
                 raise SQLError("Failed to save job_chunk for "
-                                              "job_id = %s, database = %s", (job_id, database)) from e
+                                              "job_id = %s, database = %s" % (job_id, database)) from e
     except psycopg2.Error as e:
         raise DatabaseConnectionError("Failed to open database connection in save_job_chunk "
                                       "for job_id = %s, database = %s" % (job_id, database)) from e
