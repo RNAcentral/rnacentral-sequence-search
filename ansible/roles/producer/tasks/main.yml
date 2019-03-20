@@ -10,7 +10,7 @@
       state: present
       description: epel repostiory
       gpgcheck: no
-    tags: [ producer-install-deps ]
+    tags: [ install-deps ]
 
   - name: Install yum dependencies
     yum:
@@ -32,11 +32,11 @@
       - python36-setuptools
       - nodejs
       - postgresql.x86_64
-    tags: [ producer-install-deps ]
+    tags: [ install-deps ]
 
   - name: Install pip3
     shell: easy_install-3.6 pip
-    tags: [ producer-install-deps ]
+    tags: [ install-deps ]
 
 
 
@@ -52,7 +52,7 @@
         - "--exclude=/sequence_search/consumer/results/*.fasta"
         - "--exclude=/sequence_search/producer/static/node_modules"
         - "--exclude=/sequence_search/producer/static/package-lock.json"
-    tags: [ producer-rsync, quick ]
+    tags: [ rsync, quick ]
 
   - name: Umount volume for databases (so that chown doesn't complain)
     mount:
@@ -61,7 +61,7 @@
       fstype: iso9660
       state: unmounted
     ignore_errors: yes
-    tags: [ producer-rsync, quick ]
+    tags: [ rsync, quick ]
 
   - name: Chown aiohttp code
     command: "chown -R centos:centos /srv/sequence_search"
@@ -78,7 +78,7 @@
     shell: /usr/local/bin/pip install -r requirements.txt
     args:
       chdir: /srv/sequence_search
-    tags: [ producer-pip-requirements ]
+    tags: [ pip-requirements ]
 
 
 
@@ -87,7 +87,7 @@
       path: /var/log/gunicorn
       state: absent
     ignore_errors: yes
-    tags: [ producer-logs ]
+    tags: [ logs ]
 
   - name: Create logs directory
     file:
@@ -96,7 +96,7 @@
       owner: centos
       group: centos
       mode: 0755
-    tags: [ producer-logs ]
+    tags: [ logs ]
 
   - name: Create access log
     file:
@@ -105,7 +105,7 @@
       owner: centos
       group: centos
       mode: 0755
-    tags: [ producer-logs ]
+    tags: [ logs ]
 
 
   - name: Mount volume for databases
@@ -114,7 +114,7 @@
       src: /dev/vdb
       fstype: iso9660
       state: mounted
-    tags: [ producer-volume, producer-volume-mount, quick ]
+    tags: [ volume, volume-mount, quick ]
 
 
 
@@ -123,19 +123,19 @@
       chdir: /srv/sequence_search/producer/static
       cmd: "npm install"
     become: false
-    tags: [ producer-frontend ]
+    tags: [ frontend ]
 
   - name: Clean dist directory
     shell:
      chdir: /srv/sequence_search/producer/static
      cmd: "npm run clean"
-    tags: [ producer-frontend, quick ]
+    tags: [ frontend, quick ]
 
   - name: Build frontend code bundle in dist
     shell:
       chdir: /srv/sequence_search/producer/static
       cmd: "npm run build"
-    tags: [ producer-frontend, quick ]
+    tags: [ frontend, quick ]
 
 
 
@@ -150,12 +150,12 @@
     shell: "ps -ef | grep -v grep | grep -w producer | awk '{print $2}'"
     #    shell: "sudo kill $(ps -ef | grep -v grep | grep -w producer | awk '{print $2}')"
     register: running_processes
-    tags: [ producer-restart, quick ]
+    tags: [ restart, quick ]
 
   - name: Kill running processes
     shell: "kill {{ item }}"
     with_items: "{{ running_processes.stdout_lines }}"
-    tags: [ producer-restart, quick ]
+    tags: [ restart, quick ]
 
   # copied over from: https://stackoverflow.com/questions/46515704/how-to-kill-a-running-process-using-ansible
   - wait_for:
@@ -164,23 +164,30 @@
     with_items: "{{ running_processes.stdout_lines }}"
     ignore_errors: yes
     register: killed_processes
-    tags: [ producer-restart, quick ]
+    tags: [ restart, quick ]
 
   - name: Force kill stuck processes
     shell: "kill -9 {{ item }}"
     with_items: "{{ killed_processes.results | select('failed') | map(attribute='item') | list }}"
-    tags: [ producer-restart, quick ]
+    tags: [ restart, quick ]
 
   - wait_for:
       path: "/proc/{{ item }}/status"
       state: absent
     with_items: "{{ running_processes.stdout_lines }}"
     ignore_errors: yes
-    tags: [ producer-restart, quick ]
+    tags: [ restart, quick ]
+
+  - name: Clean database
+    shell:
+      chdir: /srv
+#      cmd: /usr/local/bin/gunicorn producer.main:app --daemon --bind 0.0.0.0:8002 --worker-class aiohttp.worker.GunicornWebWorker --access-logfile /var/log/gunicorn/access_log --error-logfile /var/log/gunicorn/error_log --env ENVIRONMENT=PRODUCTION --log-level=DEBUG --timeout 120
+      cmd: ENVIRONMENT=PRODUCTION nohup python36 -m sequence_search.db &> /var/log/gunicorn/access_log &
+    tags: [ never, clean-db ]
 
   - name: Run producer service
     shell:
       chdir: /srv
 #      cmd: /usr/local/bin/gunicorn producer.main:app --daemon --bind 0.0.0.0:8002 --worker-class aiohttp.worker.GunicornWebWorker --access-logfile /var/log/gunicorn/access_log --error-logfile /var/log/gunicorn/error_log --env ENVIRONMENT=PRODUCTION --log-level=DEBUG --timeout 120
       cmd: ENVIRONMENT=PRODUCTION nohup python36 -m sequence_search.producer &> /var/log/gunicorn/access_log &
-    tags: [ producer-restart, quick ]
+    tags: [ restart, quick ]
