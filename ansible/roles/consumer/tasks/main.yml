@@ -9,7 +9,7 @@
       state: present
       description: epel repostiory
       gpgcheck: no
-    tags: [ consumer-install-deps ]
+    tags: [ install-deps ]
 
   - name: Install yum dependencies
     yum:
@@ -30,11 +30,11 @@
       - python36-devel
       - python36-setuptools
       - postgresql.x86_64
-    tags: [ consumer-install-deps ]
+    tags: [ install-deps ]
 
   - name: Install pip3
     shell: easy_install-3.6 pip
-    tags: [ consumer-install-deps ]
+    tags: [ install-deps ]
 
 
 
@@ -69,7 +69,7 @@
       path: /var/log/gunicorn
       state: absent
     ignore_errors: yes
-    tags: [ consumer-logs ]
+    tags: [ logs ]
 
   - name: Create logs directory
     file:
@@ -78,7 +78,7 @@
       owner: centos
       group: centos
       mode: 0755
-    tags: [ consumer-logs ]
+    tags: [ logs ]
 
 
 
@@ -86,7 +86,7 @@
     file:
       path: /srv/sequence_search/consumer/queries
       state: absent
-    tags: [ consumer-queries, quick ]
+    tags: [ queries, quick ]
 
   - name: Create queries directory
     file:
@@ -95,7 +95,7 @@
       owner: centos
       group: centos
       mode: 0755
-    tags: [ consumer-queries, quick ]
+    tags: [ queries, quick ]
 
 
 
@@ -103,7 +103,7 @@
     file:
       path: /srv/sequence_search/consumer/results
       state: absent
-    tags: [ consumer-results, quick ]
+    tags: [ results, quick ]
 
   - name: Create results directory
     file:
@@ -112,7 +112,7 @@
       owner: centos
       group: centos
       mode: 0755
-    tags: [ consumer-results, quick ]
+    tags: [ results, quick ]
 
 
 
@@ -165,12 +165,12 @@
     shell: "sudo kill $(ps -ef | grep -v grep | grep -w consumer | awk '{print $2}')"
     register: running_processes
     ignore_errors: yes
-    tags: [ consumer-restart, quick ]
+    tags: [ restart, quick ]
 
   - name: Kill running processes
     shell: "kill {{ item }}"
     with_items: "{{ running_processes.stdout_lines }}"
-    tags: [ consumer-restart, quick ]
+    tags: [ restart, quick ]
 
   # copied over from: https://stackoverflow.com/questions/46515704/how-to-kill-a-running-process-using-ansible
   - wait_for:
@@ -179,23 +179,23 @@
     with_items: "{{ running_processes.stdout_lines }}"
     ignore_errors: yes
     register: killed_processes
-    tags: [ consumer-restart, quick ]
+    tags: [ restart, quick ]
 
   - name: Force kill stuck processes
     shell: "kill -9 {{ item }}"
     with_items: "{{ killed_processes.results | select('failed') | map(attribute='item') | list }}"
-    tags: [ consumer-restart, quick ]
+    tags: [ restart, quick ]
 
   - wait_for:
       path: "/proc/{{ item }}/status"
       state: absent
     with_items: "{{ running_processes.stdout_lines }}"
     ignore_errors: yes
-    tags: [ consumer-restart, quick ]
+    tags: [ restart, quick ]
 
   - name: Run consumer service
     shell:
       chdir: /srv
 #      cmd: /usr/local/bin/gunicorn consumer.main:app --daemon --bind 0.0.0.0:8000 --worker-class aiohttp.worker.GunicornWebWorker --access-logfile /var/log/gunicorn/access_log --error-logfile /var/log/gunicorn/error_log --env ENVIRONMENT=PRODUCTION --log-level=DEBUG
       cmd: ENVIRONMENT=PRODUCTION nohup python36 -m sequence_search.consumer &> /var/log/gunicorn/access_log &
-    tags: [ consumer-restart, quick ]
+    tags: [ restart, quick ]
