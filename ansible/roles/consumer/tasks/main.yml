@@ -157,6 +157,7 @@
       src: /dev/vdb
       fstype: iso9660
       state: mounted
+    tags: [ quick ]
 
 
 
