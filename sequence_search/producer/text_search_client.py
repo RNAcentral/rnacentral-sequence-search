@@ -31,7 +31,7 @@ class EBITextSearchConnectionError(Exception):
 
 
 def rnacentral_ids_cache_directory_path():
-    return PROJECT_ROOT / 'producer' / 'cache'
+    return PROJECT_ROOT / 'cache'
 
 
 def rnacentral_ids_file_path(job_id):

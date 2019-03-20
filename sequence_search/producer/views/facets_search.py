@@ -210,7 +210,8 @@ async def facets_search(request):
 
     # try to get facets from EBI text search, otherwise stub facets
     try:
-        text_search_data = await get_text_search_results(results, job_id, query, page, page_size)
+        ENVIRONMENT = request.app['settings'].ENVIRONMENT
+        text_search_data = await get_text_search_results(results, job_id, query, page, page_size, ENVIRONMENT)
 
         # if this worked, inject text search results into facets json
         for entry in text_search_data['entries']:

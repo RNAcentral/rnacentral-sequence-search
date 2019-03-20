@@ -27,15 +27,14 @@ async def list_rnacentral_ids(request):
     Other environments have to send a request to production machine's post-rnacentral-ids
     endpoint and it would save a list of rnacentral_ids in its cache directory.
     """
-
     # TODO: validate job_id and the fact that job finished
     job_id = request.match_info['job_id']
 
     # try getting ids list from cache first
     try:
         file = open(rnacentral_ids_file_path(job_id))
-        text = file.read()
-        return web.Response(text=text)
+        data = file.read()
+        return web.Response(text=data)
     except Exception as e:
         pass
 
@@ -43,7 +42,7 @@ async def list_rnacentral_ids(request):
     try:
         results = await get_job_results(request.app['engine'], job_id)
         ids = [result['rnacentral_id'] for result in results]
-        text = "\n".join(ids)
-        return web.Response(text=text)
+        data = "\n".join(ids)
+        return web.Response(text=data)
     except Exception as e:
         return web.HTTPNotFound()
