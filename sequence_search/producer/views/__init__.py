@@ -20,3 +20,4 @@ from .rnacentral_databases import rnacentral_databases
 from .job_results_urs_list import job_results_urs_list
 from .facets import facets
 from .facets_search import facets_search
+from .list_rnacentral_ids import list_rnacentral_ids

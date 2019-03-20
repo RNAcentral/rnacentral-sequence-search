@@ -13,7 +13,7 @@ limitations under the License.
 
 from aiohttp import web
 
-from ...db.jobs import get_job_results, JobNotFound
+from ...db.jobs import get_job_results
 
 
 async def list_rnacentral_ids(request):
