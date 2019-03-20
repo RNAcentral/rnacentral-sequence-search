@@ -29,14 +29,14 @@ class ConsumerClient(object):
 
         if ENVIRONMENT != 'TEST':
             async with aiohttp.ClientSession() as session:
-                logging.debug("Queuing JobChunk to consumer: url = {}, json_data = {}, headers = {}"
-                              .format(url, json_data, headers))
+                logging.debug("Queuing JobChunk to consumer: url = {}, json_data = {}, headers = {}, consumer_ip = {}"
+                              .format(url, json_data, headers, consumer_ip))
 
                 response = await session.post(url, data=json_data, headers=headers)
         else:
             # in TEST environment mock the request
-            logging.debug("Queuing JobChunk to consumer: url = {}, json_data = {}, headers = {}"
-                          .format(url, json_data, headers))
+            logging.debug("Queuing JobChunk to consumer: url = {}, json_data = {}, headers = {}, consumer_ip = {}"
+                          .format(url, json_data, headers, consumer_ip))
 
             request = test_utils.make_mocked_request('POST', url, headers=headers)
             await asyncio.sleep(1)

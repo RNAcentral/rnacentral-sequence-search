@@ -35,6 +35,9 @@ class NhmmerError(Exception):
         return str(self.text)
 
 
+logger = logging.Logger('aiohttp.web')
+
+
 async def nhmmer(engine, job_id, sequence, database):
     """
     Function that performs nhmmer search and then reports the result to provider API.
@@ -45,8 +48,6 @@ async def nhmmer(engine, job_id, sequence, database):
     :param database: name of the database to search against
     :return:
     """
-    logger = logging.Logger('aiohttp.web')
-
     job_chunk_id = await get_job_chunk_from_job_and_database(engine, job_id, database)
 
     logger.info('Nhmmer search started for: job_id = %s, database = %s' % (job_id, database))
@@ -109,6 +110,7 @@ async def submit_job(request):
     try:
         data = serialize(request, data)
     except (KeyError, TypeError, ValueError) as e:
+        logger.error(e)
         raise web.HTTPBadRequest(text=str(e)) from e
 
     await spawn(request, nhmmer(request.app['engine'], data['job_id'], data['sequence'], data['database']))
