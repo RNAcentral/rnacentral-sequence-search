@@ -26,6 +26,14 @@ from ..producer.consumer_client import ConsumerClient
 from .models import CONSUMER_STATUS_CHOICES
 
 
+def ConsumerConnectionError(Exception):
+    def __init__(self, text):
+        self.text = text
+
+    def __str__(self):
+        return self.text
+
+
 async def find_available_consumers(engine):
     """Returns a list of available consumers that can be used to run."""
     Consumer = namedtuple('Consumer', ['ip', 'status'])
@@ -94,7 +102,7 @@ async def delegate_job_chunk_to_consumer(engine, consumer_ip, job_id, database, 
                 await set_job_status(engine, job_id, status="error")
 
                 text = await response.text()
-                raise web.HTTPBadRequest(text=text)
+                raise ConsumerConnectionError(text)
     except psycopg2.Error as e:
         logging.error(str(e))
 
