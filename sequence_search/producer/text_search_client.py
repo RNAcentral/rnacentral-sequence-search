@@ -43,7 +43,6 @@ async def get_text_search_results(results, job_id, query, page, page_size, ENVIR
     For local development local server has to POST list of RNAcentral ids
     to the EMBASSY cloud machine and retrieve results from there.
     """
-
     if ENVIRONMENT != "PRODUCTION":
         # send the list of rnacentral_ids to the proxy, fallback to
         # returning the plain results, if text search unavailable
