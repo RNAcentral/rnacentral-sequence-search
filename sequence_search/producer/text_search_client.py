@@ -94,7 +94,7 @@ async def get_text_search_results(results, job_id, query, page, page_size, ENVIR
     ]
 
     url = "http://wwwdev.ebi.ac.uk/ebisearch/ws/rest/rnacentral/seqtoolresults/" \
-          "?toolid=rnac_nhmmer" \
+          "?toolid=nhmmer" \
           "&jobid={job_id}" \
           "&query={query}" \
           "&format=json&fields={fields}" \
