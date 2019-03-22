@@ -42,11 +42,11 @@ class Result extends React.Component {
     let request = routes.facetsSearch(resultId, query, page, page_size);
 
     return fetch(request)
-      .then((response) => {
-        if (response.ok) {
-          return response.json();
+      .then((result) => {
+        if (result.ok) {
+          return result.json();
         } else {
-          throw new Error(response.statusText);
+          throw new Error(result.statusText);
         }
       });
   }
@@ -87,17 +87,19 @@ class Result extends React.Component {
     }
 
     // start loading from the first page again
-    this.fetchSearchResults(this.props.match.params.resultId, this.buildQuery(), 1, this.state.page_size)
+    let query = this.buildQuery();
+    this.fetchSearchResults(this.props.match.params.resultId, query, 1, this.state.page_size)
       .then(data => {
         this.setState({
           selectedFacets: selectedFacets,
+          entries: data.entries,
           facets: data.facets,
-          result: data.entries,
+          hitCount: data.hitCount,
           status: "success",
           page: 1
         });
       })
-      .catch(reason => {
+      .catch(function(reason) {
         this.setState({ status: "error", page: 1 });
       });
   }
