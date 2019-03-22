@@ -201,9 +201,11 @@ async def facets_search(request):
     if not await job_exists(request.app['engine'], job_id):
         return web.HTTPNotFound(text="Job %s does not exist" % job_id)
 
+    # TODO: rename page_size to size for consistency with EBI search interface
     query = request.query['query'] if 'query' in request.query else 'rna'
     page = request.query['page'] if 'page' in request.query else 1
     page_size = request.query['page_size'] if 'page_size' in request.query else 20
+    facetcount = request.query['facetcount'] if 'facetcount' in request.query else 10
 
     # get sequence search results from the database, sort/aggregate?
     results = await get_job_results(request.app['engine'], job_id)
@@ -211,7 +213,7 @@ async def facets_search(request):
     # try to get facets from EBI text search, otherwise stub facets
     try:
         ENVIRONMENT = request.app['settings'].ENVIRONMENT
-        text_search_data = await get_text_search_results(results, job_id, query, page, page_size, ENVIRONMENT)
+        text_search_data = await get_text_search_results(results, job_id, query, page, page_size, facetcount, ENVIRONMENT)
 
         # if this worked, inject text search results into facets json
         for entry in text_search_data['entries']:
