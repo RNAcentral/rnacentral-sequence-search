@@ -43,7 +43,7 @@ elif ENVIRONMENT == "DOCKER-COMPOSE":
 elif ENVIRONMENT == "PRODUCTION":
     from .production import *
 
-EBI_SEARCH_PROXY_URL = 'http://193.62.55.80:8002/post-rnacentral-ids'
+EBI_SEARCH_PROXY_URL = 'http://193.62.55.80:8002/api/post-rnacentral-ids'
 
 
 def substitute_environment_variables():

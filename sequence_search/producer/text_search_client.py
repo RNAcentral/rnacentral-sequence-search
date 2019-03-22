@@ -46,7 +46,6 @@ async def get_text_search_results(results, job_id, query, page, page_size, ENVIR
     if ENVIRONMENT != "PRODUCTION":
         # send the list of rnacentral_ids to the proxy, fallback to
         # returning the plain results, if text search unavailable
-
         rnacentral_ids = "\n".join([result['rnacentral_id'] for result in results])
         url = EBI_SEARCH_PROXY_URL + '/' + job_id
         headers = {'content-type': 'text/plain'}
