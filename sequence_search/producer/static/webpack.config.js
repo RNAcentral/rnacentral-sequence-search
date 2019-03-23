@@ -5,7 +5,7 @@ const HtmlWebpackPlugin = require('html-webpack-plugin');
 const ExtractTextPlugin = require('extract-text-webpack-plugin');
 
 module.exports = function(env) {
-  // set variables, modifying the config for dev, prod and ssr
+  // set variables, modifying the config for dev and prod
   // see: https://github.com/webpack/webpack/issues/2254
   let environment;
   if (env && env.prod) environment = 'production';
@@ -16,7 +16,7 @@ module.exports = function(env) {
     entry: path.join(__dirname, 'src', 'app.jsx'),
     output: {
       path: path.join(__dirname, 'dist'),
-      publicPath: '/dist/', // environment === 'production' ? '/dist/' : '/',
+      publicPath: environment === 'production' ? '/dist/' : '/',
       filename: 'app.[hash:7].js'
     },
     resolve: {
@@ -68,9 +68,15 @@ module.exports = function(env) {
     },
     // A good explanation of how contentBase and publicPath work:
     // https://github.com/webpack/docs/wiki/webpack-dev-server
+
+    // Another great post about debugging webpack-dev-server:
+    // https://www.codementor.io/narthur157/webpack-dev-server-3-6-0-what-i-wish-i-knew-cl9sop7ak
+
+    // Don't forget that you can look up your files here:
+    // localhost:8080/webpack-dev-server
     devServer: {
-      publicPath: '/dist', // suffix of bundle url in index.html that makes it localhost:8080<publicPath>/app.4d9882a.js
-      // contentBase: './', // location of index.html that webpack-dev-server creates in memory-fs
+      publicPath: '/', // suffix of bundle url in index.html that makes it localhost:8080<publicPath>app.4d9882a.js
+      contentBase: '../', // location of index.html that webpack-dev-server creates in memory-fs
       hot: true,
       proxy: { // requests to these urls are proxied to the real backend server
         '/api': {
