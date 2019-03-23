@@ -16,7 +16,7 @@ class Result extends React.Component {
       entries: [],
       facets: [],
       hitCount: 0,
-      page_size: 20,
+      size: 20,
       page: 1,
       selectedFacets: {},  // e.g. { facetId1: [facetValue1.value, facetValue2.value], facetId2: [facetValue3.value] }
       alignmentsCollapsed: true,
@@ -35,11 +35,11 @@ class Result extends React.Component {
    * @param resultId - id of this sequence search
    * @param query - lucene query string, constructed from selectedFacets
    * @param page - number of page, starting from 1
-   * @param page_size - number of entries per page
+   * @param size - number of entries per page
    * @returns {Promise<any>}
    */
-  fetchSearchResults(resultId, query, page, page_size) {
-    let request = routes.facetsSearch(resultId, query, page, page_size);
+  fetchSearchResults(resultId, query, page, size) {
+    let request = routes.facetsSearch(resultId, query, page, size);
 
     this.setState({ status: "loading" });
 
@@ -90,7 +90,7 @@ class Result extends React.Component {
 
     // start loading from the first page again
     let query = this.buildQuery();
-    this.fetchSearchResults(this.props.match.params.resultId, query, 1, this.state.page_size)
+    this.fetchSearchResults(this.props.match.params.resultId, query, 1, this.state.size)
       .then(data => {
         this.setState({
           selectedFacets: selectedFacets,
@@ -127,7 +127,7 @@ class Result extends React.Component {
         this.setState(
           (state, props) => (state.page === this.state.page ? { page: this.state.page + 1, status: "loading" } : { status: "loading" }),
           () => {
-            this.fetchSearchResults(this.props.match.params.resultId, this.buildQuery(), this.state.page, this.state.page_size)
+            this.fetchSearchResults(this.props.match.params.resultId, this.buildQuery(), this.state.page, this.state.size)
               .then(data => { this.setState({
                 status: "success",
                 entries: [...this.state.entries, ...data.entries],
@@ -141,7 +141,7 @@ class Result extends React.Component {
   }
 
   componentDidMount() {
-    this.fetchSearchResults(this.props.match.params.resultId, this.buildQuery(), 1, this.state.page_size)
+    this.fetchSearchResults(this.props.match.params.resultId, this.buildQuery(), 1, this.state.size)
       .then(data => {
         let selectedFacets = {};
         data.facets.map((facet) => { selectedFacets[facet.id] = []; });
