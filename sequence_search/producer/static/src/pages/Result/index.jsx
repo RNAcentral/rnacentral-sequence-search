@@ -41,6 +41,8 @@ class Result extends React.Component {
   fetchSearchResults(resultId, query, page, page_size) {
     let request = routes.facetsSearch(resultId, query, page, page_size);
 
+    this.setState({ status: "loading" });
+
     return fetch(request)
       .then((result) => {
         if (result.ok) {
@@ -48,7 +50,7 @@ class Result extends React.Component {
         } else {
           throw new Error(result.statusText);
         }
-      });
+    });
   }
 
   /**
