@@ -56,6 +56,23 @@ async def find_available_consumers(engine):
         raise DatabaseConnectionError(str(e)) from e
 
 
+async def get_consumers_statuses(engine):
+    """Lists statuses of all the consumers in the database."""
+    try:
+        async with engine.acquire() as connection:
+            query = sa.text('''
+                SELECT ip, status
+                FROM consumer
+            ''')
+
+            result = []
+            async for row in connection.execute(query):
+                result.append({"ip": row.ip, "status": row.status})
+            return result
+    except psycopg2.Error as e:
+        raise DatabaseConnectionError(str(e)) from e
+
+
 async def get_consumer_status(engine, consumer_ip):
     """Get consumer status from the database."""
     try:

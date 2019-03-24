@@ -16,7 +16,7 @@ class Dashboard extends React.Component {
   }
 
   pollConsumersStatus() {
-    fetch(routes.consumersStatus())
+    fetch(routes.consumersStatuses())
       .then(response => response.json())
       .then(data => {
           this.setState({ consumers: data });
