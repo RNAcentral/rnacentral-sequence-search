@@ -13,13 +13,14 @@ limitations under the License.
 
 from aiohttp_swagger import setup_swagger
 from .views import index, submit_job, job_status, job_result, rnacentral_databases, job_results_urs_list, \
-    facets, facets_search, list_rnacentral_ids, post_rnacentral_ids, consumers_statuses
+    facets, facets_search, list_rnacentral_ids, post_rnacentral_ids, consumers_statuses, jobs_statuses
 from . import settings
 
 
 def setup_routes(app):
     app.router.add_post('/api/submit-job', submit_job, name='submit-job')
     app.router.add_get('/api/job-status/{job_id:[A-Za-z0-9_-]+}', job_status, name='job-status')
+    app.router.add_get('/api/jobs-statuses', jobs_statuses, name='jobs-statuses')
     app.router.add_get('/api/job-result/{job_id:[A-Za-z0-9_-]+}', job_result, name='job-result')
     app.router.add_get('/api/rnacentral-databases', rnacentral_databases, name='rnacentral-databases')
     app.router.add_get('/api/job-results-urs-list/{job_id:[A-Za-z0-9_-]+}', job_results_urs_list, name='job-results-urs-list')

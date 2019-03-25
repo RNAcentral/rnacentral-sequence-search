@@ -8,7 +8,8 @@ class Dashboard extends React.Component {
     super(props);
 
     this.state = {
-      consumers: []
+      consumers: [],
+      jobs: []
     };
 
     this.pollConsumersStatus = this.pollConsumersStatus.bind(this);
@@ -19,15 +20,32 @@ class Dashboard extends React.Component {
     fetch(routes.consumersStatuses())
       .then(response => response.json())
       .then(data => {
-          this.setState({ consumers: data });
-          this.consumerStatusTimeout = setTimeout(this.getStatus, 1000);
+        this.setState({ consumers: data });
+        this.consumerStatusTimeout = setTimeout(this.pollConsumersStatus, 1000);
       })
       .catch(reason => this.props.history.push(`/error`));
+  }
+
+  pollJobsStatus() {
+    fetch(routes.jobsStatuses())
+      .then(response => response.json())
+      .then(data => {
+        this.setState({ jobs: data });
+        this.jobsStatusTimeout = setTimeout(this.pollJobsStatus, 1000);
+      })
+      .catch(reason => this.props.history.push('/error'));
   }
 
   consumerStatusIcon(status) {
     if (status === 'available') return (<i className="icon icon-functional" style={{color: "green"}} data-icon="/"/>);
     else if (status === 'busy') return (<i className="icon icon-functional spin" data-icon="s"/>);
+    else if (status === 'error') return (<i className="icon icon-generic" style={{color: "red"}} data-icon="l"/>);
+  }
+
+  jobStatusIcon(status) {
+    if (status === 'success') return (<i className="icon icon-functional" style={{color: "green"}} data-icon="/"/>);
+    else if (status === 'pending') return (<i className="icon icon-generic" data-icon="{"/>);
+    else if (status === 'started') return (<i className="icon icon-functional spin" data-icon="s"/>);
     else if (status === 'error') return (<i className="icon icon-generic" style={{color: "red"}} data-icon="l"/>);
   }
 
@@ -38,12 +56,13 @@ class Dashboard extends React.Component {
   componentWillUnmount() {
     if (this.consumerStatusTimeout) {
       window.clearTimeout(this.consumerStatusTimeout);
+      window.clearTimeout(this.jobsStatusTimeout);
     }
   }
 
   render() {
-    return (
-      <div className="row">
+    return [
+      <div key="consumers" className="row">
         <div className="col-lg-12">
           <div className="hpanel">
             <div className="panel-heading">
@@ -68,8 +87,34 @@ class Dashboard extends React.Component {
             </div>
           </div>
         </div>
+      </div>,
+      <div key="jobs" className="row">
+        <div className="col-lg-12">
+          <div className="hpanel">
+            <div className="panel-heading">
+              <h1>Jobs</h1>
+            </div>
+            <div className="panel-body">
+              <table className="responsive-table">
+                <thead>
+                  <tr>
+                    <th>Jobs</th>
+                    <th>Status</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  { this.state.jobs.map((job, index) => (
+                    <tr key={index}>
+                      <td>{ job.id }</td>
+                      <td>{ this.jobStatusIcon(job.status) } { job.status }</td>
+                    </tr>)) }
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
       </div>
-    )
+    ]
   }
 }
 

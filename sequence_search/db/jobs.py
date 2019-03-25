@@ -66,6 +66,50 @@ async def set_job_status(engine, job_id, status):
                                       "for job with job_id = %s" % job_id) from e
 
 
+async def get_jobs_statuses(engine):
+    """Returns the dict of jobs with statuses of their job_chunks"""
+    try:
+        async with engine.acquire() as connection:
+            try:
+                # ambiguity in column names forces us to manually assign column labels
+                query = (sa.select([
+                    Job.c.id.label('id'),
+                    Job.c.status.label('job_status'),
+                    Job.c.submitted.label('submitted'),
+                    JobChunk.c.job_id.label('job_id'),
+                    JobChunk.c.database.label('database'),
+                    JobChunk.c.status.label('status'),
+                    JobChunk.c.consumer.label('consumer')
+                ], use_labels=True).select_from(sa.join(Job, JobChunk, Job.c.id == JobChunk.c.job_id)))  # noqa
+
+                output = {}
+                async for row in connection.execute(query):
+                    if row.job_id not in output:
+                       output[row.job_id] = {
+                           'status': row.job_status,
+                           'submitted': str(row.submitted),
+                           'chunks': [
+                               {
+                                   'database': row.database,
+                                   'status': row.status,
+                                   'consumer': row.consumer
+                               }
+                           ]
+                       }
+                    else:
+                        output[row.job_id]['chunks'].append({
+                            'database': row.database,
+                            'status': row.status,
+                            'consumer': row.consumer
+                        })
+                return output
+
+            except Exception as e:
+                raise SQLError("Failed to get jobs_statuses") from e
+    except psycopg2.Error as e:
+        raise DatabaseConnectionError(str(e)) from e
+
+
 async def get_job_chunks_status(engine, job_id):
     """Returns the status of the job and its job_chunks as a namedtuple"""
     try:

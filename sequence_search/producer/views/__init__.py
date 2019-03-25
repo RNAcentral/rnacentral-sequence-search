@@ -14,6 +14,7 @@ limitations under the License.
 from .index import index
 from .job_chunk_heartbeat import job_chunk_heartbeat
 from .job_status import job_status
+from .jobs_statuses import jobs_statuses
 from .job_result import job_result
 from .submit_job import submit_job
 from .rnacentral_databases import rnacentral_databases
