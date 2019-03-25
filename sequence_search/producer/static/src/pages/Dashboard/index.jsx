@@ -97,23 +97,26 @@ class Dashboard extends React.Component {
               <h1>Jobs</h1>
             </div>
             <div className="panel-body">
-              <table className="responsive-table">
-                <thead>
-                  <tr>
-                    <th>Jobs</th>
-                    <th>Status</th>
-                    <th>Submitted</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  { Object.keys(this.state.jobs).map((jobId, index) => (
-                    <tr key={index}>
-                      <td>{ jobId }</td>
-                      <td>{ this.jobStatusIcon(this.state.jobs[jobId].status) } { this.state.jobs[jobId].status }</td>
-                      <td>{ this.state.jobs[jobId].submitted }</td>
-                    </tr>)) }
-                </tbody>
-              </table>
+              { Object.keys(this.state.jobs).map((jobId, index) => (
+                <table key={`job-${jobId}`} className="responsive-table">
+                  <thead>
+                    <tr>
+                      <th>Job: {jobId}</th>
+                      <th>Status: { this.jobStatusIcon(this.state.jobs[jobId].status) } { this.state.jobs[jobId].status }</th>
+                      <th>Submitted: { this.state.jobs[jobId].submitted }</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    { this.state.jobs[jobId].chunks.map((chunk, chunkIndex) => (
+                      <tr key={`jobChunk-${chunkIndex}`}>
+                        <td>Database: { chunk.database }</td>
+                        <td>Status: { this.jobStatusIcon(chunk.status) } { chunk.status }</td>
+                        <td>Consumer: { chunk.consumer }</td>
+                      </tr>
+                    )) }
+                  </tbody>
+                </table>
+              )) }
             </div>
           </div>
         </div>
