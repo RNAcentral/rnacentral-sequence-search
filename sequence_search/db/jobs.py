@@ -82,10 +82,11 @@ async def get_jobs_statuses(engine):
                     JobChunk.c.consumer.label('consumer')
                 ], use_labels=True).select_from(sa.join(Job, JobChunk, Job.c.id == JobChunk.c.job_id)))  # noqa
 
-                output = {}
+                jobs_dict = {}
                 async for row in connection.execute(query):
-                    if row.job_id not in output:
-                       output[row.job_id] = {
+                    if row.job_id not in jobs_dict:
+                       jobs_dict[row.job_id] = {
+                           'id': row.job_id,
                            'status': row.job_status,
                            'submitted': str(row.submitted),
                            'chunks': [
@@ -97,12 +98,16 @@ async def get_jobs_statuses(engine):
                            ]
                        }
                     else:
-                        output[row.job_id]['chunks'].append({
+                        jobs_dict[row.job_id]['chunks'].append({
                             'database': row.database,
                             'status': row.status,
                             'consumer': row.consumer
                         })
-                return output
+
+                jobs = list(jobs_dict.values())
+                jobs.sort(key=lambda job: job['submitted'])
+                jobs.reverse()
+                return jobs
 
             except Exception as e:
                 raise SQLError("Failed to get jobs_statuses") from e

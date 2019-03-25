@@ -97,17 +97,17 @@ class Dashboard extends React.Component {
               <h1>Jobs</h1>
             </div>
             <div className="panel-body">
-              { Object.keys(this.state.jobs).map((jobId, index) => (
-                <table key={`job-${jobId}`} className="responsive-table">
+              { this.state.jobs.map((job, index) => (
+                <table key={`job-${job.id}`} className="responsive-table">
                   <thead>
                     <tr>
-                      <th>Job: {jobId}</th>
-                      <th>Status: { this.jobStatusIcon(this.state.jobs[jobId].status) } { this.state.jobs[jobId].status }</th>
-                      <th>Submitted: { this.state.jobs[jobId].submitted }</th>
+                      <th>Job: {job.id}</th>
+                      <th>Status: { this.jobStatusIcon(job.status) } { job.status }</th>
+                      <th>Submitted: { job.submitted }</th>
                     </tr>
                   </thead>
                   <tbody>
-                    { this.state.jobs[jobId].chunks.map((chunk, chunkIndex) => (
+                    { job.chunks.map((chunk, chunkIndex) => (
                       <tr key={`jobChunk-${chunkIndex}`}>
                         <td>Database: { chunk.database }</td>
                         <td>Status: { this.jobStatusIcon(chunk.status) } { chunk.status }</td>
