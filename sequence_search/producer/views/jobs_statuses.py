@@ -20,7 +20,7 @@ async def jobs_statuses(request):
     """
     ---
     tags:
-    - jobs
+    - dashboard
     summary: Shows the status of a job and its chunks
     parameters:
     - name: job_id

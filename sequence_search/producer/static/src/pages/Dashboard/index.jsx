@@ -13,6 +13,7 @@ class Dashboard extends React.Component {
     };
 
     this.pollConsumersStatus = this.pollConsumersStatus.bind(this);
+    this.pollJobsStatus = this.pollJobsStatus.bind(this);
     this.consumerStatusIcon = this.consumerStatusIcon.bind(this);
   }
 
@@ -51,6 +52,7 @@ class Dashboard extends React.Component {
 
   componentDidMount() {
     this.pollConsumersStatus();
+    this.pollJobsStatus();
   }
 
   componentWillUnmount() {
@@ -100,13 +102,15 @@ class Dashboard extends React.Component {
                   <tr>
                     <th>Jobs</th>
                     <th>Status</th>
+                    <th>Submitted</th>
                   </tr>
                 </thead>
                 <tbody>
-                  { this.state.jobs.map((job, index) => (
+                  { Object.keys(this.state.jobs).map((jobId, index) => (
                     <tr key={index}>
-                      <td>{ job.id }</td>
-                      <td>{ this.jobStatusIcon(job.status) } { job.status }</td>
+                      <td>{ jobId }</td>
+                      <td>{ this.jobStatusIcon(this.state.jobs[jobId].status) } { this.state.jobs[jobId].status }</td>
+                      <td>{ this.state.jobs[jobId].submitted }</td>
                     </tr>)) }
                 </tbody>
               </table>

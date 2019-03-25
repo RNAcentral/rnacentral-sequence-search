@@ -2,6 +2,7 @@ module.exports = {
   rnacentralDatabases: () => `/api/rnacentral-databases`,
   submitJob:           () => `/api/submit-job`,
   jobStatus:           (jobId) => `/api/job-status/${jobId}`,
+  jobsStatuses:        () => `/api/jobs-statuses`,
   jobResult:           (resultId) => `/api/job-result/${resultId}`,
   facets:              (resultId) => `/api/facets/${resultId}`,
   facetsSearch:        (resultId, query, page, size) => `/api/facets-search/${resultId}?query=${query}&page=${page}&page_size=${size}`,
