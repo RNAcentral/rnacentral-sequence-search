@@ -231,7 +231,9 @@ async def facets_search(request):
         logger.warning(str(e))
         text_search_data = {'entries': [], 'facets': [], 'hitCount': len(results), 'textSearchError': True}
 
-        for result in results:
+        page = int(page)
+        size = int(size)
+        for result in results[(page-1)*size:page*size]:
             # TODO: possibly update results fields, not sure about structure
             text_search_data['entries'].append(result)
 
