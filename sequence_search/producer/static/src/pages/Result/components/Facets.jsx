@@ -36,6 +36,13 @@ class Result extends React.Component {
               }
             </ul>
           </div>
+          {
+            this.props.textSearchError &&
+            <div className="callout alert">
+              <h3>Failed to retrieve text search data.</h3>
+              <a onClick={ this.props.onReload }><i className="icon icon-functional" data-icon="R"></i> Reload</a>
+            </div>
+          }
           <small className="text-muted">
             Powered by <a href="http://www.ebi.ac.uk/ebisearch/" target="_blank">EBI Search</a>
           </small>

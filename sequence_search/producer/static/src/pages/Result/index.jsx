@@ -24,6 +24,7 @@ class Result extends React.Component {
     };
 
     this.onToggleAlignmentsCollapsed = this.onToggleAlignmentsCollapsed.bind(this);
+    this.onReload = this.onReload.bind(this);
     this.onScroll = this.onScroll.bind(this);
     this.toggleFacet = this.toggleFacet.bind(this);
   }
@@ -90,18 +91,19 @@ class Result extends React.Component {
 
     // start loading from the first page again
     let query = this.buildQuery();
-    this.fetchSearchResults(this.props.match.params.resultId, query, 1, this.state.size)
+    this.fetchSearchResults(this.props.match.params.resultId, query, 1, 20)
       .then(data => {
         this.setState({
           selectedFacets: selectedFacets,
           entries: data.entries,
           facets: data.facets,
           hitCount: data.hitCount,
+          textSearchError: data.textSearchError,
           status: "success",
           page: 1
         });
       })
-      .catch(function(reason) {
+      .catch((reason) => {
         this.setState({ status: "error", page: 1 });
       });
   }
@@ -140,24 +142,31 @@ class Result extends React.Component {
     }
   }
 
-  componentDidMount() {
-    this.fetchSearchResults(this.props.match.params.resultId, this.buildQuery(), 1, this.state.size)
-      .then(data => {
-        let selectedFacets = {};
-        data.facets.map((facet) => { selectedFacets[facet.id] = []; });
+  onReload() {
+    // this will clean the facets and fetch new search results without any facets applied
+    this.setState({ facets: [], selectedFacets: {} }, () => {
+      this.fetchSearchResults(this.props.match.params.resultId, this.buildQuery(), 1, this.state.size)
+        .then(data => {
+          let selectedFacets = {};
+          data.facets.map((facet) => { selectedFacets[facet.id] = []; });
 
-        this.setState({
-          status: "success",
-          entries: [...data.entries],
-          facets: [...data.facets],
-          hitCount: data.hitCount,
-          selectedFacets: selectedFacets,
-          textSearchError: data.textSearchError
+          this.setState({
+            status: "success",
+            entries: [...data.entries],
+            facets: [...data.facets],
+            hitCount: data.hitCount,
+            selectedFacets: selectedFacets,
+            textSearchError: data.textSearchError
+          });
+        })
+        .catch(reason => {
+          this.setState({ status: "error" })
         });
-      })
-      .catch(reason => {
-        this.setState({ status: "error" })
-      });
+    });
+  }
+
+  componentDidMount() {
+    this.onReload();
 
     // When user scrolls down to the bottom of the component, load more entries, if available.
     window.onscroll = this.onScroll;
@@ -174,7 +183,7 @@ class Result extends React.Component {
             )) }
           </section>
         </div>
-        <Facets facets={ this.state.facets } selectedFacets={ this.state.selectedFacets } toggleFacet={ this.toggleFacet } />
+        <Facets facets={ this.state.facets } selectedFacets={ this.state.selectedFacets } toggleFacet={ this.toggleFacet } onReload={ this.onReload } textSearchError={ this.state.textSearchError } />
       </div>
     )
   }

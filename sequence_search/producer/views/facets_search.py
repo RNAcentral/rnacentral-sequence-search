@@ -217,7 +217,7 @@ async def facets_search(request):
         ENVIRONMENT = request.app['settings'].ENVIRONMENT
         text_search_data = await get_text_search_results(results, job_id, query, page, size, facetcount, ENVIRONMENT)
 
-        # if this worked, inject text search results into facets json
+        # if this worked, inject text search resunlts into facets json
         for entry in text_search_data['entries']:
             for result in results:
                 if result['rnacentral_id'] == entry['id']:
