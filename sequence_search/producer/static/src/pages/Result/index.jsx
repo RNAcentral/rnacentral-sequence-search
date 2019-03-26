@@ -134,6 +134,8 @@ class Result extends React.Component {
               .then(data => { this.setState({
                 status: "success",
                 entries: [...this.state.entries, ...data.entries],
+                facets: data.facets,
+                hitCount: data.hitCount,
                 textSearchError: data.textSearchError
               }) })
               .catch(reason => this.setState({ status: "error" }));
