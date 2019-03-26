@@ -63,7 +63,7 @@ class Result extends React.Component {
 
     Object.keys(this.state.selectedFacets).map(facetId => {
       let facetText, facetClauses = [];
-      this.state.selectedFacets[facetId].map(facetValueValue => facetClauses.push(`${facetId}: ${facetValueValue}`));
+      this.state.selectedFacets[facetId].map(facetValueValue => facetClauses.push(`${facetId}:${facetValueValue}`));
       facetText = facetClauses.join(" OR ");
 
       if (facetText !== "") outputClauses.push("(" + facetText + ")");
