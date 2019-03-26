@@ -16,8 +16,8 @@ class Result extends React.Component {
       entries: [],
       facets: [],
       hitCount: 0,
-      size: 20,
       page: 1,
+      size: 20,
       selectedFacets: {},  // e.g. { facetId1: [facetValue1.value, facetValue2.value], facetId2: [facetValue3.value] }
       alignmentsCollapsed: true,
       textSearchError: false
@@ -63,7 +63,7 @@ class Result extends React.Component {
 
     Object.keys(this.state.selectedFacets).map(facetId => {
       let facetText, facetClauses = [];
-      this.state.selectedFacets[facetId].map(facetValueValue => facetClauses.push(`${facetId}:${facetValueValue}`));
+      this.state.selectedFacets[facetId].map(facetValueValue => facetClauses.push(`${facetId}:"${facetValueValue}"`));
       facetText = facetClauses.join(" OR ");
 
       if (facetText !== "") outputClauses.push("(" + facetText + ")");
@@ -100,7 +100,8 @@ class Result extends React.Component {
           hitCount: data.hitCount,
           textSearchError: data.textSearchError,
           status: "success",
-          page: 1
+          page: 1,
+          size: 20
         });
       })
       .catch((reason) => {
