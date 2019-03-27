@@ -72,6 +72,8 @@ Here are the steps required to do this:
 
 #### How to upload image with databases to openstack
 
+See: https://matt.berther.io/2008/12/14/creating-iso-images-from-a-folder-in-osx/
+
 1. To create an .iso image from databases folder on your MacOS:
 
  `cd sequence_search/consumer`
@@ -87,9 +89,28 @@ Here are the steps required to do this:
  `glance image-create --name sequence_search_databases --disk-format=iso --container-format=bare --file databases.iso`
 
 
- Links:
+#### How to dynamically generate ansible inventory from terraform state
 
- - https://matt.berther.io/2008/12/14/creating-iso-images-from-a-folder-in-osx/
+1. (a) Install terraform inventory (https://github.com/adammck/terraform-inventory):
+
+`brew install terraform-inventory`
+
+1. (b) Alternatively, download and install platform-specific distribution from here:
+
+https://github.com/adammck/terraform-inventory/releases
+
+2. Create terraform infrastructure:
+
+`pushd terraform; terraform apply; popd`
+
+3. Generate the ansible inventory from terraform state and save it to hosts file:
+
+`terraform-inventory -inventory terraform/terraform.tfstate > ansible/hosts`
+
+4. You can run ansible commands now with:
+
+`pushd ansible; ansible-playbook -i hosts ...`
+
 
 ## "Sources of inspiration"
 
