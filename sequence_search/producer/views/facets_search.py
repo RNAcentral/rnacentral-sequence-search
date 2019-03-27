@@ -35,24 +35,31 @@ async def facets_search(request):
       required: true
       schema:
         type: string
+      example:
     - name: query
       in: query
-      description: Query string for the sequence we search - either nucleotide sequence or
+      description: Text search query, representing selected facets
       required: false
       schema:
         type: string
+        default: 'rna'
+      example: '(Taxonomy:"9606")'
     - name: start
       in: query
       description: Return entries, starting from 'start' (counts from 0).
       required: false
       schema:
         type: integer
+        default: 0
+      example: 0
     - name: size
       in: query
       description: Return 'size' entries (or less, if reached the end of list)
       required: false
       schema:
         type: integer
+        default: 20
+      example: 20
     - name: facetcount
       in: query
       description: Each facet returns top 'facetcount' elements (e.g. with facetcount=2 taxonomy facet
@@ -60,6 +67,8 @@ async def facets_search(request):
       required: false
       schema:
         type: integer
+        default: 10
+      example: 10
     responses:
       '200':
         description: Successfully returns results
