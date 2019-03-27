@@ -24,6 +24,7 @@ class Result extends React.Component {
     };
 
     this.onToggleAlignmentsCollapsed = this.onToggleAlignmentsCollapsed.bind(this);
+    this.load = this.load.bind(this);
     this.onReload = this.onReload.bind(this);
     this.onScroll = this.onScroll.bind(this);
     this.toggleFacet = this.toggleFacet.bind(this);
@@ -91,22 +92,7 @@ class Result extends React.Component {
 
     // start loading from the first page again
     let query = this.buildQuery();
-    this.fetchSearchResults(this.props.match.params.resultId, query, 1, 20)
-      .then(data => {
-        this.setState({
-          selectedFacets: selectedFacets,
-          entries: data.entries,
-          facets: data.facets,
-          hitCount: data.hitCount,
-          textSearchError: data.textSearchError,
-          status: "success",
-          page: 1,
-          size: 20
-        });
-      })
-      .catch((reason) => {
-        this.setState({ status: "error", page: 1 });
-      });
+    this.load(this.props.match.params.resultId, query, 1, 20, true, false);
   }
 
   /**
@@ -130,46 +116,98 @@ class Result extends React.Component {
         this.setState(
           (state, props) => (state.page === this.state.page ? { page: this.state.page + 1, status: "loading" } : { status: "loading" }),
           () => {
-            this.fetchSearchResults(this.props.match.params.resultId, this.buildQuery(), this.state.page, this.state.size)
-              .then(data => { this.setState({
-                status: "success",
-                entries: [...this.state.entries, ...data.entries],
-                facets: data.facets,
-                hitCount: data.hitCount,
-                textSearchError: data.textSearchError
-              }) })
-              .catch(reason => this.setState({ status: "error" }));
+            let query = this.buildQuery();
+            this.load(this.props.match.params.resultId, query, this.state.page, this.state.size, false);
           }
         );
       }
     }
   }
 
-  onReload() {
-    // this will clean the facets and fetch new search results without any facets applied
-    this.setState({ facets: [], selectedFacets: {} }, () => {
-      this.fetchSearchResults(this.props.match.params.resultId, this.buildQuery(), 1, this.state.size)
-        .then(data => {
-          let selectedFacets = {};
-          data.facets.map((facet) => { selectedFacets[facet.id] = []; });
+  /**
+   * Wrapper around fetchSearchResults, that is used to request any new data
+   * from the server and modify the state accordingly.
+   *
+   * @param resultId {string} - uuid id of a job
+   * @param query {string} - Lucene query string, result of buildQuery()
+   * @param page {number} - number of the page to request (starts with 1)
+   * @param size {number} - number of entries per page
+   * @param reloadEntries {boolean} - if we should load entries from scratch or append
+   * @param reloadFacets {boolean} - if we should clear facets
+   */
+  load(resultId, query, page, size, reloadEntries, reloadFacets) {
+    if (reloadFacets) {
+      this.setState({ facets: [], selectedFacets: {} }, () => {
+        if (reloadEntries) {
+          this.fetchSearchResults(this.props.match.params.resultId, this.buildQuery(), 1, this.state.size)
+            .then(data => {
+              let selectedFacets = {};
+              data.facets.map((facet) => { selectedFacets[facet.id] = []; });
 
-          this.setState({
-            status: "success",
-            entries: [...data.entries],
-            facets: [...data.facets],
-            hitCount: data.hitCount,
-            selectedFacets: selectedFacets,
-            textSearchError: data.textSearchError
+              this.setState({
+                status: "success",
+                entries: [...data.entries],
+                facets: [...data.facets],
+                hitCount: data.hitCount,
+                selectedFacets: selectedFacets,
+                textSearchError: data.textSearchError,
+                page: page,
+                size: size
+              });
+            })
+            .catch(reason => {
+              this.setState({ status: "error", page: 1 })
+            });
+        } else {
+          this.fetchSearchResults(resultId, query, page, size)
+            .then(data => { this.setState({
+              status: "success",
+              entries: [...this.state.entries, ...data.entries],
+              facets: [...data.facets],
+              hitCount: data.hitCount,
+              textSearchError: data.textSearchError
+            }) })
+            .catch(reason => this.setState({ status: "error", page: 1 }));
+        }
+      });
+    } else {
+      if (reloadEntries) {
+        this.fetchSearchResults(this.props.match.params.resultId, this.buildQuery(), 1, this.state.size)
+          .then(data => {
+            this.setState({
+              status: "success",
+              entries: [...data.entries],
+              hitCount: data.hitCount,
+              textSearchError: data.textSearchError,
+              page: page,
+              size: size
+            });
+          })
+          .catch(reason => {
+            this.setState({ status: "error", page: 1 })
           });
-        })
-        .catch(reason => {
-          this.setState({ status: "error" })
-        });
-    });
+      } else {
+        this.fetchSearchResults(resultId, query, page, size)
+          .then(data => { this.setState({
+            status: "success",
+            entries: [...this.state.entries, ...data.entries],
+            hitCount: data.hitCount,
+            textSearchError: data.textSearchError
+          }) })
+          .catch(reason => this.setState({ status: "error", page: 1 }));
+      }
+    }
+  }
+
+  /**
+   * Is called when user tries to reload the facets data after an error.
+   */
+  onReload() {
+    this.load(this.props.match.params.resultId, this.buildQuery(), 1, this.state.size, true, true);
   }
 
   componentDidMount() {
-    this.onReload();
+    this.load(this.props.match.params.resultId, this.buildQuery(), 1, this.state.size, true, true);
 
     // When user scrolls down to the bottom of the component, load more entries, if available.
     window.onscroll = this.onScroll;
