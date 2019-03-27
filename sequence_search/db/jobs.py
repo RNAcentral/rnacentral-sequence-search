@@ -216,7 +216,14 @@ async def get_job_query(engine, job_id):
                                       "get_job_query() for job with job_id = %s" % job_id) from e
 
 
-async def get_job_results(engine, job_id):
+async def get_job_results(engine, job_id, limit=10000):
+    """
+    Aggregates results from multiple job_chunks and returns them.
+
+    By default, we're using a limit of 10000 on the number of hits due to
+    recommendation from text search team. You can increase it up to infinity,
+    shall the need arise.
+    """
     try:
         async with engine.acquire() as connection:
             sql = (sa.select([
@@ -242,6 +249,7 @@ async def get_job_results(engine, job_id):
                     JobChunkResult.c.result_id
                 ])
                 .select_from(sa.join(JobChunk, JobChunkResult, JobChunk.c.id == JobChunkResult.c.job_chunk_id))  # noqa
+                .limit(limit)
                 .where(JobChunk.c.job_id == job_id))  # noqa
 
             results = []
