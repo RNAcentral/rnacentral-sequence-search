@@ -33,10 +33,10 @@ class Hit extends React.Component {
               <tbody>
                 <tr>
                   <td>{ this.props.entry.e_value }</td>
-                  <td>{ this.props.entry.identity }</td>
-                  <td>{ this.props.entry.query_coverage }</td>
-                  <td>{ this.props.entry.target_coverage }</td>
-                  <td>{ this.props.entry.gaps }</td>
+                  <td>{ `${parseFloat(this.props.entry.identity).toFixed(2)}%`}</td>
+                  <td>{ `${parseFloat(this.props.entry.query_coverage).toFixed(2)}%` }</td>
+                  <td>{ `${parseFloat(this.props.entry.target_coverage).toFixed(2)}%`}</td>
+                  <td>{ `${parseFloat(this.props.entry.gaps).toFixed(2)}%` }</td>
                 </tr>
               </tbody>
             </table>
