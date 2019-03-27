@@ -38,7 +38,7 @@ def rnacentral_ids_file_path(job_id):
     return rnacentral_ids_cache_directory_path() / job_id
 
 
-async def get_text_search_results(results, job_id, query, page, size, facetcount, ENVIRONMENT):
+async def get_text_search_results(results, job_id, query, start, size, facetcount, ENVIRONMENT):
     """
     For local development local server has to POST list of RNAcentral ids
     to the EMBASSY cloud machine and retrieve results from there.
@@ -98,10 +98,10 @@ async def get_text_search_results(results, job_id, query, page, size, facetcount
           "&format=json&fields={fields}" \
           "&facetcount={facetcount}" \
           "&facetfields={facetfields}" \
+          "&start={start}" \
           "&size={size}" \
-          "&start={page}" \
-        .format(job_id=job_id, query=query, fields=','.join(fields), facetcount=facetcount, facetfields=','.join(facetfields),
-                page=page, size=size)
+        .format(job_id=job_id, query=query, fields=','.join(fields), facetcount=facetcount,
+                facetfields=','.join(facetfields), start=start, size=size)
 
     try:
         async with aiohttp.ClientSession() as session:

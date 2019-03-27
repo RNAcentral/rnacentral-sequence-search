@@ -35,6 +35,31 @@ async def facets_search(request):
       required: true
       schema:
         type: string
+    - name: query
+      in: query
+      description: Query string for the sequence we search - either nucleotide sequence or
+      required: false
+      schema:
+        type: string
+    - name: start
+      in: query
+      description: Return entries, starting from 'start' (counts from 0).
+      required: false
+      schema:
+        type: integer
+    - name: size
+      in: query
+      description: Return 'size' entries (or less, if reached the end of list)
+      required: false
+      schema:
+        type: integer
+    - name: facetcount
+      in: query
+      description: Each facet returns top 'facetcount' elements (e.g. with facetcount=2 taxonomy facet
+        will return ['Homo sapiens', 'Mus musculus'])
+      required: false
+      schema:
+        type: integer
     responses:
       '200':
         description: Successfully returns results
@@ -205,7 +230,7 @@ async def facets_search(request):
         return web.HTTPNotFound(text="Job %s does not exist" % job_id)
 
     query = request.query['query'] if 'query' in request.query else 'rna'
-    page = request.query['page'] if 'page' in request.query else 1
+    start = request.query['start'] if 'start' in request.query else 0
     size = request.query['size'] if 'size' in request.query else 20
     facetcount = request.query['facetcount'] if 'facetcount' in request.query else 10
 
@@ -215,7 +240,7 @@ async def facets_search(request):
     # try to get facets from EBI text search, otherwise stub facets
     try:
         ENVIRONMENT = request.app['settings'].ENVIRONMENT
-        text_search_data = await get_text_search_results(results, job_id, query, page, size, facetcount, ENVIRONMENT)
+        text_search_data = await get_text_search_results(results, job_id, query, start, size, facetcount, ENVIRONMENT)
 
         # if this worked, inject text search resunlts into facets json
         for entry in text_search_data['entries']:
@@ -231,9 +256,9 @@ async def facets_search(request):
         logger.warning(str(e))
         text_search_data = {'entries': [], 'facets': [], 'hitCount': len(results), 'textSearchError': True}
 
-        page = int(page)
+        start = int(start)
         size = int(size)
-        for result in results[(page-1)*size:page*size]:
+        for result in results[start:start+size]:
             # TODO: possibly update results fields, not sure about structure
             text_search_data['entries'].append(result)
 

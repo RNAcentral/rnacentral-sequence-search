@@ -16,7 +16,7 @@ class Result extends React.Component {
       entries: [],
       facets: [],
       hitCount: 0,
-      page: 1,
+      start: 0,
       size: 20,
       selectedFacets: {},  // e.g. { facetId1: [facetValue1.value, facetValue2.value], facetId2: [facetValue3.value] }
       alignmentsCollapsed: true,
@@ -36,12 +36,12 @@ class Result extends React.Component {
    *
    * @param resultId - id of this sequence search
    * @param query - lucene query string, constructed from selectedFacets
-   * @param page - number of page, starting from 1
+   * @param start - index of element we start with, starting from 0
    * @param size - number of entries per page
    * @returns {Promise<any>}
    */
-  fetchSearchResults(resultId, query, page, size) {
-    let request = routes.facetsSearch(resultId, query, page, size);
+  fetchSearchResults(resultId, query, start, size) {
+    let request = routes.facetsSearch(resultId, query, start, size);
 
     this.setState({ status: "loading" });
 
@@ -92,7 +92,7 @@ class Result extends React.Component {
 
     // start loading from the first page again
     let query = this.buildQuery();
-    this.load(this.props.match.params.resultId, query, 1, 20, true, false);
+    this.load(this.props.match.params.resultId, query, 0, 20, true, false);
   }
 
   /**
@@ -114,10 +114,10 @@ class Result extends React.Component {
     if (window.innerHeight + document.documentElement.scrollTop + 10 >= document.documentElement.offsetHeight) {
       if (this.state.status === "success" && this.state.entries.length < this.state.hitCount) {
         this.setState(
-          (state, props) => (state.page === this.state.page ? { page: this.state.page + 1, status: "loading" } : { status: "loading" }),
+          (state, props) => (state.start === this.state.start ? { start: this.state.start + this.state.size, status: "loading" } : { status: "loading" }),
           () => {
             let query = this.buildQuery();
-            this.load(this.props.match.params.resultId, query, this.state.page, this.state.size, false);
+            this.load(this.props.match.params.resultId, query, this.state.start, this.state.size, false, false);
           }
         );
       }
@@ -130,16 +130,16 @@ class Result extends React.Component {
    *
    * @param resultId {string} - uuid id of a job
    * @param query {string} - Lucene query string, result of buildQuery()
-   * @param page {number} - number of the page to request (starts with 1)
+   * @param start {number} - index of the first element to request (starts with 0)
    * @param size {number} - number of entries per page
    * @param reloadEntries {boolean} - if we should load entries from scratch or append
-   * @param reloadFacets {boolean} - if we should clear facets
+   * @param clearFacets {boolean} - if we should clear facets
    */
-  load(resultId, query, page, size, reloadEntries, reloadFacets) {
-    if (reloadFacets) {
+  load(resultId, query, start, size, reloadEntries, clearFacets) {
+    if (clearFacets) {
       this.setState({ facets: [], selectedFacets: {} }, () => {
         if (reloadEntries) {
-          this.fetchSearchResults(this.props.match.params.resultId, this.buildQuery(), 1, this.state.size)
+          this.fetchSearchResults(this.props.match.params.resultId, this.buildQuery(), 0, this.state.size)
             .then(data => {
               let selectedFacets = {};
               data.facets.map((facet) => { selectedFacets[facet.id] = []; });
@@ -149,52 +149,58 @@ class Result extends React.Component {
                 entries: [...data.entries],
                 facets: [...data.facets],
                 hitCount: data.hitCount,
+                start: start,
+                size: size,
                 selectedFacets: selectedFacets,
-                textSearchError: data.textSearchError,
-                page: page,
-                size: size
+                textSearchError: data.textSearchError
               });
             })
-            .catch(reason => {
-              this.setState({ status: "error", page: 1 })
-            });
+            .catch(reason => this.setState({ status: "error", start: 0 }));
         } else {
-          this.fetchSearchResults(resultId, query, page, size)
-            .then(data => { this.setState({
-              status: "success",
-              entries: [...this.state.entries, ...data.entries],
-              facets: [...data.facets],
-              hitCount: data.hitCount,
-              textSearchError: data.textSearchError
-            }) })
-            .catch(reason => this.setState({ status: "error", page: 1 }));
+          this.fetchSearchResults(resultId, query, start, size)
+            .then(data => {
+              let selectedFacets = {};
+              data.facets.map((facet) => { selectedFacets[facet.id] = []; });
+
+              this.setState({
+                status: "success",
+                entries: [...this.state.entries, ...data.entries],
+                facets: [...data.facets],
+                hitCount: data.hitCount,
+                textSearchError: data.textSearchError,
+                selectedFacets: selectedFacets
+              })
+            })
+            .catch(reason => this.setState({ status: "error", start: 0 }));
         }
       });
     } else {
       if (reloadEntries) {
-        this.fetchSearchResults(this.props.match.params.resultId, this.buildQuery(), 1, this.state.size)
+        this.fetchSearchResults(this.props.match.params.resultId, this.buildQuery(), 0, this.state.size)
           .then(data => {
             this.setState({
               status: "success",
               entries: [...data.entries],
+              facets: [...data.facets],
               hitCount: data.hitCount,
+              start: 0,
+              size: size,
               textSearchError: data.textSearchError,
-              page: page,
-              size: size
             });
           })
           .catch(reason => {
-            this.setState({ status: "error", page: 1 })
+            this.setState({ status: "error", start: 0 })
           });
       } else {
-        this.fetchSearchResults(resultId, query, page, size)
+        this.fetchSearchResults(resultId, query, start, size)
           .then(data => { this.setState({
             status: "success",
             entries: [...this.state.entries, ...data.entries],
+            facets: [...data.facets],
             hitCount: data.hitCount,
             textSearchError: data.textSearchError
           }) })
-          .catch(reason => this.setState({ status: "error", page: 1 }));
+          .catch(reason => this.setState({ status: "error", start: 0 }));
       }
     }
   }
@@ -203,11 +209,11 @@ class Result extends React.Component {
    * Is called when user tries to reload the facets data after an error.
    */
   onReload() {
-    this.load(this.props.match.params.resultId, this.buildQuery(), 1, this.state.size, true, true);
+    this.load(this.props.match.params.resultId, this.buildQuery(), 0, this.state.size, true, true);
   }
 
   componentDidMount() {
-    this.load(this.props.match.params.resultId, this.buildQuery(), 1, this.state.size, true, true);
+    this.load(this.props.match.params.resultId, this.buildQuery(), 0, this.state.size, true, true);
 
     // When user scrolls down to the bottom of the component, load more entries, if available.
     window.onscroll = this.onScroll;
