@@ -16,23 +16,7 @@ from aiohttp import web
 
 async def facets(request):
     """
-    ---
-    tags:
-    - facets
-    summary: This endpoint returns hard-coded facets example.
-    parameters:
-    - name: job_id
-      in: path
-      description: ID of job to display facets for
-      required: true
-      schema:
-        type: string
-    responses:
-      '200':
-        description: Successful operation. Return sample facets json.
-        content:
-          'application/json': {facets: [...]}
-
+    This is a mock of text search for development purposes only.
     """
     job_id = request.match_info['job_id']
 

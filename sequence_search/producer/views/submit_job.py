@@ -66,36 +66,31 @@ async def submit_job(request):
     tags:
     - jobs
     summary: Accepts a job for execution
-    requestBody:
-      content:
-        application/json:
-          schema:
-            type: object
-            required:
-             - query
-             - databases
-            properties:
-              query:
-                description: Nucleotide sequence to search for
-                type: string
-              databases:
-                description: List of RNAcentral member databases to search the query sequence against
-                type: array
-                items:
-                  type: string
-          examples:
-            mirBase:
-              summary: Search a miRNA against mirbase
-              value:
-                databases:
-                 - miRBase
-                query: 'AGGUCAGGAGUUUGAGACCAGCCUGGCCAA'
+    consumes:
+     - application/json
+    parameters:
+     - in: body
+       name: query
+       description: Nucleotide sequence to search for as a string of nucleotides or a fasta file with a single sequence
+       schema:
+         type: string
+         required: true
+         example: "AGGUCAGGAGUUUGAGACCAGCCUGGCCAA"
+     - in: body
+       name: databases
+       description: List of RNAcentral member databases to search the query sequence against. Can be an empty list.
+       schema:
+         type: array
+         items:
+           type: string
+         required: true
+         example: ['mirbase', 'pombase']
     responses:
-      '201':
+      201:
         description: Job accepted.
         content:
           application/json: {}
-      '400':
+      400:
         description: Invalid input (either query is not a nucleotide sequence, or databases not in RNAcentral)
     """
 

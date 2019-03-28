@@ -17,5 +17,6 @@ from ...consumer.rnacentral_databases import rnacentral_databases as databases
 
 
 async def rnacentral_databases(request):
+    """Sends a list of rnacentral databases from backend to frontend."""
     output = [{"id": db.id, "label": db.label} for db in databases]
     return web.json_response(output)

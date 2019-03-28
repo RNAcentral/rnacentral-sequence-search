@@ -24,7 +24,7 @@ async def consumers_statuses(request):
     summary: Shows the status of a consumer
     parameters: []
     responses:
-      '200':
+      200:
         description: Successfully returns results
         content:
           application/json:
@@ -35,11 +35,12 @@ async def consumers_statuses(request):
                   type: string
                 status:
                   type: string
-            example:
-              [{
-                ip: "192.168.0.7",
-                status: "busy"
-              }]
+            examples:
+              application/json:
+                [{
+                  ip: "192.168.0.7",
+                  status: "busy"
+                }]
       '404':
         description: No status for given job_id (probably, job with this job_id doesn't exist)
     """

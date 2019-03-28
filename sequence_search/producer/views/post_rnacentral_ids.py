@@ -19,6 +19,15 @@ from ..text_search_client import rnacentral_ids_file_path
 
 
 async def post_rnacentral_ids(request):
+    """
+    This is an endpoint used for local debugging of the frontend.
+
+    When local producer is doing text search request, it posts a list of
+    rnacentral_ids to the EMBASSY production producer machine, which caches it.
+
+    This is because EBI text search endpoint is configured to get rnacentral_ids
+    from EMBASSY floating ip.
+    """
     job_id = request.match_info['job_id']
 
     if os.path.isfile(rnacentral_ids_file_path(job_id)):

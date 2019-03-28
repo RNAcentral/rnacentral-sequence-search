@@ -30,7 +30,7 @@ async def job_status(request):
       schema:
         type: string
     responses:
-      '200':
+      200:
         description: Successfully returns results
         content:
           application/json:
@@ -43,13 +43,14 @@ async def job_status(request):
                   type: string
                 chunks:
                   type: array
-            example:
-              {
-                job_id: "662c258b-04d8-4347-b8f5-3d9df82d769e",
-                status: "started",
-                chunks: [{'database': 'mirbase', 'status': 'started'}, {'database': 'pombase', 'status': 'started'}]
-              }
-      '404':
+        examples:
+          application/json:
+            {
+              job_id: "662c258b-04d8-4347-b8f5-3d9df82d769e",
+              status: "started",
+              chunks: [{'database': 'mirbase', 'status': 'started'}, {'database': 'pombase', 'status': 'started'}]
+            }
+      404:
         description: No status for given job_id (probably, job with this job_id doesn't exist)
     """
     job_id = request.match_info['job_id']

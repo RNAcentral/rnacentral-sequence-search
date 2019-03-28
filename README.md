@@ -128,3 +128,4 @@ Code in this repository is based on the following projects by other folks (kudos
 - https://platform9.com/blog/how-to-use-terraform-with-openstack/ - sample Terraform/OpenStack configuration
 - https://github.com/diodonfrost/terraform-openstack-examples/tree/master/01-sample-instance - more Terraform examples
 - https://heapanalytics.com/blog/engineering/terraform-gotchas - explanation of Terraform configuration
+- https://alex.dzyoba.com/blog/terraform-ansible/ - how to generate Ansible inventory from Terraform

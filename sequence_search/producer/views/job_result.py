@@ -31,7 +31,7 @@ async def job_result(request):
       schema:
         type: string
     responses:
-      '200':
+      200:
         description: Successfully returns result
         content:
           application/json:
@@ -76,27 +76,28 @@ async def job_result(request):
                     type: integer
                   result_id:
                     type: integer
-            example:
-              [{
-                rnacentral_id: 'URS000075D2D2',
-                description: 'Mus musculus miR - 1195 stem - loop',
-                score: 6.5,
-                bias: 0.7,
-                e_value: 32,
-                target_length: 98,
-                alignment: "Query  8 GAGUUUGAGACCAGCCUGGCCA 29\n| | | | | | | | | | | | | | | | | |\nSbjct_10090\n22\nGAGUUCGAGGCCAGCCUGCUCA\n43",
-                alignment_length: 22,
-                gap_count: 0,
-                match_count: 18,
-                nts_count1: 22,
-                nts_count2: 0,
-                identity: 81.81818181818183,
-                query_coverage: 73.33333333333333,
-                target_coverage: 0,
-                gaps: 0,
-                query_length: 30,
-                result_id: 1
-              }]
+        examples:
+          application/json:
+            [{
+              rnacentral_id: 'URS000075D2D2',
+              description: 'Mus musculus miR - 1195 stem - loop',
+              score: 6.5,
+              bias: 0.7,
+              e_value: 32,
+              target_length: 98,
+              alignment: "Query  8 GAGUUUGAGACCAGCCUGGCCA 29\n| | | | | | | | | | | | | | | | | |\nSbjct_10090\n22\nGAGUUCGAGGCCAGCCUGCUCA\n43",
+              alignment_length: 22,
+              gap_count: 0,
+              match_count: 18,
+              nts_count1: 22,
+              nts_count2: 0,
+              identity: 81.81818181818183,
+              query_coverage: 73.33333333333333,
+              target_coverage: 0,
+              gaps: 0,
+              query_length: 30,
+              result_id: 1
+            }]
 
       '404':
         description: No result for given job_id (probably, job with this job_id doesn't exist)
