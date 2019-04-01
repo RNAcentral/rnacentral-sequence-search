@@ -12,8 +12,10 @@ limitations under the License.
 """
 
 from aiohttp import web
+from aiojobs.aiohttp import atomic
 
 
+@atomic
 async def job_results_urs_list(request):
     return web.Response(text="\n".join([
         'URS0000759B6D',

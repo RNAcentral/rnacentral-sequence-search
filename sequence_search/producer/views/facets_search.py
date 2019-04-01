@@ -14,6 +14,7 @@ limitations under the License.
 import logging
 
 from aiohttp import web
+from aiojobs.aiohttp import atomic
 
 from ...db.jobs import get_job_results, job_exists
 from ..text_search_client import get_text_search_results, ProxyConnectionError, EBITextSearchConnectionError
@@ -22,6 +23,7 @@ from ..text_search_client import get_text_search_results, ProxyConnectionError, 
 logger = logging.getLogger('aiohttp.web')
 
 
+@atomic
 async def facets_search(request):
     """
     ---

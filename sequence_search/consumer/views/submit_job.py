@@ -15,6 +15,7 @@ import os
 import logging
 from aiohttp import web
 from aiojobs.aiohttp import spawn
+from async_timeout import timeout
 
 from ..nhmmer_parse import nhmmer_parse
 from ..nhmmer_search import nhmmer_search
@@ -52,8 +53,9 @@ async def nhmmer(engine, job_id, sequence, database):
 
     logger.info('Nhmmer search started for: job_id = %s, database = %s' % (job_id, database))
     try:
-        filename = await nhmmer_search(sequence=sequence, job_id=job_id, database=database)
-        logger.info('Nhmmer search success for: job_id = %s, database = %s' % (job_id, database))
+        async with timeout(300):
+            filename = await nhmmer_search(sequence=sequence, job_id=job_id, database=database)
+            logger.info('Nhmmer search success for: job_id = %s, database = %s' % (job_id, database))
     except Exception as e:
         # TODO: recoverable errors handling
         await set_job_chunk_status(engine, job_id, database, status=JOB_STATUS_CHOICES.error)

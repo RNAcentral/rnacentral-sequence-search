@@ -14,10 +14,12 @@ limitations under the License.
 import os
 
 from aiohttp import web
+from aiojobs.aiohttp import atomic
 
 from ..text_search_client import rnacentral_ids_file_path
 
 
+@atomic
 async def post_rnacentral_ids(request):
     """
     This is an endpoint used for local debugging of the frontend.

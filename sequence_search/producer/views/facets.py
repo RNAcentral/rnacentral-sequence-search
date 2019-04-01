@@ -12,8 +12,10 @@ limitations under the License.
 """
 
 from aiohttp import web
+from aiojobs.aiohttp import atomic
 
 
+@atomic
 async def facets(request):
     """
     This is a mock of text search for development purposes only.

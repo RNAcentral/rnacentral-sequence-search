@@ -12,6 +12,7 @@ limitations under the License.
 """
 
 from aiohttp import web
+from aiojobs.aiohttp import atomic
 
 from ...db.consumers import delegate_job_chunk_to_consumer, find_available_consumers
 from ...db.jobs import save_job
@@ -19,6 +20,7 @@ from ...db.job_chunks import save_job_chunk
 from ...consumer.rnacentral_databases import producer_validator, producer_to_consumers_databases
 
 
+@atomic
 def serialize(request, data):
     """
     Validates and normalizes input data.

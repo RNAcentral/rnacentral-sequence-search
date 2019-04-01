@@ -12,11 +12,13 @@ limitations under the License.
 """
 
 from aiohttp import web
+from aiojobs.aiohttp import atomic
 
 from ...db.jobs import get_job_results
 from ..text_search_client import rnacentral_ids_file_path
 
 
+@atomic
 async def list_rnacentral_ids(request):
     """
     In order to have a text search, this endpoint has to pass a list of rnacentral_ids to

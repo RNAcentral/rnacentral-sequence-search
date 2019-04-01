@@ -12,10 +12,12 @@ limitations under the License.
 """
 
 from aiohttp import web
+from aiojobs.aiohttp import atomic
 
 from ...consumer.rnacentral_databases import rnacentral_databases as databases
 
 
+@atomic
 async def rnacentral_databases(request):
     """Sends a list of rnacentral databases from backend to frontend."""
     output = [{"id": db.id, "label": db.label} for db in databases]

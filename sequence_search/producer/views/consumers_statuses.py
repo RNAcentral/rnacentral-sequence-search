@@ -12,10 +12,12 @@ limitations under the License.
 """
 
 from aiohttp import web
+from aiojobs.aiohttp import atomic
 
 from ...db.consumers import get_consumers_statuses, DatabaseConnectionError
 
 
+@atomic
 async def consumers_statuses(request):
     """
     ---

@@ -12,11 +12,13 @@ limitations under the License.
 """
 
 from aiohttp import web
+from aiojobs.aiohttp import atomic
 
 from ...db.jobs import get_job_results
 from ...db import DatabaseConnectionError
 
 
+@atomic
 async def job_result(request):
     """
     ---

@@ -12,10 +12,12 @@ limitations under the License.
 """
 
 from aiohttp import web
+from aiojobs.aiohttp import atomic
 
 from ...db.jobs import get_job_chunks_status, JobNotFound
 
 
+@atomic
 async def job_status(request):
     """
     ---
