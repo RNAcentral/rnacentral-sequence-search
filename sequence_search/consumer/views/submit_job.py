@@ -13,18 +13,19 @@ limitations under the License.
 
 import os
 import logging
+import asyncio
+
 from aiohttp import web
 from aiojobs.aiohttp import spawn
-from async_timeout import timeout
 
 from ..nhmmer_parse import nhmmer_parse
 from ..nhmmer_search import nhmmer_search
 from ..rnacentral_databases import query_file_path, result_file_path, consumer_validator
-
+from ..settings import MAX_RUN_TIME
 from ...db.models import CONSUMER_STATUS_CHOICES, JOB_STATUS_CHOICES
 from ...db.job_chunk_results import set_job_chunk_results
 from ...db.job_chunks import get_consumer_ip_from_job_chunk, get_job_chunk_from_job_and_database, set_job_chunk_status
-from ...db.jobs import check_job_chunks_status, set_job_status
+from ...db.jobs import update_job_status_from_job_chunks_status
 from ...db.consumers import set_consumer_status
 
 
@@ -52,27 +53,36 @@ async def nhmmer(engine, job_id, sequence, database):
     job_chunk_id = await get_job_chunk_from_job_and_database(engine, job_id, database)
 
     logger.info('Nhmmer search started for: job_id = %s, database = %s' % (job_id, database))
+
+    # I assume, subprocess creation can't raise exceptions
+    process, filename = await nhmmer_search(sequence=sequence, job_id=job_id, database=database)
+
     try:
-        async with timeout(300):
-            filename = await nhmmer_search(sequence=sequence, job_id=job_id, database=database)
-            logger.info('Nhmmer search success for: job_id = %s, database = %s' % (job_id, database))
+        task = asyncio.ensure_future(process.communicate())
+        await asyncio.wait_for(task, MAX_RUN_TIME)
+
+        return_code = process.returncode
+        if return_code != 0:
+            raise NhmmerError("Nhmmer process returned non-zero status code")
+    except asyncio.TimeoutError as e:
+        logger.warning('Nhmmer job chunk timeout out: job_id = %s, database = %s' % (job_id, database))
+        process.kill()
+        await set_job_chunk_status(engine, job_id, database, status=JOB_STATUS_CHOICES.timeout)
     except Exception as e:
-        # TODO: recoverable errors handling
-        await set_job_chunk_status(engine, job_id, database, status=JOB_STATUS_CHOICES.error)
-        await set_job_status(engine, job_id, status=JOB_STATUS_CHOICES.error)
-
         logger.error('Nhmmer search error for: job_id = %s, database = %s' % (job_id, database))
-        raise NhmmerError('Nhmmer search error for: job_id = %s, database = %s' % (job_id, database)) from e
+        await set_job_chunk_status(engine, job_id, database, status=JOB_STATUS_CHOICES.error)
+    else:
+        logger.info('Nhmmer search success for: job_id = %s, database = %s' % (job_id, database))
 
-    results = [record for record in nhmmer_parse(filename=filename)]  # parse nhmmer results to python
+        # set status of the job_chunk to the database
+        await set_job_chunk_status(engine, job_id, database, status=JOB_STATUS_CHOICES.success)
 
-    # update job_chunk in the database
-    await set_job_chunk_status(engine, job_id, database, status=JOB_STATUS_CHOICES.success)
-    await set_job_chunk_results(engine, job_id, database, results)
+        # save results of the job_chunk to the database
+        results = [record for record in nhmmer_parse(filename=filename)]  # parse nhmmer results to python
+        await set_job_chunk_results(engine, job_id, database, results)
 
-    # update job in the database, if the whole job's done
-    if await check_job_chunks_status(engine, job_id):
-        await set_job_status(engine, job_id, JOB_STATUS_CHOICES.success)
+    # update job in the database (maybe the whole job is done)
+    await update_job_status_from_job_chunks_status(engine, job_id)
 
     # update consumer status
     consumer_ip = await get_consumer_ip_from_job_chunk(engine, job_chunk_id)

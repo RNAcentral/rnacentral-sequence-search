@@ -158,22 +158,28 @@ async def get_job_chunks_status(engine, job_id):
         raise DatabaseConnectionError(str(e)) from e
 
 
-async def check_job_chunks_status(engine, job_id):
+async def update_job_status_from_job_chunks_status(engine, job_id):
+    """Infer job status for the statuses of all chunks that constitute it"""
     try:
         async with engine.acquire() as connection:
             try:
-                # check, if all other job chunks are also done - then the whole job is done
                 query = (sa.select([Job.c.id, JobChunk.c.job_id, JobChunk.c.status])
                          .select_from(sa.join(Job, JobChunk, Job.c.id == JobChunk.c.job_id))  # noqa
                          .where(Job.c.id == job_id))  # noqa
 
-                all_job_chunks_success = True
+                unfinished_chunks_found = False
+                errors_found = False
                 async for row in connection.execute(query):
-                    if row.status != JOB_STATUS_CHOICES.success:
-                        all_job_chunks_success = False
+                    if row.status == JOB_STATUS_CHOICES.pending or row.status == JOB_STATUS_CHOICES.started:
+                        unfinished_chunks_found = True
                         break
+                    elif row.status == JOB_STATUS_CHOICES.error or row.status == JOB_STATUS_CHOICES.timeout:
+                        errors_found = True
 
-                return all_job_chunks_success
+                if unfinished_chunks_found is False and errors_found is False:
+                    await set_job_status(engine, job_id, status=JOB_STATUS_CHOICES.success)
+                elif unfinished_chunks_found is False and errors_found is True:
+                    await set_job_status(engine, job_id, status=JOB_STATUS_CHOICES.partial_success)
 
             except Exception as e:
                 raise SQLError("Failed to check job_chunk status, job_id = %s" % job_id) from e

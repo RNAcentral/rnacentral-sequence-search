@@ -26,7 +26,7 @@ from ..producer.consumer_client import ConsumerClient
 from .models import CONSUMER_STATUS_CHOICES
 
 
-def ConsumerConnectionError(Exception):
+class ConsumerConnectionError(Exception):
     def __init__(self, text):
         self.text = text
 

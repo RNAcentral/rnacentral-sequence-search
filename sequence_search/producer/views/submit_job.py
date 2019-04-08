@@ -20,7 +20,6 @@ from ...db.job_chunks import save_job_chunk
 from ...consumer.rnacentral_databases import producer_validator, producer_to_consumers_databases
 
 
-@atomic
 def serialize(request, data):
     """
     Validates and normalizes input data.
@@ -59,6 +58,7 @@ async def save(request, data):
     return job_id
 
 
+@atomic
 async def submit_job(request):
     """
     Example:

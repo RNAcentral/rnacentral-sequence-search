@@ -73,9 +73,4 @@ async def nhmmer_search(sequence, job_id, database):
         stderr=asyncio.subprocess.PIPE
     )
 
-    output, errors = await process.communicate()
-    return_code = process.returncode
-    if return_code != 0:
-        raise NhmmerError(errors, output, return_code)
-
-    return params['output']
+    return process, params['output']

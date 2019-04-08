@@ -39,11 +39,15 @@ async def init_pg(app):
 # Models schema
 # -------------
 
+# TODO: split status codes for jobs and job_chunks
+
 class JOB_STATUS_CHOICES(object):
     pending = 'pending'
     started = 'started'
-    success = 'success'
     error = 'error'
+    timeout = 'timeout'
+    success = 'success'
+    partial_success = 'partial_success'  # some job chunks crashed for this job status
 
 
 class CONSUMER_STATUS_CHOICES(object):

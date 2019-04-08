@@ -37,8 +37,9 @@ class Job extends React.Component {
 
   displayStatusIcon(status) {
     if (status === 'success') return (<i className="icon icon-functional" style={{color: "green"}} data-icon="/"/>);
-    else if (status === 'pending') return (<i className="icon icon-generic" data-icon="{"/>);
+    else if (status === 'pending') return (<i className="icon icon-functional" data-icon="v"/>);
     else if (status === 'started') return (<i className="icon icon-functional spin" data-icon="s"/>);
+    else if (status === 'timeout') return (<i className="icon icon-generic" data-icon="{"/>);
     else if (status === 'error') return (<i className="icon icon-generic" style={{color: "red"}} data-icon="l"/>);
   }
 

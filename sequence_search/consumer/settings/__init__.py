@@ -38,7 +38,7 @@ MAX_LENGTH = 10000
 EXPIRATION = 60 * 60 * 24 * 7  # seconds
 
 # maximum time to run nhmmer
-MAX_RUN_TIME = 60 * 60  # seconds
+MAX_RUN_TIME = 5 * 60  # seconds
 
 ENVIRONMENT = os.getenv('ENVIRONMENT', 'LOCAL')
 
