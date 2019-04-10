@@ -38,6 +38,41 @@ def rnacentral_ids_file_path(job_id):
     return rnacentral_ids_cache_directory_path() / job_id
 
 
+fields = [
+    'active',
+    'author',
+    'common_name',
+    'description',
+    'expert_db',
+    'function',
+    'gene',
+    'gene_synonym',
+    'has_genomic_coordinates',
+    'length',
+    'locus_tag',
+    'organelle',
+    'pub_title',
+    'product',
+    'qc_warning_found',
+    'qc_warning',
+    'rna_type',
+    'standard_name',
+    'tax_string'
+]
+
+facetfields = [
+    'length',
+    'rna_type',
+    'TAXONOMY',
+    'expert_db',
+    'qc_warning_found',
+    'has_go_annotations',
+    'has_conserved_structure',
+    'has_genomic_coordinates',
+    'popular_species'
+]
+
+
 async def get_text_search_results(results, job_id, query, start, size, facetcount, ENVIRONMENT):
     """
     For local development local server has to POST list of RNAcentral ids
@@ -59,38 +94,6 @@ async def get_text_search_results(results, job_id, query, start, size, facetcoun
             raise ProxyConnectionError() from e
 
     # request facets from ebi text search
-    fields = [
-        'active',
-        'author',
-        'common_name',
-        'description',
-        'expert_db',
-        'function',
-        'gene',
-        'gene_synonym',
-        'has_genomic_coordinates',
-        'length',
-        'locus_tag',
-        'organelle',
-        'pub_title',
-        'product',
-        'qc_warning_found',
-        'qc_warning',
-        'rna_type',
-        'standard_name',
-        'tax_string'
-    ]
-
-    facetfields = [
-        'length',
-        'rna_type',
-        'TAXONOMY',
-        'expert_db',
-        'qc_warning_found',
-        'has_genomic_coordinates',
-        'popular_species'
-    ]
-
     url = "http://wwwdev.ebi.ac.uk/ebisearch/ws/rest/rnacentral/seqtoolresults/" \
           "?toolid=nhmmer" \
           "&jobid={job_id}" \

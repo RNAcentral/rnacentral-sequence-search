@@ -17,7 +17,8 @@ from aiohttp import web
 from aiojobs.aiohttp import atomic
 
 from ...db.jobs import get_job_results, job_exists
-from ..text_search_client import get_text_search_results, ProxyConnectionError, EBITextSearchConnectionError
+from ..text_search_client import get_text_search_results, ProxyConnectionError, EBITextSearchConnectionError, \
+    facetfields
 
 
 logger = logging.getLogger('aiohttp.web')
@@ -245,7 +246,7 @@ async def facets_search(request):
     query = request.query['query'] if 'query' in request.query else 'rna'
     start = request.query['start'] if 'start' in request.query else 0
     size = request.query['size'] if 'size' in request.query else 20
-    facetcount = request.query['facetcount'] if 'facetcount' in request.query else 10
+    facetcount = request.query['facetcount'] if 'facetcount' in request.query else 100
 
     # get sequence search results from the database, sort/aggregate?
     results = await get_job_results(request.app['engine'], job_id)
@@ -261,11 +262,14 @@ async def facets_search(request):
                 if result['rnacentral_id'] == entry['id']:
                     entry.update(result)
 
-        # text search worked successfully, add a notice about this
+        # sort facets in the same order as in text_search_client
+        text_search_data['facets'].sort(key=lambda el: facetfields.index(el['id']))
+
+        # text search worked successfully, unset text search error flag
         text_search_data['textSearchError'] = False
 
     except (ProxyConnectionError, EBITextSearchConnectionError) as e:
-        # text search is not available, pad output with facets stub, indicate that
+        # text search is not available, pad output with facets stub, indicate that we have a text search error
         logger.warning(str(e))
         text_search_data = {'entries': [], 'facets': [], 'hitCount': len(results), 'textSearchError': True}
 
