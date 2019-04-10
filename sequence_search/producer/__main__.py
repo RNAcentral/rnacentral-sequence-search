@@ -53,8 +53,7 @@ async def create_consumer_scheduler(app):
     """
     Periodically runs a task that checks the status of consumers in the database and
      - schedules job_chunks to run on consumers
-     - TODO: restarts failed job chunks
-     - TODO: if consumer takes too long to process a task - possibly it crashed
+     - TODO: restart crashed consumers
 
     Stolen from:
     https://stackoverflow.com/questions/37512182/how-can-i-periodically-execute-a-function-with-asyncio
@@ -68,7 +67,13 @@ async def create_consumer_scheduler(app):
             # TODO: we're starting just 1 job_chunk at a time, but nothing prevents us from starting them all
             if job_id is not None and len(consumers) > 0:
                 query = await get_job_query(app['engine'], job_id)
-                await delegate_job_chunk_to_consumer(app['engine'], consumers[0].ip, job_id, database, query)
+                await delegate_job_chunk_to_consumer(
+                    engine=app['engine'],
+                    consumer_ip=consumers[0].ip,
+                    job_id=job_id,
+                    database=database,
+                    query=query
+                )
 
             await asyncio.sleep(5)
 
