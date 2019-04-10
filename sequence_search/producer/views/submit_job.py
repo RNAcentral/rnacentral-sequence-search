@@ -95,7 +95,6 @@ async def submit_job(request):
       400:
         description: Invalid input (either query is not a nucleotide sequence, or databases not in RNAcentral)
     """
-
     data = await request.json()
 
     try:

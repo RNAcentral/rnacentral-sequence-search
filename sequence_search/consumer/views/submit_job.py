@@ -22,9 +22,11 @@ from ..nhmmer_parse import nhmmer_parse
 from ..nhmmer_search import nhmmer_search
 from ..rnacentral_databases import query_file_path, result_file_path, consumer_validator
 from ..settings import MAX_RUN_TIME
+from ...db import DatabaseConnectionError, SQLError
 from ...db.models import CONSUMER_STATUS_CHOICES, JOB_STATUS_CHOICES, JOB_CHUNK_STATUS_CHOICES
 from ...db.job_chunk_results import set_job_chunk_results
 from ...db.job_chunks import get_consumer_ip_from_job_chunk, get_job_chunk_from_job_and_database, set_job_chunk_status
+from ...db.consumers import set_job_chunk_consumer, get_ip
 from ...db.jobs import update_job_status_from_job_chunks_status
 from ...db.consumers import set_consumer_status
 
@@ -67,23 +69,33 @@ async def nhmmer(engine, job_id, sequence, database):
     except asyncio.TimeoutError as e:
         logger.warning('Nhmmer job chunk timeout out: job_id = %s, database = %s' % (job_id, database))
         process.kill()
+
+        # TODO: what do we do in case we lost the database connection here?
         await set_job_chunk_status(engine, job_id, database, status=JOB_CHUNK_STATUS_CHOICES.timeout)
     except Exception as e:
         logger.error('Nhmmer search error for: job_id = %s, database = %s' % (job_id, database))
+        # TODO: what do we do in case we lost the database connection here?
         await set_job_chunk_status(engine, job_id, database, status=JOB_CHUNK_STATUS_CHOICES.error)
     else:
         logger.info('Nhmmer search success for: job_id = %s, database = %s' % (job_id, database))
 
-        # set status of the job_chunk to the database
-        await set_job_chunk_status(engine, job_id, database, status=JOB_CHUNK_STATUS_CHOICES.success)
+        try:
+            # set status of the job_chunk to the database
+            await set_job_chunk_status(engine, job_id, database, status=JOB_CHUNK_STATUS_CHOICES.success)
 
-        # save results of the job_chunk to the database
-        results = [record for record in nhmmer_parse(filename=filename)]  # parse nhmmer results to python
-        await set_job_chunk_results(engine, job_id, database, results)
+            # save results of the job_chunk to the database
+            results = [record for record in nhmmer_parse(filename=filename)]  # parse nhmmer results to python
+            await set_job_chunk_results(engine, job_id, database, results)
+        except (DatabaseConnectionError, SQLError) as e:
+            # TODO: what do we do in case we lost the database connection here?
+            # TODO: probably, clean the nhmmer query and result files?
+            pass
 
+    # TODO: what do we do in case we lost the database connection here?
     # update job in the database (maybe the whole job is done)
     await update_job_status_from_job_chunks_status(engine, job_id)
 
+    # TODO: what do we do in case we lost the database connection here?
     # update consumer status
     consumer_ip = await get_consumer_ip_from_job_chunk(engine, job_chunk_id)
     await set_consumer_status(engine, consumer_ip, CONSUMER_STATUS_CHOICES.available)
@@ -115,16 +127,31 @@ async def submit_job(request):
     """
     For testing purposes, try the following command:
 
-    curl -H "Content-Type:application/json" -d "{\"job_id\": 1, \"database\": \"miRBase\", \"sequence\": \"AAAAGGTCGGAGCGAGGCAAAATTGGCTTTCAAACTAGGTTCTGGGTTCACATAAGACCT\"}" localhost:8000/submit-job
+    curl -H "Content-Type:application/json" -d "{\"job_id\": 1, \"database\": \"mirbase.fasta\", \"sequence\": \"AAAAGGTCGGAGCGAGGCAAAATTGGCTTTCAAACTAGGTTCTGGGTTCACATAAGACCT\"}" localhost:8000/submit-job
     """
+    # validate the data
     data = await request.json()
-
     try:
         data = serialize(request, data)
     except (KeyError, TypeError, ValueError) as e:
         logger.error(e)
         raise web.HTTPBadRequest(text=str(e)) from e
 
-    await spawn(request, nhmmer(request.app['engine'], data['job_id'], data['sequence'], data['database']))
+    # cache variables for brevity
+    engine = request.app['engine']
+    job_id = data['job_id']
+    sequence = data['sequence']
+    database = data['database']
+    consumer_ip = get_ip(request.app)
 
+    # if request was successful, save the consumer state and job_chunk state to the database
+    try:
+        await set_job_chunk_status(engine, job_id, database, status=JOB_CHUNK_STATUS_CHOICES.started)
+        await set_job_chunk_consumer(engine, job_id, database, consumer_ip)
+    except (DatabaseConnectionError, SQLError) as e:
+        logger.error(e)
+        raise web.HTTPBadRequest(text=str(e)) from e
+
+    # spawn nhmmer job in the background and return 201
+    await spawn(request, nhmmer(engine, job_id, sequence, database))
     return web.HTTPCreated()

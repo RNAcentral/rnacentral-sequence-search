@@ -40,7 +40,6 @@ async def init_pg(app):
 # -------------
 
 class JOB_STATUS_CHOICES(object):
-    writing = 'writing'  # if producer created the job, but hasn't finished creating job_chunks
     pending = 'pending'
     started = 'started'
     error = 'error'

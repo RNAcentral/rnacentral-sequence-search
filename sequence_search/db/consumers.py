@@ -112,19 +112,11 @@ async def delegate_job_chunk_to_consumer(engine, consumer_ip, job_id, database, 
 
             if response.status < 400:
                 await set_consumer_status(engine, consumer_ip, CONSUMER_STATUS_CHOICES.busy)
-                await set_job_chunk_status(engine, job_id, database, status=JOB_CHUNK_STATUS_CHOICES.started)
-                await set_job_chunk_consumer(engine, job_id, database, consumer_ip)
             else:
-                await set_job_chunk_status(engine, job_id, database, status=JOB_CHUNK_STATUS_CHOICES.error)
-                await update_job_status_from_job_chunks_status(engine, job_id)
-
                 text = await response.text()
                 raise ConsumerConnectionError(text)
     except psycopg2.Error as e:
         logging.error(str(e))
-
-        async with engine.acquire() as connection:
-            await set_job_chunk_status(engine, job_id, database, status=JOB_CHUNK_STATUS_CHOICES.error)
 
 
 def get_ip(app):

@@ -117,6 +117,13 @@ async def get_consumer_ip_from_job_chunk(engine, job_chunk_id):
 
 
 async def set_job_chunk_status(engine, job_id, database, status):
+    """
+    :param engine:
+    :param job_id:
+    :param database: Consumer-side database (actual file name stored in the database)
+    :param status: an option from consumer.JOB_CHUNK_STATUS
+    :return: None
+    """
     try:
         async with engine.acquire() as connection:
             try:
