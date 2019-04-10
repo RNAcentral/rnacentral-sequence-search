@@ -32,8 +32,9 @@
 }
 
 .facet {
-  overflow: scroll;
+  overflow: auto;
   max-height: 20em;
+  margin-bottom: 1em;
 }
 
 .facetValue {

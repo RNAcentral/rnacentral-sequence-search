@@ -17,19 +17,19 @@ class Result extends React.Component {
         {
           facet.facetValues.map(facetValue => (
             <li key={`li ${facetValue.label}`}>
-            <span className="facetValue">
-              <input id={`checkbox-${facet.id}-${facetValue.value}`} type="checkbox"
-                checked={this.props.selectedFacets.hasOwnProperty(facet.id) && this.props.selectedFacets[facet.id].indexOf(facetValue.value) !== -1}
-                onChange={(e) => {
-                  this.props.toggleFacet(facet.id, facetValue.value)
-                }}/>
-              <label htmlFor={`checkbox-${facet.id}-${facetValue.value}`}>{facetValue.label}&nbsp;<small>({facetValue.count})</small></label>
-            </span>
+              <span className="facetValue">
+                <input id={`checkbox-${facet.id}-${facetValue.value}`} type="checkbox"
+                  checked={this.props.selectedFacets.hasOwnProperty(facet.id) && this.props.selectedFacets[facet.id].indexOf(facetValue.value) !== -1}
+                  onChange={(e) => {
+                    this.props.toggleFacet(facet.id, facetValue.value)
+                  }}/>
+                <label htmlFor={`checkbox-${facet.id}-${facetValue.value}`}>{facetValue.label}&nbsp;<small>({facetValue.count})</small></label>
+              </span>
             </li>
           ))
         }
-      </ul>,
-      <br key={`br-${facet.id}`} />
+        <br/>
+      </ul>
     ];
   }
 
