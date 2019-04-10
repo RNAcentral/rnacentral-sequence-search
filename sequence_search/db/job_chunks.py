@@ -17,7 +17,7 @@ import sqlalchemy as sa
 import psycopg2
 
 from . import DatabaseConnectionError, SQLError, DoesNotExist
-from .models import Job, JobChunk, JOB_STATUS_CHOICES
+from .models import Job, JobChunk, JOB_STATUS_CHOICES, JOB_CHUNK_STATUS_CHOICES
 
 
 async def get_job_chunk_from_job_and_database(engine, job_id, database):
@@ -48,7 +48,7 @@ async def save_job_chunk(engine, job_id, database):
                         job_id=job_id,
                         database=database,
                         submitted=datetime.datetime.now(),
-                        status=JOB_STATUS_CHOICES.pending
+                        status=JOB_CHUNK_STATUS_CHOICES.pending
                     )
                 )
                 return job_chunk_id
@@ -85,7 +85,7 @@ async def find_highest_priority_job_chunk(engine):
 
                 query = (select_statement
                          .select_from(sa.join(Job, JobChunk, Job.c.id == JobChunk.c.job_id))  # noqa
-                         .where(sa.and_(Job.c.status == JOB_STATUS_CHOICES.started, JobChunk.c.status == JOB_STATUS_CHOICES.pending))
+                         .where(sa.and_(Job.c.status == JOB_STATUS_CHOICES.started, JobChunk.c.status == JOB_CHUNK_STATUS_CHOICES.pending))
                          .order_by(Job.c.submitted))  # noqa
 
                 # if there are started jobs and job_chunks, pick one from the earliest submitted job

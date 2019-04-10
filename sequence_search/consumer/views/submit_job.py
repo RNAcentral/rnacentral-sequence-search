@@ -22,7 +22,7 @@ from ..nhmmer_parse import nhmmer_parse
 from ..nhmmer_search import nhmmer_search
 from ..rnacentral_databases import query_file_path, result_file_path, consumer_validator
 from ..settings import MAX_RUN_TIME
-from ...db.models import CONSUMER_STATUS_CHOICES, JOB_STATUS_CHOICES
+from ...db.models import CONSUMER_STATUS_CHOICES, JOB_STATUS_CHOICES, JOB_CHUNK_STATUS_CHOICES
 from ...db.job_chunk_results import set_job_chunk_results
 from ...db.job_chunks import get_consumer_ip_from_job_chunk, get_job_chunk_from_job_and_database, set_job_chunk_status
 from ...db.jobs import update_job_status_from_job_chunks_status
@@ -67,15 +67,15 @@ async def nhmmer(engine, job_id, sequence, database):
     except asyncio.TimeoutError as e:
         logger.warning('Nhmmer job chunk timeout out: job_id = %s, database = %s' % (job_id, database))
         process.kill()
-        await set_job_chunk_status(engine, job_id, database, status=JOB_STATUS_CHOICES.timeout)
+        await set_job_chunk_status(engine, job_id, database, status=JOB_CHUNK_STATUS_CHOICES.timeout)
     except Exception as e:
         logger.error('Nhmmer search error for: job_id = %s, database = %s' % (job_id, database))
-        await set_job_chunk_status(engine, job_id, database, status=JOB_STATUS_CHOICES.error)
+        await set_job_chunk_status(engine, job_id, database, status=JOB_CHUNK_STATUS_CHOICES.error)
     else:
         logger.info('Nhmmer search success for: job_id = %s, database = %s' % (job_id, database))
 
         # set status of the job_chunk to the database
-        await set_job_chunk_status(engine, job_id, database, status=JOB_STATUS_CHOICES.success)
+        await set_job_chunk_status(engine, job_id, database, status=JOB_CHUNK_STATUS_CHOICES.success)
 
         # save results of the job_chunk to the database
         results = [record for record in nhmmer_parse(filename=filename)]  # parse nhmmer results to python

@@ -17,7 +17,7 @@ import datetime
 from aiohttp.test_utils import unittest_run_loop
 
 from ..__main__ import create_app
-from ...db.models import Job, JobChunk, JobChunkResult, JOB_STATUS_CHOICES
+from ...db.models import Job, JobChunk, JobChunkResult, JOB_STATUS_CHOICES, JOB_CHUNK_STATUS_CHOICES
 from aiohttp.test_utils import AioHTTPTestCase
 
 
@@ -53,7 +53,7 @@ class SubmitJobTestCase(AioHTTPTestCase):
                     job_id=self.job_id,
                     database='mirbase',
                     submitted=datetime.datetime.now(),
-                    status=JOB_STATUS_CHOICES.started
+                    status=JOB_CHUNK_STATUS_CHOICES.started
                 )
             )
             await connection.scalar(
@@ -61,7 +61,7 @@ class SubmitJobTestCase(AioHTTPTestCase):
                     job_id=self.job_id,
                     database='pombase',
                     submitted=datetime.datetime.now(),
-                    status=JOB_STATUS_CHOICES.started
+                    status=JOB_CHUNK_STATUS_CHOICES.started
                 )
             )
 

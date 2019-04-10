@@ -39,15 +39,21 @@ async def init_pg(app):
 # Models schema
 # -------------
 
-# TODO: split status codes for jobs and job_chunks
-
 class JOB_STATUS_CHOICES(object):
+    writing = 'writing'  # if producer created the job, but hasn't finished creating job_chunks
+    pending = 'pending'
+    started = 'started'
+    error = 'error'
+    success = 'success'
+    partial_success = 'partial_success'  # some job chunks crashed for this job status
+
+
+class JOB_CHUNK_STATUS_CHOICES(object):
     pending = 'pending'
     started = 'started'
     error = 'error'
     timeout = 'timeout'
     success = 'success'
-    partial_success = 'partial_success'  # some job chunks crashed for this job status
 
 
 class CONSUMER_STATUS_CHOICES(object):
@@ -79,7 +85,7 @@ JobChunk = sa.Table('job_chunks', metadata,
                   sa.Column('submitted', sa.DateTime),
                   sa.Column('consumer', sa.ForeignKey('consumer.ip'), nullable=True),
                   sa.Column('result', sa.String(255), nullable=True),
-                  sa.Column('status', sa.String(255)))  # choices=JOB_STATUS_CHOICES, default='started'
+                  sa.Column('status', sa.String(255)))  # choices=JOB_CHUNK_STATUS_CHOICES, default='started'
 
 """Result of a specific JobChunk"""
 JobChunkResult = sa.Table('job_chunk_results', metadata,

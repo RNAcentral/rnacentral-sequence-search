@@ -18,7 +18,7 @@ from aiohttp.test_utils import unittest_run_loop
 
 from .test_base import DBTestCase
 from . import DoesNotExist
-from .models import Job, JobChunk, Consumer, JOB_STATUS_CHOICES, CONSUMER_STATUS_CHOICES
+from .models import Job, JobChunk, Consumer, JOB_STATUS_CHOICES, JOB_CHUNK_STATUS_CHOICES, CONSUMER_STATUS_CHOICES
 from .job_chunks import save_job_chunk, find_highest_priority_job_chunk, get_consumer_ip_from_job_chunk, \
     set_job_chunk_status, get_job_chunk_from_job_and_database
 
@@ -49,7 +49,7 @@ class GetJobChunkFromJobAndDatabase(DBTestCase):
                     job_id=self.job_id,
                     database='mirbase',
                     submitted=datetime.datetime.now(),
-                    status=JOB_STATUS_CHOICES.pending
+                    status=JOB_CHUNK_STATUS_CHOICES.pending
                 )
             )
 
@@ -130,7 +130,7 @@ class FindHighestPriorityJobChunkTestCase(DBTestCase):
                     job_id=self.job_id,
                     database='mirbase',
                     submitted=datetime.datetime.now(),
-                    status=JOB_STATUS_CHOICES.started
+                    status=JOB_CHUNK_STATUS_CHOICES.started
                 )
             )
 
@@ -139,7 +139,7 @@ class FindHighestPriorityJobChunkTestCase(DBTestCase):
                     job_id=self.job_id2,
                     database='pombase',
                     submitted=datetime.datetime.now(),
-                    status=JOB_STATUS_CHOICES.started
+                    status=JOB_CHUNK_STATUS_CHOICES.started
                 )
             )
 
@@ -171,7 +171,7 @@ class GetConsumerIpFromJobChunkTestCase(DBTestCase):
             )
 
             await connection.execute(
-                Consumer.insert().values(ip='192.168.0.2', status=JOB_STATUS_CHOICES.busy)
+                Consumer.insert().values(ip='192.168.0.2', status=CONSUMER_STATUS_CHOICES.busy)
             )
 
             self.job_chunk_id = await connection.scalar(
@@ -179,7 +179,7 @@ class GetConsumerIpFromJobChunkTestCase(DBTestCase):
                     job_id=self.job_id,
                     database='mirbase',
                     submitted=datetime.datetime.now(),
-                    status=JOB_STATUS_CHOICES.pending,
+                    status=JOB_CHUNK_STATUS_CHOICES.pending,
                     consumer='192.168.0.2'
                 )
             )
@@ -214,14 +214,14 @@ class SetJobChunkStatusTestCase(DBTestCase):
                     job_id=self.job_id,
                     database='mirbase',
                     submitted=datetime.datetime.now(),
-                    status=JOB_STATUS_CHOICES.pending
+                    status=JOB_CHUNK_STATUS_CHOICES.pending
                 )
             )
 
     @unittest_run_loop
     async def test_job_chunk_started(self):
-        await set_job_chunk_status(self.app['engine'], self.job_id, 'mirbase', JOB_STATUS_CHOICES.started)
+        await set_job_chunk_status(self.app['engine'], self.job_id, 'mirbase', JOB_CHUNK_STATUS_CHOICES.started)
 
     @unittest_run_loop
     async def test_except_error_in_job_chunk(self):
-        await set_job_chunk_status(self.app['engine'], self.job_id, 'mirbase', JOB_STATUS_CHOICES.error)
+        await set_job_chunk_status(self.app['engine'], self.job_id, 'mirbase', JOB_CHUNK_STATUS_CHOICES.error)

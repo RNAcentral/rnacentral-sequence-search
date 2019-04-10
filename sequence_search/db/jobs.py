@@ -18,7 +18,7 @@ import sqlalchemy as sa
 import psycopg2
 
 from . import DatabaseConnectionError, SQLError
-from .models import Job, JobChunk, JobChunkResult, JOB_STATUS_CHOICES
+from .models import Job, JobChunk, JobChunkResult, JOB_STATUS_CHOICES, JOB_CHUNK_STATUS_CHOICES
 
 
 class JobNotFound(Exception):
@@ -170,10 +170,10 @@ async def update_job_status_from_job_chunks_status(engine, job_id):
                 unfinished_chunks_found = False
                 errors_found = False
                 async for row in connection.execute(query):
-                    if row.status == JOB_STATUS_CHOICES.pending or row.status == JOB_STATUS_CHOICES.started:
+                    if row.status == JOB_CHUNK_STATUS_CHOICES.pending or row.status == JOB_CHUNK_STATUS_CHOICES.started:
                         unfinished_chunks_found = True
                         break
-                    elif row.status == JOB_STATUS_CHOICES.error or row.status == JOB_STATUS_CHOICES.timeout:
+                    elif row.status == JOB_CHUNK_STATUS_CHOICES.error or row.status == JOB_CHUNK_STATUS_CHOICES.timeout:
                         errors_found = True
 
                 if unfinished_chunks_found is False and errors_found is False:

@@ -16,7 +16,7 @@ import datetime
 from aiohttp.test_utils import unittest_run_loop
 import sqlalchemy as sa
 
-from .models import Job, JobChunk, JOB_STATUS_CHOICES
+from .models import Job, JobChunk, JOB_STATUS_CHOICES, JOB_CHUNK_STATUS_CHOICES
 from .job_chunk_results import set_job_chunk_results
 from .test_base import DBTestCase
 
@@ -44,7 +44,7 @@ class SetJobChunkResultsTestCase(DBTestCase):
                     job_id=self.job_id,
                     database='mirbase',
                     submitted=datetime.datetime.now(),
-                    status=JOB_STATUS_CHOICES.pending
+                    status=JOB_CHUNK_STATUS_CHOICES.pending
                 )
             )
 

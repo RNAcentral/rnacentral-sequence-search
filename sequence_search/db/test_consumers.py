@@ -16,7 +16,7 @@ import datetime
 from aiohttp.test_utils import unittest_run_loop
 import sqlalchemy as sa
 
-from .models import Job, JobChunk, Consumer, CONSUMER_STATUS_CHOICES, JOB_STATUS_CHOICES
+from .models import Job, JobChunk, Consumer, CONSUMER_STATUS_CHOICES, JOB_STATUS_CHOICES, JOB_CHUNK_STATUS_CHOICES
 from .consumers import get_consumer_status, set_consumer_status, find_available_consumers, \
     delegate_job_chunk_to_consumer, register_consumer_in_the_database
 from .test_base import DBTestCase
@@ -119,7 +119,7 @@ class SetConsumerStatusTestCase(DBTestCase):
                     job_id=self.job_id,
                     database='mirbase',
                     submitted=datetime.datetime.now(),
-                    status=JOB_STATUS_CHOICES.started,
+                    status=JOB_CHUNK_STATUS_CHOICES.started,
                     consumer=self.consumer_ip
                 )
             )
@@ -160,7 +160,7 @@ class DelegateJobChunkToConsumerTestCase(DBTestCase):
                     job_id=self.job_id,
                     database='mirbase',
                     submitted=datetime.datetime.now(),
-                    status=JOB_STATUS_CHOICES.started,
+                    status=JOB_CHUNK_STATUS_CHOICES.started,
                     consumer=self.consumer_ip
                 )
             )
