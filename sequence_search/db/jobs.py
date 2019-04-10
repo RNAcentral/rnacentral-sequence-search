@@ -53,11 +53,22 @@ async def save_job(engine, query):
 
 
 async def set_job_status(engine, job_id, status):
+    if status == JOB_CHUNK_STATUS_CHOICES.success or \
+       status == JOB_CHUNK_STATUS_CHOICES.error or \
+       status == JOB_CHUNK_STATUS_CHOICES.timeout:
+        finished = datetime.datetime.now()
+    else:
+        finished = None
+
     try:
         async with engine.acquire() as connection:
             try:
-                query = sa.text('''UPDATE jobs SET status =:status WHERE id=:job_id''')
-                await connection.execute(query, job_id=job_id, status=status)
+                if finished:
+                    query = sa.text('''UPDATE jobs SET status = :status, finished = :finished WHERE id = :job_id''')
+                    await connection.execute(query, job_id=job_id, status=status, finished=finished)
+                else:
+                    query = sa.text('''UPDATE jobs SET status = :status WHERE id = :job_id''')
+                    await connection.execute(query, job_id=job_id, status=status)
             except Exception as e:
                 raise SQLError("Failed to save job to the database about failed job, "
                                               "job_id = %s, status = %s" % (job_id, status)) from e
