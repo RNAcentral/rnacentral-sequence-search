@@ -11,18 +11,26 @@ class Result extends React.Component {
   }
 
   renderFacet(facet) {
-    return ([
-      <legend key={facet.id}><h5 style={{color: 'rgb(0,124,130)' }}>{ facet.label }</h5></legend>,
-      facet.facetValues.map(facetValue => (
-        <li key={`li ${facetValue.label}`}>
-          <span className="facet">
-            <input id={ `checkbox-${facet.id}-${facetValue.value}` } type="checkbox" checked={ this.props.selectedFacets.hasOwnProperty(facet.id) && this.props.selectedFacets[facet.id].indexOf(facetValue.value) !== -1 } onChange={ (e) => { this.props.toggleFacet(facet.id, facetValue.value) } } />
-            <label htmlFor={ `checkbox-${facet.id}-${facetValue.value}` }>{ facetValue.label } <small>({ facetValue.count })</small></label>
-          </span>
-        </li>
-      )),
-      <br key={`br ${facet.id}`} />
-    ]);
+    return [
+      <legend key={`legend-${facet.id}`}><h5 style={{color: 'rgb(0,124,130)' }}>{ facet.label }</h5></legend>,
+      <ul key={facet.id} className="vertical menu facet">
+        {
+          facet.facetValues.map(facetValue => (
+            <li key={`li ${facetValue.label}`}>
+            <span className="facetValue">
+              <input id={`checkbox-${facet.id}-${facetValue.value}`} type="checkbox"
+                checked={this.props.selectedFacets.hasOwnProperty(facet.id) && this.props.selectedFacets[facet.id].indexOf(facetValue.value) !== -1}
+                onChange={(e) => {
+                  this.props.toggleFacet(facet.id, facetValue.value)
+                }}/>
+              <label htmlFor={`checkbox-${facet.id}-${facetValue.value}`}>{facetValue.label}&nbsp;<small>({facetValue.count})</small></label>
+            </span>
+            </li>
+          ))
+        }
+      </ul>,
+      <br key={`br-${facet.id}`} />
+    ];
   }
 
   render() {
@@ -30,11 +38,7 @@ class Result extends React.Component {
       <div className="small-12 medium-2 medium-pull-10 columns">
         <section>
           <div>
-            <ul className="vertical menu facets">
-              {
-                this.props.facets.map(facet => this.renderFacet(facet))
-              }
-            </ul>
+            { this.props.facets.map(facet => this.renderFacet(facet)) }
           </div>
           {
             this.props.textSearchError &&

@@ -31,10 +31,11 @@
   display: none;
 }
 
-.facets {
+.facet {
   overflow: scroll;
+  max-height: 20em;
 }
 
-.facet {
+.facetValue {
   white-space: nowrap;
 }
