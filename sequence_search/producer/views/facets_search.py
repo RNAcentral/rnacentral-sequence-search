@@ -36,18 +36,17 @@ def merge_popular_species_into_taxonomy_facet(text_search_data):
             popular_species_index = index
             popular_species = facet
         elif facet['id'] == 'TAXONOMY':
-            taxonomy_index = index
             taxonomy = facet
 
     if popular_species is not None and taxonomy is not None:
-        popular_species_ids = [facetValue['id'] for facetValue in popular_species ]
-        non_popular_species = [facetValue for facetValue in taxonomy if facetValue['id'] not in popular_species_ids ]
+        popular_species_values_values = [facetValue['value'] for facetValue in popular_species['facetValues']]
+        non_popular_species_values = [facetValue for facetValue in taxonomy['facetValues'] if facetValue['value'] not in popular_species_values_values]
 
         # replace the old taxonomy facet with the new one
-        text_search_data['facets'][taxonomy_index] = popular_species + non_popular_species
+        taxonomy['facetValues'] = popular_species['facetValues'] + non_popular_species_values
 
         # remove the popular species facet
-        text_search_data.pop(popular_species_index)
+        text_search_data['facets'].pop(popular_species_index)
 
 
 @atomic
