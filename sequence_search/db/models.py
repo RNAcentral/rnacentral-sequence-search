@@ -82,8 +82,8 @@ JobChunk = sa.Table('job_chunks', metadata,
                   sa.Column('job_id', sa.String(36), sa.ForeignKey('jobs.id')),
                   sa.Column('database', sa.String(255)),
                   sa.Column('submitted', sa.DateTime),
+                  sa.Column('finished', sa.DateTime, nullable=True),
                   sa.Column('consumer', sa.ForeignKey('consumer.ip'), nullable=True),
-                  sa.Column('result', sa.String(255), nullable=True),
                   sa.Column('status', sa.String(255)))  # choices=JOB_CHUNK_STATUS_CHOICES, default='started'
 
 """Result of a specific JobChunk"""
@@ -152,8 +152,8 @@ async def migrate(ENVIRONMENT):
                   job_id VARCHAR(36) references jobs(id),
                   database VARCHAR(255),
                   submitted TIMESTAMP,
+                  finished TIMESTAMP,
                   consumer VARCHAR(15) references consumer(ip),
-                  result VARCHAR(255),
                   status VARCHAR(255))
             ''')
 
