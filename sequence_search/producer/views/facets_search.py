@@ -24,6 +24,32 @@ from ..text_search_client import get_text_search_results, ProxyConnectionError, 
 logger = logging.getLogger('aiohttp.web')
 
 
+def merge_popular_species_into_taxonomy_facet(text_search_data):
+    """
+    Prepend entries from popularSpecies facet into TAXONOMY facet,
+    eliminating redundancy.
+    """
+    popular_species = None
+    taxonomy = None
+    for index, facet in enumerate(text_search_data['facets']):
+        if facet['id'] == 'popular_species':
+            popular_species_index = index
+            popular_species = facet
+        elif facet['id'] == 'TAXONOMY':
+            taxonomy_index = index
+            taxonomy = facet
+
+    if popular_species is not None and taxonomy is not None:
+        popular_species_ids = [facetValue['id'] for facetValue in popular_species ]
+        non_popular_species = [facetValue for facetValue in taxonomy if facetValue['id'] not in popular_species_ids ]
+
+        # replace the old taxonomy facet with the new one
+        text_search_data['facets'][taxonomy_index] = popular_species + non_popular_species
+
+        # remove the popular species facet
+        text_search_data.pop(popular_species_index)
+
+
 @atomic
 async def facets_search(request):
     """
@@ -243,6 +269,7 @@ async def facets_search(request):
     if not await job_exists(request.app['engine'], job_id):
         return web.HTTPNotFound(text="Job %s does not exist" % job_id)
 
+    # parse query parameters
     query = request.query['query'] if 'query' in request.query else 'rna'
     start = request.query['start'] if 'start' in request.query else 0
     size = request.query['size'] if 'size' in request.query else 20
@@ -265,6 +292,9 @@ async def facets_search(request):
         # sort facets in the same order as in text_search_client
         text_search_data['facets'].sort(key=lambda el: facetfields.index(el['id']))
 
+        # merge the contents of the 'popular_species' facet into the 'TAXONOMY' facet
+        merge_popular_species_into_taxonomy_facet(text_search_data)
+
         # text search worked successfully, unset text search error flag
         text_search_data['textSearchError'] = False
 
@@ -273,10 +303,10 @@ async def facets_search(request):
         logger.warning(str(e))
         text_search_data = {'entries': [], 'facets': [], 'hitCount': len(results), 'textSearchError': True}
 
+        # populate text search entries with sequence search results, paginate
         start = int(start)
         size = int(size)
         for result in results[start:start+size]:
-            # TODO: possibly update results fields, not sure about structure
             text_search_data['entries'].append(result)
 
     return web.json_response(text_search_data)
