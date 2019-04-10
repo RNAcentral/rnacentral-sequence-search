@@ -132,24 +132,33 @@ async def get_job_chunks_status(engine, job_id):
                     [
                         Job.c.id.label('id'),
                         Job.c.status.label('job_status'),
+                        Job.c.status.label('job_submitted'),
+                        Job.c.status.label('job_finished'),
                         JobChunk.c.job_id.label('job_id'),
                         JobChunk.c.database.label('database'),
-                        JobChunk.c.status.label('status')
+                        JobChunk.c.status.label('status'),
+                        JobChunk.c.submitted.label('submitted'),
+                        JobChunk.c.finished.label('finished')
                     ],
                     use_labels=True
                 )
 
                 query = (select_statement
                          .select_from(sa.join(Job, JobChunk, Job.c.id == JobChunk.c.job_id))  # noqa
-                         .where(Job.c.id == job_id))  # noqa
+                         .where(Job.c.id == job_id)
+                         .order_by(JobChunk.c.database))  # noqa
 
                 output = []
                 async for row in connection.execute(query):
                     output.append({
                         'job_id': row.job_id,
                         'job_status': row.job_status,
+                        'job_submitted': row.job_submitted,
+                        'job_finished': row.job_finished,
                         'database': row.database,
-                        'status': row.status
+                        'status': row.status,
+                        'submitted': row.submitted,
+                        'finished': row.finished
                     })
 
                 if output == []:

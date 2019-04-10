@@ -65,7 +65,16 @@ async def job_status(request):
     data = {
         "job_id": job_id,
         "status": chunks[0]['job_status'],
-        "chunks": [{'database': chunk['database'], 'status': chunk['status']} for chunk in chunks]
+        "submitted": str(chunks[0]['job_submitted']),
+        "finished": str(chunks[0]['job_finished']),
+        "chunks": [
+            {
+                'database': chunk['database'],
+                'status': chunk['status'],
+                'submitted': str(chunk['submitted']),
+                'finished': str(chunk['finished'])
+            } for chunk in chunks
+        ]
     }
 
     return web.json_response(data)
