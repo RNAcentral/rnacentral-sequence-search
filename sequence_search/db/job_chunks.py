@@ -134,23 +134,15 @@ async def set_job_chunk_status(engine, job_id, database, status):
     try:
         async with engine.acquire() as connection:
             try:
-                if finished:
-                    query = sa.text('''
-                        UPDATE job_chunks
-                        SET status = :status, finished = :finished
-                        WHERE job_id = :job_id AND database = :database
-                        RETURNING *;
-                    ''')
-                else:
-                    query = sa.text('''
-                        UPDATE job_chunks
-                        SET status = :status
-                        WHERE job_id = :job_id AND database = :database
-                        RETURNING *;
-                    ''')
+                query = sa.text('''
+                    UPDATE job_chunks
+                    SET status = :status, finished = :finished
+                    WHERE job_id = :job_id AND database = :database
+                    RETURNING *;
+                ''')
 
                 id = None  # if connection didn't return any rows, return None
-                async for row in connection.execute(query, job_id=job_id, database=database, status=status):
+                async for row in connection.execute(query, job_id=job_id, database=database, status=status, finished=finished):
                     id = row.id
 
                 return id
