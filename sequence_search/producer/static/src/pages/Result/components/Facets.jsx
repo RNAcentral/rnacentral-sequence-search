@@ -48,7 +48,7 @@ class Result extends React.Component {
             </div>
           }
           <small className="text-muted">
-            Powered by <a href="http://www.ebi.ac.uk/ebisearch/" target="_blank">EBI Search</a>
+            Powered by <a href="https://www.ncbi.nlm.nih.gov/pubmed/23842809">NHMMER</a> and <a href="http://www.ebi.ac.uk/ebisearch/" target="_blank">EBI Search</a>.
           </small>
         </section>
       </div>
