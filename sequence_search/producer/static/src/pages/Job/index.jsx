@@ -10,6 +10,7 @@ class Job extends React.Component {
     this.state = {
         job_id: "",
         status: "",
+        elapsedTime: 0,
         chunks: []
     };
 
@@ -60,6 +61,9 @@ class Job extends React.Component {
           <div className="hpanel">
             <div className="panel-heading">
               <h1>Job { this.props.match.params.jobId } <small>{ this.displayStatusIcon(this.state.status) } { this.state.status }</small></h1>
+              <div className="callout clearfix">
+                <span className="float-right">Elapsed time: <span>{ this.state.elapsedTime } seconds</span></span>
+              </div>
             </div>
             <div className="panel-body">
               <table className="responsive-table">
@@ -67,6 +71,7 @@ class Job extends React.Component {
                   <tr>
                     <th>Database</th>
                     <th>Status</th>
+                    <th>Elapsed time</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -74,6 +79,7 @@ class Job extends React.Component {
                     <tr key={index}>
                       <td>{ chunk.database }</td>
                       <td>{ this.displayStatusIcon(chunk.status) } { chunk.status }</td>
+                      <td>{ chunk.elapsedTime } seconds</td>
                     </tr>)) }
                 </tbody>
               </table>

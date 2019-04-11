@@ -11,6 +11,8 @@ See the License for the specific language governing permissions and
 limitations under the License.
 """
 
+import datetime
+
 from aiohttp import web
 from aiojobs.aiohttp import atomic
 
@@ -62,17 +64,30 @@ async def job_status(request):
     except JobNotFound as e:
         raise web.HTTPNotFound(text="Job '%s' not found" % job_id) from e
 
+    now = datetime.datetime.now()
+
+    def elapsed_time(submitted, finished, now):
+        if submitted is None:
+            return 0
+        elif finished is None:
+            return (now - submitted).seconds
+        else:
+            return (finished - submitted).seconds
+
     data = {
         "job_id": job_id,
         "status": chunks[0]['job_status'],
-        "submitted": str(chunks[0]['job_submitted']),
-        "finished": str(chunks[0]['job_finished']),
+        # "submitted": str(chunks[0]['job_submitted']),
+        # "finished": str(chunks[0]['job_finished']),
+        "elapsedTime": elapsed_time(chunks[0]['job_submitted'], chunks[0]['job_finished'], now),
+        "now": str(datetime.datetime.now()),
         "chunks": [
             {
                 'database': chunk['database'],
                 'status': chunk['status'],
-                'submitted': str(chunk['submitted']),
-                'finished': str(chunk['finished'])
+                # 'submitted': str(chunk['submitted']),
+                # 'finished': str(chunk['finished']),
+                'elapsedTime': elapsed_time(chunk['submitted'], chunk['finished'], now)
             } for chunk in chunks
         ]
     }

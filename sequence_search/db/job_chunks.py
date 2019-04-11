@@ -47,7 +47,6 @@ async def save_job_chunk(engine, job_id, database):
                     JobChunk.insert().values(
                         job_id=job_id,
                         database=database,
-                        submitted=datetime.datetime.now(),
                         status=JOB_CHUNK_STATUS_CHOICES.pending
                     )
                 )
@@ -124,29 +123,55 @@ async def set_job_chunk_status(engine, job_id, database, status):
     :param status: an option from consumer.JOB_CHUNK_STATUS
     :return: None
     """
+    finished = None
     if status == JOB_CHUNK_STATUS_CHOICES.success or \
        status == JOB_CHUNK_STATUS_CHOICES.error or \
        status == JOB_CHUNK_STATUS_CHOICES.timeout:
         finished = datetime.datetime.now()
-    else:
-        finished = None
+
+    submitted = None
+    if status == JOB_CHUNK_STATUS_CHOICES.started:
+        submitted = datetime.datetime.now()
 
     try:
         async with engine.acquire() as connection:
             try:
-                query = sa.text('''
-                    UPDATE job_chunks
-                    SET status = :status, finished = :finished
-                    WHERE job_id = :job_id AND database = :database
-                    RETURNING *;
-                ''')
+                if submitted:
+                    query = sa.text('''
+                        UPDATE job_chunks
+                        SET status = :status, submitted = :submitted
+                        WHERE job_id = :job_id AND database = :database
+                        RETURNING *;
+                    ''')
 
-                id = None  # if connection didn't return any rows, return None
-                async for row in connection.execute(query, job_id=job_id, database=database, status=status, finished=finished):
-                    id = row.id
+                    id = None  # if connection didn't return any rows, return None
+                    async for row in connection.execute(query, job_id=job_id, database=database, status=status, submitted=submitted):
+                        id = row.id
+                    return id
+                elif finished:
+                    query = sa.text('''
+                        UPDATE job_chunks
+                        SET status = :status, finished = :finished
+                        WHERE job_id = :job_id AND database = :database
+                        RETURNING *;
+                    ''')
 
-                return id
+                    id = None  # if connection didn't return any rows, return None
+                    async for row in connection.execute(query, job_id=job_id, database=database, status=status, finished=finished):
+                        id = row.id
+                    return id
+                else:
+                    query = sa.text('''
+                        UPDATE job_chunks
+                        SET status = :status
+                        WHERE job_id = :job_id AND database = :database
+                        RETURNING *;
+                    ''')
 
+                    id = None  # if connection didn't return any rows, return None
+                    async for row in connection.execute(query, job_id=job_id, database=database, status=status):
+                        id = row.id
+                    return id
             except Exception as e:
                 raise SQLError("Failed to set_job_chunk_status in the database,"
                                " job_id = %s, database = %s" % (job_id, database)) from e

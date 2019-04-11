@@ -132,8 +132,8 @@ async def get_job_chunks_status(engine, job_id):
                     [
                         Job.c.id.label('id'),
                         Job.c.status.label('job_status'),
-                        Job.c.status.label('job_submitted'),
-                        Job.c.status.label('job_finished'),
+                        Job.c.submitted.label('job_submitted'),
+                        Job.c.finished.label('job_finished'),
                         JobChunk.c.job_id.label('job_id'),
                         JobChunk.c.database.label('database'),
                         JobChunk.c.status.label('status'),
