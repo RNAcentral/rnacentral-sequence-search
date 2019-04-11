@@ -77,16 +77,12 @@ async def job_status(request):
     data = {
         "job_id": job_id,
         "status": chunks[0]['job_status'],
-        # "submitted": str(chunks[0]['job_submitted']),
-        # "finished": str(chunks[0]['job_finished']),
         "elapsedTime": elapsed_time(chunks[0]['job_submitted'], chunks[0]['job_finished'], now),
         "now": str(datetime.datetime.now()),
         "chunks": [
             {
                 'database': chunk['database'],
                 'status': chunk['status'],
-                # 'submitted': str(chunk['submitted']),
-                # 'finished': str(chunk['finished']),
                 'elapsedTime': elapsed_time(chunk['submitted'], chunk['finished'], now)
             } for chunk in chunks
         ]
