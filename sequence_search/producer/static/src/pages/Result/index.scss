@@ -40,3 +40,10 @@
 .facetValue {
   white-space: nowrap;
 }
+
+.sequence {
+  word-wrap: break-word;
+  white-space: pre-wrap;
+  max-height: 10em;
+  overflow-y: auto;
+}

@@ -13,6 +13,7 @@ class Result extends React.Component {
 
     this.state = {
       status: "loading",
+      sequence: "",
       entries: [],
       facets: [],
       hitCount: 0,
@@ -146,6 +147,7 @@ class Result extends React.Component {
 
               this.setState({
                 status: "success",
+                sequence: data.sequence,
                 entries: [...data.entries],
                 facets: [...data.facets],
                 hitCount: data.hitCount,
@@ -164,6 +166,7 @@ class Result extends React.Component {
 
               this.setState({
                 status: "success",
+                sequence: data.sequence,
                 entries: [...this.state.entries, ...data.entries],
                 facets: [...data.facets],
                 hitCount: data.hitCount,
@@ -180,6 +183,7 @@ class Result extends React.Component {
           .then(data => {
             this.setState({
               status: "success",
+              sequence: data.sequence,
               entries: [...data.entries],
               facets: [...data.facets],
               hitCount: data.hitCount,
@@ -195,6 +199,7 @@ class Result extends React.Component {
         this.fetchSearchResults(resultId, query, start, size)
           .then(data => { this.setState({
             status: "success",
+            sequence: data.sequence,
             entries: [...this.state.entries, ...data.entries],
             facets: [...data.facets],
             hitCount: data.hitCount,
@@ -222,6 +227,14 @@ class Result extends React.Component {
   render() {
     return (
       <div className="row">
+        { this.state.status === "success" &&
+          [
+            <h1>Sequence:</h1>,
+            <pre className="callout sequence">
+              { this.state.sequence }
+            </pre>
+          ]
+        }
         <h1 className="margin-top-large margin-bottom-large">Results: { this.state.status === "loading" ? <i className="icon icon-functional spin" data-icon="s"/> : <small>{ this.state.hitCount } total</small> }</h1>
         <div className="small-12 medium-10 medium-push-2 columns">
           <section>

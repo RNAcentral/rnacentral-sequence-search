@@ -16,7 +16,7 @@ import logging
 from aiohttp import web
 from aiojobs.aiohttp import atomic
 
-from ...db.jobs import get_job_results, job_exists
+from ...db.jobs import get_job_results, get_job_query, job_exists
 from ..text_search_client import get_text_search_results, ProxyConnectionError, EBITextSearchConnectionError, \
     facetfields
 
@@ -274,6 +274,9 @@ async def facets_search(request):
     size = request.query['size'] if 'size' in request.query else 20
     facetcount = request.query['facetcount'] if 'facetcount' in request.query else 100
 
+    # get sequence search query sequence
+    sequence = await get_job_query(request.app['engine'], job_id)
+
     # get sequence search results from the database, sort/aggregate?
     results = await get_job_results(request.app['engine'], job_id)
 
@@ -294,13 +297,23 @@ async def facets_search(request):
         # merge the contents of the 'popular_species' facet into the 'TAXONOMY' facet
         merge_popular_species_into_taxonomy_facet(text_search_data)
 
+        # add the query sequence to display on the page
+        text_search_data['sequence'] = sequence
+
         # text search worked successfully, unset text search error flag
         text_search_data['textSearchError'] = False
 
     except (ProxyConnectionError, EBITextSearchConnectionError) as e:
         # text search is not available, pad output with facets stub, indicate that we have a text search error
         logger.warning(str(e))
-        text_search_data = {'entries': [], 'facets': [], 'hitCount': len(results), 'textSearchError': True}
+
+        text_search_data = {
+            'entries': [],
+            'facets': [],
+            'hitCount': len(results),
+            'sequence': sequence,
+            'textSearchError': True
+        }
 
         # populate text search entries with sequence search results, paginate
         start = int(start)
