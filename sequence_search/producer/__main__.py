@@ -22,7 +22,7 @@ from aiohttp import web, web_middlewares
 
 from . import settings
 from ..db.models import init_pg, migrate
-from ..db.job_chunks import find_highest_priority_job_chunk
+from ..db.job_chunks import find_highest_priority_job_chunks
 from ..db.jobs import get_job_query
 from ..db.consumers import delegate_job_chunk_to_consumer, find_available_consumers
 from ..db.settings import get_postgres_credentials
@@ -61,19 +61,20 @@ async def create_consumer_scheduler(app):
     async def periodic():
         while True:
             # if there are any pending jobs and free consumers, schedule their execution
-            (job_id, job_chunk_id, database) = await find_highest_priority_job_chunk(app['engine'])
+            chunks = await find_highest_priority_job_chunks(app['engine'])
             consumers = await find_available_consumers(app['engine'])
 
-            # TODO: we're starting just 1 job_chunk at a time, but nothing prevents us from starting them all
-            if job_id is not None and len(consumers) > 0:
-                query = await get_job_query(app['engine'], job_id)
-                await delegate_job_chunk_to_consumer(
-                    engine=app['engine'],
-                    consumer_ip=consumers[0].ip,
-                    job_id=job_id,
-                    database=database,
-                    query=query
-                )
+            for consumer in consumers:
+                if len(chunks) > 0:
+                    (job_id, job_chunk_id, database) = chunks.pop(0)
+                    query = await get_job_query(app['engine'], job_id)
+                    await delegate_job_chunk_to_consumer(
+                        engine=app['engine'],
+                        consumer_ip=consumer.ip,
+                        job_id=job_id,
+                        database=database,
+                        query=query
+                    )
 
             await asyncio.sleep(5)
 

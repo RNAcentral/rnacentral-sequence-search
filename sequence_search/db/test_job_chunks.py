@@ -19,7 +19,7 @@ from aiohttp.test_utils import unittest_run_loop
 from .test_base import DBTestCase
 from . import DoesNotExist
 from .models import Job, JobChunk, Consumer, JOB_STATUS_CHOICES, JOB_CHUNK_STATUS_CHOICES, CONSUMER_STATUS_CHOICES
-from .job_chunks import save_job_chunk, find_highest_priority_job_chunk, get_consumer_ip_from_job_chunk, \
+from .job_chunks import save_job_chunk, find_highest_priority_job_chunks, get_consumer_ip_from_job_chunk, \
     set_job_chunk_status, get_job_chunk_from_job_and_database
 
 
@@ -144,8 +144,12 @@ class FindHighestPriorityJobChunkTestCase(DBTestCase):
             )
 
     @unittest_run_loop
-    async def test_find_highest_priority_job_chunk(self):
-        job_id, job_chunk_id, database = await find_highest_priority_job_chunk(self.app['engine'])
+    async def test_find_highest_priority_job_chunks(self):
+        chunks = await find_highest_priority_job_chunks(self.app['engine'])
+
+        assert len(chunks) == 2
+
+        job_id, job_chunk_id, database = chunks[0]
 
         assert job_id == self.job_id
         assert job_chunk_id == self.job_chunk_id1

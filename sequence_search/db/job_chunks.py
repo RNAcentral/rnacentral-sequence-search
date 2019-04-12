@@ -59,11 +59,11 @@ async def save_job_chunk(engine, job_id, database):
                                       "for job_id = %s, database = %s" % (job_id, database)) from e
 
 
-async def find_highest_priority_job_chunk(engine):
+async def find_highest_priority_job_chunks(engine):
     """
     Find the next job chunk to give consumers for processing.
 
-    Returns: (job_id, job_chunk_id, database)
+    Returns: [(job_id, job_chunk_id, database), (...), ...]
     """
     # among the running jobs, find the one, submitted first
     try:
@@ -87,12 +87,10 @@ async def find_highest_priority_job_chunk(engine):
                          .where(sa.and_(Job.c.status == JOB_STATUS_CHOICES.started, JobChunk.c.status == JOB_CHUNK_STATUS_CHOICES.pending))
                          .order_by(Job.c.submitted))  # noqa
 
+                output = []
                 # if there are started jobs and job_chunks, pick one from the earliest submitted job
                 async for row in connection.execute(query):  # select a job chunk to submit
-                    return row.id, row.job_chunk_id, row.database
-
-                # if there are no running job_chunks, return None
-                return None, None, None
+                    output.append((row.id, row.job_chunk_id, row.database))
             except Exception as e:
                 raise SQLError("Failed to find highest priority job chunks") from e
 
