@@ -45,14 +45,29 @@ async def job_status(request):
                   type: string
                 status:
                   type: string
+                elapsedTime:
+                  type: string
+                now:
+                  type: string
                 chunks:
                   type: array
+                  items:
+                    type: object
+                    properties:
+                      database:
+                        type: string
+                      status:
+                        type: string
+                      elapsedTime:
+                        type: string
         examples:
           application/json:
             {
               job_id: "662c258b-04d8-4347-b8f5-3d9df82d769e",
               status: "started",
-              chunks: [{'database': 'mirbase', 'status': 'started'}, {'database': 'pombase', 'status': 'started'}]
+              elapsedTime: "14",
+              now: "2019-04-12 19:03:37.417665"
+              chunks: [{'database': 'mirbase', 'status': 'started', elapsedTime: "12"}, {'database': 'pombase', 'status': 'started', elapsedTime: "2"}]
             }
       404:
         description: No status for given job_id (probably, job with this job_id doesn't exist)
