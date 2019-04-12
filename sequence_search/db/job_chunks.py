@@ -91,6 +91,9 @@ async def find_highest_priority_job_chunks(engine):
                 # if there are started jobs and job_chunks, pick one from the earliest submitted job
                 async for row in connection.execute(query):  # select a job chunk to submit
                     output.append((row.id, row.job_chunk_id, row.database))
+
+                return output
+
             except Exception as e:
                 raise SQLError("Failed to find highest priority job chunks") from e
 
