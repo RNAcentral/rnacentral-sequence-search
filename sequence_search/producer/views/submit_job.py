@@ -40,6 +40,9 @@ def serialize(request, data):
     #         raise ValueError("Input query should be a nucleotide sequence "
     #                               "and contain only {ATGCU} characters, found: '%s'." % query)
 
+    # TODO: split query into query string and description
+    data['description'] = ''
+
     # normalize query: convert nucleotides to RNA
     data['query'] = query.replace('T', 'U')
 
@@ -103,7 +106,7 @@ async def submit_job(request):
         raise web.HTTPBadRequest(text=str(e)) from e
 
     # save metadata about this job and job_chunks to the database
-    job_id = await save_job(request.app['engine'], data['query'])
+    job_id = await save_job(request.app['engine'], data['query'], data['description'])
 
     databases = producer_to_consumers_databases(data['databases'])
     for database in databases:

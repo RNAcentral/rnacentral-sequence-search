@@ -91,6 +91,8 @@ async def job_status(request):
 
     data = {
         "job_id": job_id,
+        "query": chunks[0]['query'],
+        "description": chunks[0]['description'],
         "status": chunks[0]['job_status'],
         "elapsedTime": elapsed_time(chunks[0]['job_submitted'], chunks[0]['job_finished'], now),
         "now": str(datetime.datetime.now()),

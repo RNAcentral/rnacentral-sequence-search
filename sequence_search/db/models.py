@@ -72,6 +72,7 @@ Consumer = sa.Table('consumer', metadata,
 Job = sa.Table('jobs', metadata,
                  sa.Column('id', sa.String(36), primary_key=True),
                  sa.Column('query', sa.Text),
+                 sa.Column('description', sa.Text, nullable=True),
                  sa.Column('submitted', sa.DateTime),
                  sa.Column('finished', sa.DateTime, nullable=True),
                  sa.Column('status', sa.String(255)))  # choices=JOB_STATUS_CHOICES, default='started'
@@ -141,6 +142,7 @@ async def migrate(ENVIRONMENT):
                 CREATE TABLE jobs (
                   id VARCHAR(36) PRIMARY KEY,
                   query TEXT,
+                  description TEXT,
                   submitted TIMESTAMP,
                   finished TIMESTAMP,
                   status VARCHAR(255))

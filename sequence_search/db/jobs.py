@@ -29,7 +29,7 @@ class JobNotFound(Exception):
         return "Job '%s' not found" % self.job_id
 
 
-async def save_job(engine, query):
+async def save_job(engine, query, description):
     try:
         async with engine.acquire() as connection:
             try:
@@ -39,6 +39,7 @@ async def save_job(engine, query):
                     Job.insert().values(
                         id=job_id,
                         query=query,
+                        description=description,
                         submitted=datetime.datetime.now(),
                         status=JOB_STATUS_CHOICES.started
                     )
@@ -131,6 +132,8 @@ async def get_job_chunks_status(engine, job_id):
                 select_statement = sa.select(
                     [
                         Job.c.id.label('id'),
+                        Job.c.status.label('query'),
+                        Job.c.status.label('description'),
                         Job.c.status.label('job_status'),
                         Job.c.submitted.label('job_submitted'),
                         Job.c.finished.label('job_finished'),
@@ -152,6 +155,8 @@ async def get_job_chunks_status(engine, job_id):
                 async for row in connection.execute(query):
                     output.append({
                         'job_id': row.job_id,
+                        'query': row.query,
+                        'description': row.description,
                         'job_status': row.job_status,
                         'job_submitted': row.job_submitted,
                         'job_finished': row.job_finished,
