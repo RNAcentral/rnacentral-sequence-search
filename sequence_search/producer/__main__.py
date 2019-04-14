@@ -17,6 +17,7 @@ import asyncio
 
 import aiohttp_jinja2
 import jinja2
+import aiohttp_cors
 from aiojobs.aiohttp import setup as setup_aiojobs
 from aiohttp import web, web_middlewares
 
@@ -110,6 +111,19 @@ def create_app():
 
     # setup aiojobs scheduler
     setup_aiojobs(app)
+
+    # Configure default CORS settings.
+    cors = aiohttp_cors.setup(app, defaults={
+        "*": aiohttp_cors.ResourceOptions(
+            allow_credentials=True,
+            expose_headers="*",
+            allow_headers="*",
+        )
+    })
+
+    # Configure CORS on all routes.
+    for route in list(app.router.routes()):
+        cors.add(route)
 
     return app
 

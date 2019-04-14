@@ -6,6 +6,7 @@ aiopg
 aiohttp_jinja2
 aiohttp-devtools
 aiohttp-swagger
+aiohttp-cors
 aiojobs
 async-timeout
 requests
