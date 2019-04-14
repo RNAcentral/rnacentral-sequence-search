@@ -43,6 +43,10 @@ async def job_status(request):
               properties:
                 job_id:
                   type: string
+                query:
+                  type: string
+                description:
+                  type: string
                 status:
                   type: string
                 elapsedTime:
@@ -64,6 +68,8 @@ async def job_status(request):
           application/json:
             {
               job_id: "662c258b-04d8-4347-b8f5-3d9df82d769e",
+              query: "AUUGAAGUGCGCACCCCGCAUUUAG",
+              description: "URS0000049E57",
               status: "started",
               elapsedTime: "14",
               now: "2019-04-12 19:03:37.417665"
