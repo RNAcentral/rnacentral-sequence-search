@@ -339,19 +339,23 @@ async def get_job_results(engine, job_id, limit=10000):
             if ordering == 'e_value':
                 results.sort(key=lambda result: result['e_value'])
             elif ordering == '-e_value':
-                results.sort(key=lambda result: result['e_value']).reverse()
+                results.sort(key=lambda result: result['e_value'])
+                results.reverse()
             elif ordering == 'identity':
                 results.sort(key=lambda result: result['identity'])
             elif ordering == '-identity':
-                results.sort(key=lambda result: result['identity']).reverse()
+                results.sort(key=lambda result: result['identity'])
+                results.reverse()
             elif ordering == 'query_coverage':
                 results.sort(key=lambda result: result['query_coverage'])
             elif ordering == '-query_coverage':
-                results.sort(key=lambda result: result['query_coverage']).reverse()
+                results.sort(key=lambda result: result['query_coverage'])
+                results.reverse()
             elif ordering == 'target_coverage':
                 results.sort(key=lambda result: result['result'])
             elif ordering == '-target_coverage':
-                results.sort(key=lambda result: result['result']).reverse()
+                results.sort(key=lambda result: result['result'])
+                results.reverse()
 
             return results
 
