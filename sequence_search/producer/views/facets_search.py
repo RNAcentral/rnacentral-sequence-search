@@ -16,7 +16,7 @@ import logging
 from aiohttp import web
 from aiojobs.aiohttp import atomic
 
-from ...db.jobs import get_job_results, get_job_query, job_exists
+from ...db.jobs import get_job_results, get_job_query, job_exists, set_job_ordering
 from ..text_search_client import get_text_search_results, ProxyConnectionError, EBITextSearchConnectionError, \
     facetfields
 
@@ -97,6 +97,14 @@ async def facets_search(request):
         type: integer
         default: 10
       example: 10
+    - name: ordering
+      in: query
+      description: How to order results: by 'e_value', '-e_value', 'identity', '-identity', 'query_coverage',
+       '-query_coverage', 'target_coverage' or '-target_coverage'
+      required: false
+      schema:
+        type: string
+        default: 'e_value'
     responses:
       200:
         description: Successfully returns results
@@ -273,6 +281,10 @@ async def facets_search(request):
     start = request.query['start'] if 'start' in request.query else 0
     size = request.query['size'] if 'size' in request.query else 20
     facetcount = request.query['facetcount'] if 'facetcount' in request.query else 100
+    ordering = request.query['ordering'] if 'ordering' in request.query else 'e_value'
+
+    # set ordering, so that EBI text search returns entries in correct order
+    await set_job_ordering(request.app['engine'], job_id, ordering)
 
     # get sequence search query sequence
     sequence = await get_job_query(request.app['engine'], job_id)

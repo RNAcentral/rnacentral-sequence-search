@@ -40,6 +40,7 @@ async def save_job(engine, query, description):
                         id=job_id,
                         query=query,
                         description=description,
+                        ordering='e_value',
                         submitted=datetime.datetime.now(),
                         status=JOB_STATUS_CHOICES.started
                     )
@@ -243,6 +244,36 @@ async def get_job_query(engine, job_id):
                                       "get_job_query() for job with job_id = %s" % job_id) from e
 
 
+async def get_job_ordering(engine, job_id):
+    try:
+        async with engine.acquire() as connection:
+            try:
+                sql_query = sa.select([Job.c.ordering]).select_from(Job).where(Job.c.id == job_id)
+
+                async for row in connection.execute(sql_query):
+                    return row.query
+            except Exception as e:
+                raise SQLError("Failed to get job ordering, job_id = %s" % job_id) from e
+
+    except psycopg2.Error as e:
+        raise DatabaseConnectionError("Failed to open connection to the database in "
+                                      "get_job_ordering() for job with job_id = %s" % job_id) from e
+
+
+async def set_job_ordering(engine, job_id, ordering):
+    try:
+        async with engine.acquire() as connection:
+            try:
+                query = sa.text('''UPDATE jobs SET ordering=:ordering WHERE id = :job_id''')
+                await connection.execute(query, job_id=job_id, ordering=ordering)
+            except Exception as e:
+                raise SQLError("Failed to set job ordering, job_id = %s" % job_id) from e
+
+    except psycopg2.Error as e:
+        raise DatabaseConnectionError("Failed to open connection to the database in "
+                                      "set_job_ordering() for job with job_id = %s" % job_id) from e
+
+
 async def get_job_results(engine, job_id, limit=10000):
     """
     Aggregates results from multiple job_chunks and returns them.
@@ -302,8 +333,25 @@ async def get_job_results(engine, job_id, limit=10000):
                     'result_id': row[19]
                 })
 
-            # sort results by e_value
-            results.sort(key=lambda result: result['e_value'])
+            # sort results by ordering, ordering is stored in the database
+            ordering = await get_job_ordering(engine, job_id)
+
+            if ordering == 'e_value':
+                results.sort(key=lambda result: result['e_value'])
+            elif ordering == '-e_value':
+                results.sort(key=lambda result: result['e_value']).reverse()
+            elif ordering == 'identity':
+                results.sort(key=lambda result: result['identity'])
+            elif ordering == '-identity':
+                results.sort(key=lambda result: result['identity']).reverse()
+            elif ordering == 'query_coverage':
+                results.sort(key=lambda result: result['query_coverage'])
+            elif ordering == '-query_coverage':
+                results.sort(key=lambda result: result['query_coverage']).reverse()
+            elif ordering == 'target_coverage':
+                results.sort(key=lambda result: result['result'])
+            elif ordering == '-target_coverage':
+                results.sort(key=lambda result: result['result']).reverse()
 
             return results
 
