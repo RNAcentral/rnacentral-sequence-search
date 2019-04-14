@@ -251,7 +251,7 @@ async def get_job_ordering(engine, job_id):
                 sql_query = sa.select([Job.c.ordering]).select_from(Job).where(Job.c.id == job_id)
 
                 async for row in connection.execute(sql_query):
-                    return row.query
+                    return row.ordering
             except Exception as e:
                 raise SQLError("Failed to get job ordering, job_id = %s" % job_id) from e
 
