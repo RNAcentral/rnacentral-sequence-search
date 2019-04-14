@@ -352,9 +352,9 @@ async def get_job_results(engine, job_id, limit=10000):
                 results.sort(key=lambda result: result['query_coverage'])
                 results.reverse()
             elif ordering == 'target_coverage':
-                results.sort(key=lambda result: result['result'])
+                results.sort(key=lambda result: result['target_coverage'])
             elif ordering == '-target_coverage':
-                results.sort(key=lambda result: result['result'])
+                results.sort(key=lambda result: result['target_coverage'])
                 results.reverse()
 
             return results
