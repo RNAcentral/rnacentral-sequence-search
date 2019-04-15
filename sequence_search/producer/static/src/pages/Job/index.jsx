@@ -22,7 +22,7 @@ class Job extends React.Component {
     fetch(routes.jobStatus(this.props.match.params.jobId))
       .then(response => response.json())
       .then(data => {
-        if (data.status === 'success') {
+        if (data.status === 'success' || data.status === 'partial_success') {
           window.clearTimeout(this.statusTimeout);
           this.props.history.push(`/result/${this.props.match.params.jobId}`);
         } else if (data.status === 'error') {
@@ -38,6 +38,7 @@ class Job extends React.Component {
 
   displayStatusIcon(status) {
     if (status === 'success') return (<i className="icon icon-functional" style={{color: "green"}} data-icon="/"/>);
+    else if (status === 'success') return (<i className="icon icon-functional" style={{color: "yellow"}} data-icon="/"/>);
     else if (status === 'pending') return (<i className="icon icon-functional" data-icon="v"/>);
     else if (status === 'started') return (<i className="icon icon-functional spin" data-icon="s"/>);
     else if (status === 'timeout') return (<i className="icon icon-generic" data-icon="{"/>);
