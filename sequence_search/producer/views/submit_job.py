@@ -11,6 +11,8 @@ See the License for the specific language governing permissions and
 limitations under the License.
 """
 
+import re
+
 from aiohttp import web
 from aiojobs.aiohttp import atomic
 
@@ -29,36 +31,29 @@ def serialize(request, data):
     :return: Normalized data
     :raise: KeyError, TypeError, ValueError
     """
-    query = data['query']
-    databases = data['databases']
-
-    if not query:
+    if not data['query']:
         raise ValueError("Empty query")
-    # TODO: validate query
-    # for char in query:
-    #     if char not in ['A', 'T', 'G', 'C', 'U']:
-    #         raise ValueError("Input query should be a nucleotide sequence "
-    #                               "and contain only {ATGCU} characters, found: '%s'." % query)
 
-    # TODO: split query into query string and description
-    data['description'] = ''
+    # make sure query contains only reasonable nucleotide codes
+    match = re.search('^(>.+?[\n\r])*?[acgtunwsmkrybdhvx\s]+$', data['query'], re.IGNORECASE)
+    if not match:
+        raise ValueError("Input query is not a valid nucleotide sequence: '%s'" % data['query'])
+
+    # possibly split query into query and description
+    match = re.search('(^>(.+)[\n\r])?([\s\S]+)', data['query'])
+    if match:
+        data['query'] = match.group(3)
+        data['description'] = match.group(2)
+    else:
+        data['description'] = ''
 
     # normalize query: convert nucleotides to RNA
-    data['query'] = query.replace('T', 'U')
+    data['query'] = data['query'].replace('T', 'U')
 
     # validate databases
-    producer_validator(databases)
+    producer_validator(data['databases'])
 
     return data
-
-
-async def save(request, data):
-    """Save metadata about this job and job_chunks to the database."""
-    job_id = await save_job(request.app['engine'], data['query'])
-    if job_id:
-        for database in data['databases']:
-            job_chunk_id = await save_job_chunk(request.app['engine'], job_id, database)
-    return job_id
 
 
 @atomic
