@@ -35,7 +35,7 @@ The project is supposed to be run in 4 environments:
 2. `$ cd rnacentral-sequence-search`
 3. `$ virtualenv ENV --python=python3`
 4. `$ source ENV/bin/activate`
-5. `$ pip3 install -r requirements.txt`
+5. `$ pip3 install -r sequence_search/requirements.txt`
 6. `$ pushd sequence_search/consumer`
 7. `$ curl -OL http://eddylab.org/software/hmmer/hmmer-3.2.1.tar.gz && \
     tar -zxvf hmmer-3.2.1.tar.gz && \
