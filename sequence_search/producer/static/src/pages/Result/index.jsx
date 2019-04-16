@@ -146,7 +146,7 @@ class Result extends React.Component {
               data.facets.map((facet) => { selectedFacets[facet.id] = []; });
 
               this.setState({
-                status: "success",
+                status: data.sequenceSearchStatus === "success" ? "success" : "partial_success",
                 sequence: data.sequence,
                 entries: [...data.entries],
                 facets: [...data.facets],
@@ -165,7 +165,7 @@ class Result extends React.Component {
               data.facets.map((facet) => { selectedFacets[facet.id] = []; });
 
               this.setState({
-                status: "success",
+                status: data.sequenceSearchStatus === "success" ? "success" : "partial_success",
                 sequence: data.sequence,
                 entries: [...this.state.entries, ...data.entries],
                 facets: [...data.facets],
@@ -182,7 +182,7 @@ class Result extends React.Component {
         this.fetchSearchResults(this.props.match.params.resultId, this.buildQuery(), 0, this.state.size)
           .then(data => {
             this.setState({
-              status: "success",
+              status: data.sequenceSearchStatus === "success" ? "success" : "partial_success",
               sequence: data.sequence,
               entries: [...data.entries],
               facets: [...data.facets],
@@ -198,7 +198,7 @@ class Result extends React.Component {
       } else {
         this.fetchSearchResults(resultId, query, start, size)
           .then(data => { this.setState({
-            status: "success",
+            status: data.sequenceSearchStatus === "success" ? "success" : "partial_success",
             sequence: data.sequence,
             entries: [...this.state.entries, ...data.entries],
             facets: [...data.facets],
@@ -227,6 +227,14 @@ class Result extends React.Component {
   render() {
     return (
       <div className="row">
+        {
+          this.state.status === "partial_success" && (
+            <div className="callout alert">
+              <h3>Search against some databases failed.</h3>
+              <p>Search results might be incomplete, you might want to retry running the search.</p>
+            </div>
+          )
+        }
         { this.state.status === "success" &&
           [
             <h1>Sequence:</h1>,
