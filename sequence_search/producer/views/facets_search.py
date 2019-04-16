@@ -16,7 +16,7 @@ import logging
 from aiohttp import web
 from aiojobs.aiohttp import atomic
 
-from ...db.jobs import get_job_results, get_job_query, job_exists, set_job_ordering
+from ...db.jobs import get_job_results, get_job, job_exists, set_job_ordering
 from ..text_search_client import get_text_search_results, ProxyConnectionError, EBITextSearchConnectionError, \
     facetfields
 
@@ -290,11 +290,15 @@ async def facets_search(request):
     # set ordering, so that EBI text search returns entries in correct order
     await set_job_ordering(request.app['engine'], job_id, ordering)
 
-    # get sequence search query sequence
-    sequence = await get_job_query(request.app['engine'], job_id)
+    # get sequence search query sequence and status
+    job = await get_job(request.app['engine'], job_id)
+    sequence = job['query']
+    status = job['status']
 
     # get sequence search results from the database, sort/aggregate?
     results = await get_job_results(request.app['engine'], job_id)
+
+    await get_job_status
 
     # try to get facets from EBI text search, otherwise stub facets
     try:
@@ -316,6 +320,9 @@ async def facets_search(request):
         # add the query sequence to display on the page
         text_search_data['sequence'] = sequence
 
+        # add status of sequence search to display warnings, if need arises
+        text_search_data['sequenceSearchStatus'] = status
+
         # text search worked successfully, unset text search error flag
         text_search_data['textSearchError'] = False
 
@@ -328,6 +335,7 @@ async def facets_search(request):
             'facets': [],
             'hitCount': len(results),
             'sequence': sequence,
+            'sequenceSearchStatus': status,
             'textSearchError': True
         }
 
