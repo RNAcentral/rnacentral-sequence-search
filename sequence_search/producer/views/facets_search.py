@@ -298,8 +298,6 @@ async def facets_search(request):
     # get sequence search results from the database, sort/aggregate?
     results = await get_job_results(request.app['engine'], job_id)
 
-    await get_job_status
-
     # try to get facets from EBI text search, otherwise stub facets
     try:
         ENVIRONMENT = request.app['settings'].ENVIRONMENT
