@@ -1,9 +1,6 @@
 openstack.rc
 terraform/providers.tf
 
-postgres/local_init.sql
-postrges/local.Dockerfile
-
 __pycache__/
 *.pyc
 *.pyo

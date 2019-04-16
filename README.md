@@ -46,11 +46,12 @@ The project is supposed to be run in 4 environments:
     cd easel; make install`
 8. `$ rsync <> databases/` - copy `.fasta` files with databases we want to search against
 9. `$ popd`
-10. `$ cd sequence_search/producer/static`
+10. `$ pushd sequence_search/producer/static`
 11. `$ npm install --save-dev && npm run build`
 12. `$ popd`
-13. `$ brew install postgres` - install a local postgres database and start it
-14. create role `burkov` with password `example` and database `producer` in your local postgres
+13. Edit `postgres/local_init.sql` file and replace role `burkov` there with your username on local machine.
+14. `docker build -t local-postgres -f postgres/local.Dockerfile postrges` - this will create an image with postgres databases.
+15. `docker run -p 5432:5432 -t local-postgres` - this will create and start an instance of postgres on your local machine's 5432 port.
 
 
 ### Installation in docker-compose
