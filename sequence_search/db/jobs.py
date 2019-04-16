@@ -29,6 +29,36 @@ class JobNotFound(Exception):
         return "Job '%s' not found" % self.job_id
 
 
+async def get_job(engine, job_id):
+    try:
+        async with engine.acquire() as connection:
+            try:
+                sql_query = sa.select([
+                    Job.c.id,
+                    Job.c.query,
+                    Job.c.description,
+                    Job.c.ordering,
+                    Job.c.submitted,
+                    Job.c.finished,
+                    Job.c.status
+                ]).select_from(Job).where(Job.c.id == job_id)
+                async for row in connection.execute(sql_query):
+                    return {
+                        'id': row.id,
+                        'query': row.query,
+                        'description': row.description,
+                        'ordering': row.ordering,
+                        'submitted': row.submitted,
+                        'finished': row.finished,
+                        'status': row.status
+                    }
+            except Exception as e:
+                raise SQLError("Failed to get job for job_id = %s" % job_id) from e
+    except psycopg2.Error as e:
+        raise DatabaseConnectionError("Failed to open connection to the database in "
+                                      "get_job() for job with job_id = %s" % job_id) from e
+
+
 async def save_job(engine, query, description):
     try:
         async with engine.acquire() as connection:

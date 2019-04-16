@@ -12,12 +12,46 @@ limitations under the License.
 """
 
 import datetime
+import uuid
 
 from aiohttp.test_utils import unittest_run_loop
 
 from .test_base import DBTestCase
 from .models import Job
-from .jobs import save_job, set_job_status, get_job_query, JOB_STATUS_CHOICES
+from .jobs import get_job, save_job, set_job_status, get_job_query, JOB_STATUS_CHOICES
+
+
+class GetJobTestCase(DBTestCase):
+    """
+    Run this test with the following command:
+
+    ENVIRONMENT=TEST python -m unittest sequence_search.db.test_jobs.GetJobTestCase
+    """
+    job_id = str(uuid.uuid4())
+
+    async def setUpAsync(self):
+        await super().setUpAsync()
+
+        async with self.app['engine'].acquire() as connection:
+            await connection.execute(
+                Job.insert().values(
+                    id=self.job_id,
+                    query='AACAGCATGAGTGCGCTGGATGCTG',
+                    description='CATE_ECOLI',
+                    submitted=datetime.datetime.now(),
+                    status=JOB_STATUS_CHOICES.started
+                )
+            )
+
+    @unittest_run_loop
+    async def test_get_job(self):
+        job = await get_job(self.app['engine'], self.job_id)
+        assert job['id'] == self.job_id
+        assert job['query'] == 'AACAGCATGAGTGCGCTGGATGCTG'
+        assert job['description'] == 'CATE_ECOLI'
+        assert job['submitted']
+        assert job['finished'] is None
+        assert job['status'] == JOB_STATUS_CHOICES.started
 
 
 class SaveJobTestCase(DBTestCase):
@@ -30,8 +64,8 @@ class SaveJobTestCase(DBTestCase):
         await super().setUpAsync()
 
     @unittest_run_loop
-    async def test_set_job_status_error(self):
-        job_id = await save_job(self.app['engine'], query="AACAGCATGAGTGCGCTGGATGCTG")
+    async def test_save_job(self):
+        job_id = await save_job(self.app['engine'], query="AACAGCATGAGTGCGCTGGATGCTG", description="")
         assert job_id is not None
 
 
@@ -41,13 +75,17 @@ class SetJobStatusTestCase(DBTestCase):
 
     ENVIRONMENT=TEST python -m unittest sequence_search.db.test_jobs.SetJobStatusTestCase
     """
+    job_id = str(uuid.uuid4())
+
     async def setUpAsync(self):
         await super().setUpAsync()
 
         async with self.app['engine'].acquire() as connection:
-            self.job_id = await connection.scalar(
+            await connection.execute(
                 Job.insert().values(
+                    id=self.job_id,
                     query='AACAGCATGAGTGCGCTGGATGCTG',
+                    description='',
                     submitted=datetime.datetime.now(),
                     status=JOB_STATUS_CHOICES.started
                 )
@@ -64,13 +102,17 @@ class GetJobQueryTestCase(DBTestCase):
 
     ENVIRONMENT=TEST python -m unittest sequence_search.db.test_jobs.GetJobQueryTestCase
     """
+    job_id = str(uuid.uuid4())
+
     async def setUpAsync(self):
         await super().setUpAsync()
 
         async with self.app['engine'].acquire() as connection:
-            self.job_id = await connection.scalar(
+            await connection.execute(
                 Job.insert().values(
+                    id=self.job_id,
                     query='AACAGCATGAGTGCGCTGGATGCTG',
+                    description='CATE_ECOLI',
                     submitted=datetime.datetime.now(),
                     status=JOB_STATUS_CHOICES.started
                 )

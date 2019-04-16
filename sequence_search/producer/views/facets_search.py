@@ -127,6 +127,10 @@ async def facets_search(request):
                   type: array
                   description: >-
                     Array of facets by which users can filter the entries/hits.
+                sequence:
+                  type: string
+                  description: >-
+                    The query sequence to be displayed.
                 textSearchError:
                   type: boolean
                   description: >-
