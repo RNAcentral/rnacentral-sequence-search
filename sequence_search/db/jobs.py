@@ -305,7 +305,7 @@ async def set_job_ordering(engine, job_id, ordering):
                                       "set_job_ordering() for job with job_id = %s" % job_id) from e
 
 
-async def get_job_results(engine, job_id, limit=10000):
+async def get_job_results(engine, job_id, limit=3000):
     """
     Aggregates results from multiple job_chunks and returns them.
 
