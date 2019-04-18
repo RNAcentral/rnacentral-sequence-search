@@ -54,7 +54,7 @@ The project is supposed to be run in 4 environments:
 15. `$ mkdir sequence_search/consumer/queries` - create queries directory in consumer
 16. `$ mkdir sequence_search/consumer/results` - create results directory in consumer
 17. `$ docker build -t local-postgres -f postgres/local.Dockerfile postgres` - this will create an image with postgres databases.
-18. `$ docker run -p 5432:5432 -t local-postgres` - this will create and start an instance of postgres on your local machine's 5432 port.
+18. `$ docker run -d -p 5432:5432 -t local-postgres` - this will create and start an instance of postgres on your local machine's 5432 port.
 19. `python3 -m sequence_search.db` - creates necessary database tables for producer and consumer to run
 20. `python3 -m sequence_search.producer` - starts producer server on port 8002
 21. `python3 -m sequence_search.consumer` - starts consumer server on port 8000
