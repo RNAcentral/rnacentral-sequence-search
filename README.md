@@ -50,7 +50,7 @@ The project is supposed to be run in 4 environments:
 11. `$ npm install --save-dev && npm run build`
 12. `$ popd`
 13. Edit `postgres/local_init.sql` file and replace role `burkov` there with your username on local machine.
-14. `docker build -t local-postgres -f postgres/local.Dockerfile postrges` - this will create an image with postgres databases.
+14. `docker build -t local-postgres -f postgres/local.Dockerfile postgres` - this will create an image with postgres databases.
 15. `docker run -p 5432:5432 -t local-postgres` - this will create and start an instance of postgres on your local machine's 5432 port.
 
 
