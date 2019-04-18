@@ -29,6 +29,7 @@ class Result extends React.Component {
     this.onReload = this.onReload.bind(this);
     this.onScroll = this.onScroll.bind(this);
     this.toggleFacet = this.toggleFacet.bind(this);
+    this.fetchSearchResultsExceptionHandler = this.fetchSearchResultsExceptionHandler.bind(this);
   }
 
   /**
@@ -47,14 +48,24 @@ class Result extends React.Component {
     this.setState({ status: "loading" });
 
     return fetch(request)
-      .then((result) => {
-        if (result.ok) {
-          return result.json();
-        } else {
-          throw new Error(result.statusText);
-        }
+      .then((response) => {
+        if (response.ok) { return response.json(); }
+        else { throw response; }
     });
   }
+
+  /**
+   * Depending on error status code, set different page statuses.
+   * @param response
+   */
+  fetchSearchResultsExceptionHandler(response) {
+    if (response.status === 404) {
+      this.setState({ status: "does_not_exist", start: 0 });
+    } else if (response.status === 500) {
+      this.setState({ status: "error", start: 0 });
+    }
+  }
+
 
   /**
    * Builds text query for sending to text search backend from this.state.selectedFacets
@@ -157,7 +168,7 @@ class Result extends React.Component {
                 textSearchError: data.textSearchError
               });
             })
-            .catch(reason => this.setState({ status: "error", start: 0 }));
+            .catch(this.fetchSearchResultsExceptionHandler);
         } else {
           this.fetchSearchResults(resultId, query, start, size)
             .then(data => {
@@ -174,7 +185,7 @@ class Result extends React.Component {
                 selectedFacets: selectedFacets
               })
             })
-            .catch(reason => this.setState({ status: "error", start: 0 }));
+            .catch(this.fetchSearchResultsExceptionHandler);
         }
       });
     } else {
@@ -192,9 +203,7 @@ class Result extends React.Component {
               textSearchError: data.textSearchError,
             });
           })
-          .catch(reason => {
-            this.setState({ status: "error", start: 0 })
-          });
+          .catch(this.fetchSearchResultsExceptionHandler);
       } else {
         this.fetchSearchResults(resultId, query, start, size)
           .then(data => { this.setState({
@@ -204,8 +213,9 @@ class Result extends React.Component {
             facets: [...data.facets],
             hitCount: data.hitCount,
             textSearchError: data.textSearchError
-          }) })
-          .catch(reason => this.setState({ status: "error", start: 0 }));
+          });
+        })
+        .catch(this.fetchSearchResultsExceptionHandler);
       }
     }
   }
@@ -243,15 +253,34 @@ class Result extends React.Component {
             </pre>
           ]
         }
-        <h1 className="margin-top-large margin-bottom-large">Results: { this.state.status === "loading" ? <i className="icon icon-functional spin" data-icon="s"/> : <small>{ this.state.hitCount } total</small> }</h1>
-        <div className="small-12 medium-10 medium-push-2 columns">
-          <section>
-            { this.state.entries.map((entry, index) => (
-            <ul key={`${entry}_${index}`}><Hit entry={entry} alignmentsCollapsed={this.state.alignmentsCollapsed} onToggleAlignmentsCollapsed={ this.onToggleAlignmentsCollapsed } /></ul>
-            )) }
-          </section>
-        </div>
-        <Facets facets={ this.state.facets } selectedFacets={ this.state.selectedFacets } toggleFacet={ this.toggleFacet } onReload={ this.onReload } textSearchError={ this.state.textSearchError } />
+        {
+          this.state.status === "does_not_exist" && (
+            <div className="callout alert">
+              <h3>Job with id='{ this.props.match.params.resultId }' does not exist.</h3>
+            </div>
+          )
+        }
+        {
+          this.state.status === "error" && (
+            <div className="callout alert">
+              <h3>Server got itself into a trouble.</h3>
+              <a href="mailto:rnacentral@gmail.com">Contact us</a> if the problem persists.
+            </div>
+          )
+        }
+        {
+          this.state.status === "loading" || this.state.status === "success" || this.state.status === "partial_success" && [
+            <h1 className="margin-top-large margin-bottom-large">Results: { this.state.status === "loading" ? <i className="icon icon-functional spin" data-icon="s"/> : <small>{ this.state.hitCount } total</small> }</h1>,
+            <div className="small-12 medium-10 medium-push-2 columns">
+              <section>
+                { this.state.entries.map((entry, index) => (
+                <ul key={`${entry}_${index}`}><Hit entry={entry} alignmentsCollapsed={this.state.alignmentsCollapsed} onToggleAlignmentsCollapsed={ this.onToggleAlignmentsCollapsed } /></ul>
+                )) }
+              </section>
+            </div>,
+            <Facets facets={ this.state.facets } selectedFacets={ this.state.selectedFacets } toggleFacet={ this.toggleFacet } onReload={ this.onReload } textSearchError={ this.state.textSearchError } />
+          ]
+        }
       </div>
     )
   }
