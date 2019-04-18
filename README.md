@@ -44,14 +44,20 @@ The project is supposed to be run in 4 environments:
     make && \
     make install && \
     cd easel; make install`
-8. `$ rsync <> databases/` - copy `.fasta` files with databases we want to search against
+8. `$ rsync <database/fasta/files/location/on/local/machine> databases/` - copy `.fasta` files with databases we want to search against into `sequence_search/consumer/databases folder`
 9. `$ popd`
 10. `$ pushd sequence_search/producer/static`
 11. `$ npm install --save-dev && npm run build`
 12. `$ popd`
 13. Edit `postgres/local_init.sql` file and replace role `burkov` there with your username on local machine.
-14. `docker build -t local-postgres -f postgres/local.Dockerfile postgres` - this will create an image with postgres databases.
-15. `docker run -p 5432:5432 -t local-postgres` - this will create and start an instance of postgres on your local machine's 5432 port.
+14. Edit `sequence_search/db/settings.py` and replace role `burkov` with your username on local machine
+15. `$ mkdir sequence_search/consumer/queries` - create queries directory in consumer
+16. `$ mkdir sequence_search/consumer/results` - create results directory in consumer
+17. `$ docker build -t local-postgres -f postgres/local.Dockerfile postgres` - this will create an image with postgres databases.
+18. `$ docker run -p 5432:5432 -t local-postgres` - this will create and start an instance of postgres on your local machine's 5432 port.
+19. `python3 -m sequence_search.db` - creates necessary database tables for producer and consumer to run
+20. `python3 -m sequence_search.producer` - starts producer server on port 8002
+21. `python3 -m sequence_search.consumer` - starts consumer server on port 8000
 
 
 ### Installation in docker-compose
