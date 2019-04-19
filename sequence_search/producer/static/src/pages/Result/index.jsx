@@ -42,10 +42,11 @@ class Result extends React.Component {
    * @param query - lucene query string, constructed from selectedFacets
    * @param start - index of element we start with, starting from 0
    * @param size - number of entries per page
+   * @param ordering - how to order entries
    * @returns {Promise<any>}
    */
-  fetchSearchResults(resultId, query, start, size) {
-    let request = routes.facetsSearch(resultId, query, start, size);
+  fetchSearchResults(resultId, query, start, size, ordering) {
+    let request = routes.facetsSearch(resultId, query, start, size, ordering);
 
     this.setState({ status: "loading" });
 
@@ -106,7 +107,7 @@ class Result extends React.Component {
 
     // start loading from the first page again
     let query = this.buildQuery();
-    this.load(this.props.match.params.resultId, query, 0, 20, true, false);
+    this.load(this.props.match.params.resultId, query, 0, 20, this.state.ordering, true, false);
   }
 
   /**
@@ -131,7 +132,7 @@ class Result extends React.Component {
           (state, props) => (state.start === this.state.start ? { start: this.state.start + this.state.size, status: "loading" } : { status: "loading" }),
           () => {
             let query = this.buildQuery();
-            this.load(this.props.match.params.resultId, query, this.state.start, this.state.size, false, false);
+            this.load(this.props.match.params.resultId, query, this.state.start, this.state.size, this.state.ordering, false, false);
           }
         );
       }
@@ -146,14 +147,15 @@ class Result extends React.Component {
    * @param query {string} - Lucene query string, result of buildQuery()
    * @param start {number} - index of the first element to request (starts with 0)
    * @param size {number} - number of entries per page
+   * @param ordering {string} - how to order entries
    * @param reloadEntries {boolean} - if we should load entries from scratch or append
    * @param clearFacets {boolean} - if we should clear facets
    */
-  load(resultId, query, start, size, reloadEntries, clearFacets) {
+  load(resultId, query, start, size, ordering, reloadEntries, clearFacets) {
     if (clearFacets) {
       this.setState({ facets: [], selectedFacets: {} }, () => {
         if (reloadEntries) {
-          this.fetchSearchResults(this.props.match.params.resultId, this.buildQuery(), 0, this.state.size)
+          this.fetchSearchResults(this.props.match.params.resultId, this.buildQuery(), 0, this.state.size, ordering)
             .then(data => {
               let selectedFacets = {};
               data.facets.map((facet) => { selectedFacets[facet.id] = []; });
@@ -166,13 +168,14 @@ class Result extends React.Component {
                 hitCount: data.hitCount,
                 start: start,
                 size: size,
+                ordering: ordering,
                 selectedFacets: selectedFacets,
                 textSearchError: data.textSearchError
               });
             })
             .catch(this.fetchSearchResultsExceptionHandler);
         } else {
-          this.fetchSearchResults(resultId, query, start, size)
+          this.fetchSearchResults(resultId, query, start, size, ordering)
             .then(data => {
               let selectedFacets = {};
               data.facets.map((facet) => { selectedFacets[facet.id] = []; });
@@ -183,6 +186,7 @@ class Result extends React.Component {
                 entries: [...this.state.entries, ...data.entries],
                 facets: [...data.facets],
                 hitCount: data.hitCount,
+                ordering: ordering,
                 textSearchError: data.textSearchError,
                 selectedFacets: selectedFacets
               })
@@ -192,7 +196,7 @@ class Result extends React.Component {
       });
     } else {
       if (reloadEntries) {
-        this.fetchSearchResults(this.props.match.params.resultId, this.buildQuery(), 0, this.state.size)
+        this.fetchSearchResults(this.props.match.params.resultId, this.buildQuery(), 0, this.state.size, ordering)
           .then(data => {
             this.setState({
               status: data.sequenceSearchStatus === "success" ? "success" : "partial_success",
@@ -202,18 +206,20 @@ class Result extends React.Component {
               hitCount: data.hitCount,
               start: 0,
               size: size,
+              ordering: ordering,
               textSearchError: data.textSearchError,
             });
           })
           .catch(this.fetchSearchResultsExceptionHandler);
       } else {
-        this.fetchSearchResults(resultId, query, start, size)
+        this.fetchSearchResults(resultId, query, start, size, ordering)
           .then(data => { this.setState({
             status: data.sequenceSearchStatus === "success" ? "success" : "partial_success",
             sequence: data.sequence,
             entries: [...this.state.entries, ...data.entries],
             facets: [...data.facets],
             hitCount: data.hitCount,
+            ordering: ordering,
             textSearchError: data.textSearchError
           });
         })
@@ -226,19 +232,21 @@ class Result extends React.Component {
    * Is called when user tries to reload the facets data after an error.
    */
   onReload() {
-    this.load(this.props.match.params.resultId, this.buildQuery(), 0, this.state.size, true, true);
+    this.load(this.props.match.params.resultId, this.buildQuery(), 0, this.state.size, this.state.ordering, true, true);
   }
 
   /**
    * Is called when user selects a different sorting order.
    */
-  onSort(ordering) {
-    console.log(ordering);
-    this.setState({ ordering: ordering });
+  onSort(event) {
+    let ordering = event.target.value;
+    this.setState({ ordering: ordering }, () => {
+      this.load(this.props.match.params.resultId, this.buildQuery(), 0, this.state.size, this.state.ordering, true, true);
+    });
   }
 
   componentDidMount() {
-    this.load(this.props.match.params.resultId, this.buildQuery(), 0, this.state.size, true, true);
+    this.load(this.props.match.params.resultId, this.buildQuery(), 0, this.state.size, this.state.ordering, true, true);
 
     // When user scrolls down to the bottom of the component, load more entries, if available.
     window.onscroll = this.onScroll;

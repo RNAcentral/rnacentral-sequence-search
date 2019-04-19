@@ -5,7 +5,7 @@ module.exports = {
   jobsStatuses:        () => `/api/jobs-statuses`,
   jobResult:           (resultId) => `/api/job-result/${resultId}`,
   facets:              (resultId) => `/api/facets/${resultId}`,
-  facetsSearch:        (resultId, query, start, size) => `/api/facets-search/${resultId}?query=${query}&start=${start}&size=${size}`,
+  facetsSearch:        (resultId, query, start, size, ordering) => `/api/facets-search/${resultId}?query=${query}&start=${start}&size=${size}&ordering=${ordering}`,
   consumersStatuses:     () => `/api/consumers-statuses`
   // ebiSearch:           (jobId, query, fields, facetcount, facetfields, size, start) =>
   //   `http://wp-p3s-f8:9050/ebisearch/ws/rest/rnacentral/seqtoolresults` +
