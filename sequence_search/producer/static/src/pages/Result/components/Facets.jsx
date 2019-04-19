@@ -37,7 +37,7 @@ class Result extends React.Component {
     return (
       <div className="small-12 medium-2 medium-pull-10 columns">
         <label>Sort by:
-          <select>
+          <select value={this.props.sortingOrder} onChange={this.props.onSort}>
             <option value="e_value">E-value (min to max) - default</option>
             <option value="-e_value">E-value (max to min)</option>
             <option value="identity">Identity (max to min)</option>

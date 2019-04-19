@@ -19,6 +19,7 @@ class Result extends React.Component {
       hitCount: 0,
       start: 0,
       size: 20,
+      ordering: "e_value",
       selectedFacets: {},  // e.g. { facetId1: [facetValue1.value, facetValue2.value], facetId2: [facetValue3.value] }
       alignmentsCollapsed: true,
       textSearchError: false
@@ -27,6 +28,7 @@ class Result extends React.Component {
     this.onToggleAlignmentsCollapsed = this.onToggleAlignmentsCollapsed.bind(this);
     this.load = this.load.bind(this);
     this.onReload = this.onReload.bind(this);
+    this.onSort = this.onSort.bind(this);
     this.onScroll = this.onScroll.bind(this);
     this.toggleFacet = this.toggleFacet.bind(this);
     this.fetchSearchResultsExceptionHandler = this.fetchSearchResultsExceptionHandler.bind(this);
@@ -227,6 +229,14 @@ class Result extends React.Component {
     this.load(this.props.match.params.resultId, this.buildQuery(), 0, this.state.size, true, true);
   }
 
+  /**
+   * Is called when user selects a different sorting order.
+   */
+  onSort(ordering) {
+    console.log(ordering);
+    this.setState({ ordering: ordering });
+  }
+
   componentDidMount() {
     this.load(this.props.match.params.resultId, this.buildQuery(), 0, this.state.size, true, true);
 
@@ -278,7 +288,7 @@ class Result extends React.Component {
                 )) }
               </section>
             </div>,
-            <Facets key={`results-facets`} facets={ this.state.facets } selectedFacets={ this.state.selectedFacets } toggleFacet={ this.toggleFacet } onReload={ this.onReload } textSearchError={ this.state.textSearchError } />
+            <Facets key={`results-facets`} facets={ this.state.facets } selectedFacets={ this.state.selectedFacets } toggleFacet={ this.toggleFacet } onReload={ this.onReload } ordering={ this.state.ordering } onSort={ this.onSort } textSearchError={ this.state.textSearchError } />
           ]
         }
       </div>
