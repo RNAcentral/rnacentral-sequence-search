@@ -316,9 +316,9 @@ async def get_job_results(engine, job_id, limit=3000):
     try:
         async with engine.acquire() as connection:
             sql = (sa.select([
+                    JobChunkResult.c.rnacentral_id.distinct(),
                     JobChunk.c.job_id,
                     JobChunk.c.database,
-                    JobChunkResult.c.rnacentral_id,
                     JobChunkResult.c.description,
                     JobChunkResult.c.score,
                     JobChunkResult.c.bias,
@@ -341,10 +341,24 @@ async def get_job_results(engine, job_id, limit=3000):
                 .limit(limit)
                 .where(JobChunk.c.job_id == job_id))  # noqa
 
+            # sql = sa.text('''
+            #     SELECT job_id, database, rnacentral_id, description, score, bias,
+            #     e_value, target_length, alignment, alignment_length,
+            #     gap_count, match_count, nts_count1, nts_count2, "identity",
+            #     query_coverage, target_coverage, gaps, query_length, result_id
+            #     FROM job_chunks, job_chunk_results
+            #     WHERE job_id = :job_id
+            #     GROUP BY rnacentral_id
+            #     LIMIT :limit
+            # ''')
+            #
+            # async for row in connection.execute(query, job_id=job_id, limit=limit):
+            #     id = row.id
+
             results = []
             async for row in connection.execute(sql):
                 results.append({
-                    'rnacentral_id': row[2],
+                    'rnacentral_id': row[0],
                     'description': row[3],
                     'score': row[4],
                     'bias': row[5],
