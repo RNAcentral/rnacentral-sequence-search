@@ -123,10 +123,14 @@ class Result extends React.Component {
    * Load more entries, if available then.
    *
    * Mostly stolen from: https://alligator.io/react/react-infinite-scroll/
+   * Cross-browser compatibility: https://codingrepo.com/javascript/2015/10/10/javascript-infinite-scroll-with-cross-browser/
    */
   onScroll() {
+    let windowHeight = window.innerHeight || document.documentElement.clientHeight || document.body.clientHeight;
+    let scrollPosition = window.scrollY || window.pageYOffset || document.documentElement.scrollTop;
+
     // Checks that the page has scrolled to the bottom
-    if (window.innerHeight + document.documentElement.scrollTop + 10 >= document.documentElement.offsetHeight) {
+    if (windowHeight + scrollPosition + 10 >= document.documentElement.offsetHeight) {
       if (this.state.status === "success" && this.state.entries.length < this.state.hitCount) {
         this.setState(
           (state, props) => (state.start === this.state.start ? { start: this.state.start + this.state.size, status: "loading" } : { status: "loading" }),
