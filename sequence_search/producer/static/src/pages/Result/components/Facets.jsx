@@ -36,6 +36,18 @@ class Result extends React.Component {
   render() {
     return (
       <div className="small-12 medium-2 medium-pull-10 columns">
+        <label>Sort by:
+          <select>
+            <option value="e_value">E-value (min to max) - default</option>
+            <option value="-e_value">E-value (max to min)</option>
+            <option value="identity">Identity (max to min)</option>
+            <option value="-identity">Identity: (min to max)</option>
+            <option value="query_coverage">Query coverage: (max to min)</option>
+            <option value="-query_coverage">Query coverage: (min to max)</option>
+            <option value="target_coverage">Target coverage: (max to min)</option>
+            <option value="-target_coverage">Target coverage: (min to max)</option>
+          </select>
+        </label>
         <section>
           <div>
             { this.props.facets.map(facet => this.renderFacet(facet)) }

@@ -245,10 +245,10 @@ class Result extends React.Component {
             </div>
           )
         }
-        { this.state.status === "success" &&
+        { (this.state.status === "success" || this.state.status === "partial_success" ) &&
           [
-            <h1>Sequence:</h1>,
-            <pre className="callout sequence">
+            <h1 key={`success-header`}>Sequence:</h1>,
+            <pre key={`success-pre`} className="callout sequence">
               { this.state.sequence }
             </pre>
           ]
@@ -269,16 +269,16 @@ class Result extends React.Component {
           )
         }
         {
-          this.state.status === "loading" || this.state.status === "success" || this.state.status === "partial_success" && [
-            <h1 className="margin-top-large margin-bottom-large">Results: { this.state.status === "loading" ? <i className="icon icon-functional spin" data-icon="s"/> : <small>{ this.state.hitCount } total</small> }</h1>,
-            <div className="small-12 medium-10 medium-push-2 columns">
+          (this.state.status === "loading" || this.state.status === "success" || this.state.status === "partial_success") && [
+            <h1 key={`results-header`} className="margin-top-large margin-bottom-large">Results: { this.state.status === "loading" ? <i className="icon icon-functional spin" data-icon="s"/> : <small>{ this.state.hitCount } total</small> }</h1>,
+            <div key={`results-div`} className="small-12 medium-10 medium-push-2 columns">
               <section>
                 { this.state.entries.map((entry, index) => (
                 <ul key={`${entry}_${index}`}><Hit entry={entry} alignmentsCollapsed={this.state.alignmentsCollapsed} onToggleAlignmentsCollapsed={ this.onToggleAlignmentsCollapsed } /></ul>
                 )) }
               </section>
             </div>,
-            <Facets facets={ this.state.facets } selectedFacets={ this.state.selectedFacets } toggleFacet={ this.toggleFacet } onReload={ this.onReload } textSearchError={ this.state.textSearchError } />
+            <Facets key={`results-facets`} facets={ this.state.facets } selectedFacets={ this.state.selectedFacets } toggleFacet={ this.toggleFacet } onReload={ this.onReload } textSearchError={ this.state.textSearchError } />
           ]
         }
       </div>
