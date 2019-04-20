@@ -99,8 +99,7 @@ async def facets_search(request):
       example: 10
     - name: ordering
       in: query
-      description: How to order results: by 'e_value', '-e_value', 'identity', '-identity', 'query_coverage',
-       '-query_coverage', 'target_coverage' or '-target_coverage'
+      description: How to order results - by 'e_value', '-e_value', 'identity', '-identity', 'query_coverage', '-query_coverage', 'target_coverage' or '-target_coverage'.
       required: false
       schema:
         type: string

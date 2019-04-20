@@ -72,8 +72,11 @@ async def job_status(request):
               description: "URS0000049E57",
               status: "started",
               elapsedTime: "14",
-              now: "2019-04-12 19:03:37.417665"
-              chunks: [{'database': 'mirbase', 'status': 'started', elapsedTime: "12"}, {'database': 'pombase', 'status': 'started', elapsedTime: "2"}]
+              now: "2019-04-12 19:03:37.417665",
+              chunks: [
+                {'database': 'mirbase', 'status': 'started', elapsedTime: "12"},
+                {'database': 'pombase', 'status': 'started', elapsedTime: "2"}
+              ]
             }
       404:
         description: No status for given job_id (probably, job with this job_id doesn't exist)
