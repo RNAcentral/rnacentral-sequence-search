@@ -20,7 +20,8 @@ Settings = namedtuple('Settings', [
     'POSTGRES_PORT',
     'POSTGRES_DATABASE',
     'POSTGRES_USER',
-    'POSTGRES_PASSWORD'
+    'POSTGRES_PASSWORD',
+    'ENVIRONMENT'
 ])
 
 
@@ -33,7 +34,8 @@ def get_postgres_credentials(ENVIRONMENT):
             POSTGRES_PORT=5432,
             POSTGRES_DATABASE='producer',
             POSTGRES_USER='docker',
-            POSTGRES_PASSWORD='example'
+            POSTGRES_PASSWORD='example',
+            ENVIRONMENT=ENVIRONMENT
         )
     elif ENVIRONMENT == 'LOCAL':
         return Settings(
@@ -41,7 +43,8 @@ def get_postgres_credentials(ENVIRONMENT):
             POSTGRES_PORT=5432,
             POSTGRES_DATABASE='producer',
             POSTGRES_USER='burkov',
-            POSTGRES_PASSWORD='example'
+            POSTGRES_PASSWORD='example',
+            ENVIRONMENT=ENVIRONMENT
         )
     elif ENVIRONMENT == 'PRODUCTION':
         return Settings(
@@ -49,7 +52,8 @@ def get_postgres_credentials(ENVIRONMENT):
             POSTGRES_PORT=5432,
             POSTGRES_DATABASE='producer',
             POSTGRES_USER='docker',
-            POSTGRES_PASSWORD=os.getenv('POSTRGES_PASSWORD', 'pass')
+            POSTGRES_PASSWORD=os.getenv('POSTRGES_PASSWORD', 'pass'),
+            ENVIRONMENT=ENVIRONMENT
         )
     elif ENVIRONMENT == 'TEST':
         return Settings(
@@ -57,5 +61,6 @@ def get_postgres_credentials(ENVIRONMENT):
             POSTGRES_PORT=5432,
             POSTGRES_DATABASE='test_producer',
             POSTGRES_USER='burkov',
-            POSTGRES_PASSWORD='example'
+            POSTGRES_PASSWORD='example',
+            ENVIRONMENT='LOCAL'
         )

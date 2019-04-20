@@ -42,7 +42,7 @@ async def on_startup(app):
     # initialize database connection
     await init_pg(app)
 
-    if app['settings'].MIGRATE:
+    if hasattr(app['settings'], "MIGRATE") and app['settings'].MIGRATE:
         # create initial migrations in the database
         await migrate(app['settings'].ENVIRONMENT)
 

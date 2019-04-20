@@ -23,7 +23,7 @@ from aiohttp.test_utils import AioHTTPTestCase
 """
 Run these tests with:
 
-ENVIRONMENT=TEST python -m unittest sequence_search.producer.tests.test_submit_job
+ENVIRONMENT=TEST python3 -m unittest sequence_search.producer.tests.test_submit_job
 """
 
 
@@ -40,8 +40,8 @@ class SubmitJobTestCase(AioHTTPTestCase):
         async with self.client.post(path=self.url, data=data) as response:
             assert response.status == 400
             text = await response.text()
-            assert text == "Input query should be a nucleotide sequence and contain only {ATGCU} characters," \
-                           " found: 'THIS_IS_NOT_A_PROPER_NUCLEOTIDE_SEQUENCE'."
+            assert text == "Input query is not a valid nucleotide sequence: " \
+                           "'THIS_IS_NOT_A_PROPER_NUCLEOTIDE_SEQUENCE'"
 
     @unittest_run_loop
     async def test_submit_job_post_fail_databases(self):
@@ -49,4 +49,4 @@ class SubmitJobTestCase(AioHTTPTestCase):
         async with self.client.post(path=self.url, data=data) as response:
             assert response.status == 400
             text = await response.text()
-            assert text == "Database 'foobase' not in list of RNAcentral databases"
+            assert text == "Database foobase is not a valid RNAcentral database"

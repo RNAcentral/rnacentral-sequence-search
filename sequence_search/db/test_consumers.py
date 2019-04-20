@@ -12,6 +12,7 @@ limitations under the License.
 """
 
 import datetime
+import uuid
 
 from aiohttp.test_utils import unittest_run_loop
 import sqlalchemy as sa
@@ -26,7 +27,7 @@ class FindAvailableConsumersTestCase(DBTestCase):
     """
     Run this test with the following command:
 
-    ENVIRONMENT=TEST python -m unittest sequence_search.db.test_consumers.FindAvailableConsumersTestCase
+    ENVIRONMENT=TEST python3 -m unittest sequence_search.db.test_consumers.FindAvailableConsumersTestCase
 
     """
     async def setUpAsync(self):
@@ -106,8 +107,10 @@ class SetConsumerStatusTestCase(DBTestCase):
                 )
             )
 
-            self.job_id = await connection.scalar(
+            self.job_id = str(uuid.uuid4())
+            await connection.execute(
                 Job.insert().values(
+                    id=self.job_id,
                     query='AACAGCATGAGTGCGCTGGATGCTG',
                     submitted=datetime.datetime.now(),
                     status=JOB_STATUS_CHOICES.started
@@ -151,8 +154,14 @@ class DelegateJobChunkToConsumerTestCase(DBTestCase):
                 )
             )
 
-            self.job_id = await connection.scalar(
-                Job.insert().values(query='AACAGCATGAGTGCGCTGGATGCTG', submitted=datetime.datetime.now(), status=JOB_STATUS_CHOICES.started)
+            self.job_id = str(uuid.uuid4())
+            await connection.execute(
+                Job.insert().values(
+                    id=self.job_id,
+                    query='AACAGCATGAGTGCGCTGGATGCTG',
+                    submitted=datetime.datetime.now(),
+                    status=JOB_STATUS_CHOICES.started
+                )
             )
 
             self.job_chunk_id = await connection.scalar(
@@ -191,11 +200,7 @@ class RegisterConsumerInTheDatabaseTestCase(DBTestCase):
     @unittest_run_loop
     async def test_register_consumer_in_the_database(self):
         async with self.app['engine'].acquire() as connection:
-
-            await register_consumer_in_the_database(
-                self.app['engine'],
-                consumer_ip='192.168.1.1'
-            )
+            await register_consumer_in_the_database(self.app)
 
             query = sa.text('''
                 SELECT ip, status

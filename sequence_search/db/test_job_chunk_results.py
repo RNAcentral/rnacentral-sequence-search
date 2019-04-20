@@ -12,6 +12,7 @@ limitations under the License.
 """
 
 import datetime
+import uuid
 
 from aiohttp.test_utils import unittest_run_loop
 import sqlalchemy as sa
@@ -31,8 +32,11 @@ class SetJobChunkResultsTestCase(DBTestCase):
         await super().setUpAsync()
 
         async with self.app['engine'].acquire() as connection:
-            self.job_id = await connection.scalar(
+            self.job_id = str(uuid.uuid4())
+
+            await connection.execute(
                 Job.insert().values(
+                    id=self.job_id,
                     query='AACAGCATGAGTGCGCTGGATGCTG',
                     submitted=datetime.datetime.now(),
                     status=JOB_STATUS_CHOICES.started
@@ -71,7 +75,7 @@ class SetJobChunkResultsTestCase(DBTestCase):
             "result_id": 1
         }]
 
-        set_job_chunk_results(self.app['engine'], self.job_id, database='mirbase', results=results)
+        await set_job_chunk_results(self.app['engine'], self.job_id, database='mirbase', results=results)
 
         async with self.app['engine'].acquire() as connection:
             query = sa.text('''

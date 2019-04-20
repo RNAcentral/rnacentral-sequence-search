@@ -105,9 +105,10 @@ async def job_result(request):
         description: No result for given job_id (probably, job with this job_id doesn't exist)
     """
     job_id = request.match_info['job_id']
+    engine = request.app['engine']
 
     try:
-        results = get_job_results(request.app['engine'], job_id)
+        results = await get_job_results(engine, job_id)
     except DatabaseConnectionError as e:
         raise web.HTTPNotFound() from e
 

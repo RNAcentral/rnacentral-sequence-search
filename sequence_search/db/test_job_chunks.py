@@ -83,12 +83,15 @@ class SaveJobChunkTestCase(DBTestCase):
     async def setUpAsync(self):
         await super().setUpAsync()
 
+        self.job_id = str(uuid.uuid4())
+
         async with self.app['engine'].acquire() as connection:
-            self.job_id = await connection.scalar(
+            await connection.execute(
                 Job.insert().values(
+                    id=self.job_id,
                     query='AACAGCATGAGTGCGCTGGATGCTG',
                     submitted=datetime.datetime.now(),
-                    status=CONSUMER_STATUS_CHOICES.started
+                    status=JOB_STATUS_CHOICES.started
                 )
             )
 
@@ -107,18 +110,22 @@ class FindHighestPriorityJobChunkTestCase(DBTestCase):
     async def setUpAsync(self):
         await super().setUpAsync()
 
+        self.job_id = str(uuid.uuid4())
+        self.job_id2 = str(uuid.uuid4())
+
         async with self.app['engine'].acquire() as connection:
-            self.job_id = await connection.scalar(
+            await connection.execute(
                 Job.insert().values(
-                    id=uuid.uuid4(),
+                    id=self.job_id,
                     query='AACAGCATGAGTGCGCTGGATGCTG',
                     submitted=datetime.datetime.now(),
                     status=JOB_STATUS_CHOICES.started
                 )
             )
 
-            self.job_id2 = await connection.scalar(
+            await connection.execute(
                 Job.insert().values(
+                    id=self.job_id2,
                     query='CGTGCTGAATAGCTGGAGAGGCTCAT',
                     submitted=datetime.datetime.now(),
                     status=JOB_STATUS_CHOICES.started
@@ -130,7 +137,7 @@ class FindHighestPriorityJobChunkTestCase(DBTestCase):
                     job_id=self.job_id,
                     database='mirbase',
                     submitted=datetime.datetime.now(),
-                    status=JOB_CHUNK_STATUS_CHOICES.started
+                    status=JOB_CHUNK_STATUS_CHOICES.pending
                 )
             )
 
@@ -139,7 +146,7 @@ class FindHighestPriorityJobChunkTestCase(DBTestCase):
                     job_id=self.job_id2,
                     database='pombase',
                     submitted=datetime.datetime.now(),
-                    status=JOB_CHUNK_STATUS_CHOICES.started
+                    status=JOB_CHUNK_STATUS_CHOICES.pending
                 )
             )
 
@@ -165,9 +172,12 @@ class GetConsumerIpFromJobChunkTestCase(DBTestCase):
     async def setUpAsync(self):
         await super().setUpAsync()
 
+        self.job_id = str(uuid.uuid4())
+
         async with self.app['engine'].acquire() as connection:
-            self.job_id = await connection.scalar(
+            await connection.execute(
                 Job.insert().values(
+                    id=self.job_id,
                     query='AACAGCATGAGTGCGCTGGATGCTG',
                     submitted=datetime.datetime.now(),
                     status=JOB_STATUS_CHOICES.started
@@ -204,9 +214,12 @@ class SetJobChunkStatusTestCase(DBTestCase):
     async def setUpAsync(self):
         await super().setUpAsync()
 
+        self.job_id = str(uuid.uuid4())
+
         async with self.app['engine'].acquire() as connection:
-            self.job_id = await connection.scalar(
+            await connection.execute(
                 Job.insert().values(
+                    id=self.job_id,
                     query='AACAGCATGAGTGCGCTGGATGCTG',
                     submitted=datetime.datetime.now(),
                     status=JOB_STATUS_CHOICES.started

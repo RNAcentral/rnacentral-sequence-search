@@ -11,8 +11,9 @@ See the License for the specific language governing permissions and
 limitations under the License.
 """
 
-import logging
 import datetime
+import logging
+import uuid
 
 from aiohttp.test_utils import unittest_run_loop
 
@@ -24,7 +25,7 @@ from aiohttp.test_utils import AioHTTPTestCase
 """
 Run these tests with:
 
-ENVIRONMENT=TEST python -m unittest sequence_search.producer.tests.test_job_status
+ENVIRONMENT=TEST python3 -m unittest sequence_search.producer.tests.test_job_status
 """
 
 
@@ -39,9 +40,16 @@ class SubmitJobTestCase(AioHTTPTestCase):
 
         logging.info("settings = %s" % self.app['settings'].__dict__)
 
+        self.job_id = str(uuid.uuid4())
+
         async with self.app['engine'].acquire() as connection:
-            self.job_id = await connection.scalar(
-                Job.insert().values(query='', submitted=datetime.datetime.now(), status=JOB_STATUS_CHOICES.started)
+            await connection.execute(
+                Job.insert().values(
+                    id=self.job_id,
+                    query='',
+                    submitted=datetime.datetime.now(),
+                    status=JOB_STATUS_CHOICES.started
+                )
             )
 
             await connection.scalar(
@@ -75,11 +83,16 @@ class SubmitJobTestCase(AioHTTPTestCase):
         async with self.client.get(path=url) as response:
             assert response.status == 200
             data = await response.json()
+
             assert data == {
                 'job_id': str(self.job_id),
+                'query': '',
+                'description': None,
                 'status': JOB_STATUS_CHOICES.started,
+                'elapsedTime': 0,
+                'now': data['now'],
                 'chunks': [
-                    {'database': 'mirbase', 'status': JOB_CHUNK_STATUS_CHOICES.started},
-                    {'database': 'pombase', 'status': JOB_CHUNK_STATUS_CHOICES.started}
+                    {'database': 'mirbase', 'status': JOB_CHUNK_STATUS_CHOICES.started, 'elapsedTime': 0},
+                    {'database': 'pombase', 'status': JOB_CHUNK_STATUS_CHOICES.started, 'elapsedTime': 0}
                 ]
             }

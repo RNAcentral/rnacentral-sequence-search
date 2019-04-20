@@ -11,8 +11,9 @@ See the License for the specific language governing permissions and
 limitations under the License.
 """
 
-import logging
 import datetime
+import logging
+import uuid
 
 from aiohttp.test_utils import unittest_run_loop
 
@@ -24,7 +25,7 @@ from aiohttp.test_utils import AioHTTPTestCase
 """
 Run these tests with:
 
-ENVIRONMENT=TEST python -m unittest sequence_search.producer.tests.test_job_result
+ENVIRONMENT=TEST python3 -m unittest sequence_search.producer.tests.test_job_result
 """
 
 
@@ -39,9 +40,12 @@ class SubmitJobTestCase(AioHTTPTestCase):
 
         logging.info("settings = %s" % self.app['settings'].__dict__)
 
+        self.job_id = str(uuid.uuid4())
+
         async with self.app['engine'].acquire() as connection:
-            self.job_id = await connection.scalar(
+            await connection.execute(
                 Job.insert().values(
+                    id=self.job_id,
                     query='',
                     submitted=datetime.datetime.now(),
                     status=JOB_STATUS_CHOICES.started
@@ -98,8 +102,8 @@ class SubmitJobTestCase(AioHTTPTestCase):
             await super().tearDownAsync()
 
     @unittest_run_loop
-    async def test_job_status_success(self):
-        url = self.app.router["job-result"].url_for(job_id=str(self.job_id))
+    async def test_job_result_success(self):
+        url = self.app.router["job-result"].url_for(job_id=self.job_id)
         async with self.client.get(path=url) as response:
             assert response.status == 200
             data = await response.json()
