@@ -19,7 +19,7 @@ pipeline {
                     virtualenv ENV --python=/nfs/public/rw/xfam/rnacentral/test/local/python-3.6.6/bin/python3
                     source ENV/bin/activate
                     pip install --upgrade pip
-                    pip install -r requirements.txt
+                    pip install -r sequence_search/requirements.txt
                 '''
             }
         }
