@@ -72,7 +72,7 @@ pipeline {
         stage("Clear database") {
             when {
                 // Only rebuild terraform
-                expression { params.DROP_DATABASE == 'yes' }
+                expression { params.DROP_DATABASE == 'yes' && params.REBUILD_INFRASTRUCTURE == 'no' }
             }
             steps {
                 dir('ansible') {
