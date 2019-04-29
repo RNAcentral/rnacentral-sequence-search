@@ -18,8 +18,8 @@ pipeline {
                 sh '''
                     virtualenv ENV --python=/nfs/public/rw/xfam/rnacentral/test/local/python-3.6.6/bin/python3
                     source ENV/bin/activate
-                    easy_install -U pip
-                    python3 -m pip install -r sequence_search/requirements.txt
+                    easy_install pip==9.0.3
+                    pip install -r sequence_search/requirements.txt
                 '''
             }
         }
