@@ -45,7 +45,7 @@ The project is supposed to be run in 4 environments:
     make install && \
     cd easel; make install`
 8. `$ rsync <database/fasta/files/location/on/local/machine> databases/` - copy `.fasta` files with databases we want to search against into `sequence_search/consumer/databases folder`
-9. Update the contents of `sequence_search/consumer/rnacentral_database.py` accordingly (there's a mappping of database human-readable names to file names).
+9. Update the contents of `sequence_search/consumer/rnacentral_database.py` accordingly (there's a mapping of database human-readable names to file names).
 10. `$ popd`
 11. `$ pushd sequence_search/producer/static`
 12. `$ npm install --save-dev && npm run build`
