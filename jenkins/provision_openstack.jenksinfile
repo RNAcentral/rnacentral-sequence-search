@@ -1,3 +1,9 @@
+/**
+ * This pipeline is not in use. This was how the infrastructure was manually created before terraform,
+ * now it's all done in terraform.
+ *
+ */
+
 pipeline {
     agent any
     stages {
