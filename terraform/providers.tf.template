@@ -1,0 +1,8 @@
+# Configure the OpenStack Provider
+provider "openstack" {
+  user_name   = ""
+  tenant_name = "EBI-RNAcentral"
+  password    = ""
+  auth_url    = "https://extcloud05.ebi.ac.uk:13000/v2.0"
+  region      = "regionOne"
+}
