@@ -1,6 +1,6 @@
 openstack.rc
 terraform/providers.tf
-load_balancer/providers.tf
+terraform_load_balancer/providers.tf
 
 
 __pycache__/

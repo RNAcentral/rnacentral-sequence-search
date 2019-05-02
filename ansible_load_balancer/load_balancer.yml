@@ -1,0 +1,5 @@
+---
+- hosts: load_balancer
+  gather_facts: True
+  roles:
+    - {role: ansible-role-nginx, tags: ["nginx"]}
