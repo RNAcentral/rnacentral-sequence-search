@@ -182,8 +182,7 @@
   - name: Clean database
     shell:
       chdir: /srv
-#      cmd: /usr/local/bin/gunicorn producer.main:app --daemon --bind 0.0.0.0:8002 --worker-class aiohttp.worker.GunicornWebWorker --access-logfile /var/log/gunicorn/access_log --error-logfile /var/log/gunicorn/error_log --env ENVIRONMENT=PRODUCTION --log-level=DEBUG --timeout 120
-      cmd: ENVIRONMENT=PRODUCTION nohup python36 -m sequence_search.db &> /var/log/gunicorn/access_log &
+      cmd: ENVIRONMENT=PRODUCTION python36 -m sequence_search.db
     tags: [ never, clean-db ]
 
   - name: Run producer service
