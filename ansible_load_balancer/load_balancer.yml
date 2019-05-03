@@ -1,5 +1,11 @@
 ---
 - hosts: load_balancer
+  remote_user: centos
+  become: yes
+  become_user: root
   gather_facts: True
   roles:
-    - {role: ansible-role-nginx, tags: ["nginx"]}
+    - role: ansible-role-nginx
+      nginx_sites:
+        upstream:
+          template: upstream.conf.j2

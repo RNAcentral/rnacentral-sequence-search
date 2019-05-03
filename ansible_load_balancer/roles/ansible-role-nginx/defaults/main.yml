@@ -83,3 +83,7 @@ nginx_amplify_api_key: ""
 nginx_amplify_update_agent: false
 nginx_amplify_script_url: "https://github.com/nginxinc/nginx-amplify-agent/raw/master/packages/install.sh"
 nginx_amplify_script_path: "/tmp/install-amplify-agent.sh"
+
+# added by burkov
+nginx_backend_ip: "193.62.55.44"
+nginx_backend_port: "8002"

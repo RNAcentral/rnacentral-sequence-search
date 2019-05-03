@@ -1,0 +1,21 @@
+# {{ ansible_managed }}
+
+upstream backend {
+    server {{ nginx_backend_ip }}
+}
+
+server {
+    listen 80;
+
+    location / {
+        proxy_pass http://{{ nginx_backend_ip }}:{{ nginx_backend_port }};
+    }
+
+    error_page 404 /404.html;
+        location = /40x.html {
+    }
+
+    error_page 500 502 503 504 /50x.html;
+        location = /50x.html {
+    }
+}
