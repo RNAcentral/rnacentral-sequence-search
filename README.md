@@ -77,6 +77,23 @@ Here are the steps required to do this:
  (Project -> Compute -> Access & Security -> API Access)
 - Install python-based dependencies via `pip install -r requirements.txt` (possibly, using a virtualenv)
 
+### Manual deployment in production
+
+Requirements: install Terraform and install dependencies in the virtual environment.
+
+1. Generate `sequence_search_rsa` key:
+
+  `cd terraform && ssh-keygen -t rsa -b 4096`
+
+  See: https://help.github.com/en/articles/generating-a-new-ssh-key-and-adding-it-to-the-ssh-agent
+
+2. Follow steps in `redeploy.jenkinsfile`.
+
+  - Install SSH keys
+  - Run `terraform init && terraform apply` to create the infrastructure
+  - Run ansible to create postgres database
+  - Run ansible to create producer instance
+  - Run ansible to create consumer instances
 
 #### How to upload image with databases to openstack
 
