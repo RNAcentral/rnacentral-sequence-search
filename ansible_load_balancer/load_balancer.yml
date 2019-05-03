@@ -9,3 +9,5 @@
       nginx_sites:
         upstream:
           template: upstream.conf.j2
+      nginx_backend_ip: "193.62.55.44"
+      nginx_backend_port: "8002"
