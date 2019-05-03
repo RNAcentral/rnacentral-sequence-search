@@ -139,10 +139,11 @@
 
 
 
-  - name: Apply migrations to the database
+  - name: Drop the database and re-create it
     shell:
       chdir: /srv
       cmd: ENVIRONMENT=PRODUCTION python36 -m sequence_search.db
+    tags: [ never, migrate ]
 
 
 

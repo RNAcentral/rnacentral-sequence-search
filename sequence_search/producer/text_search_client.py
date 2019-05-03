@@ -107,7 +107,7 @@ async def get_text_search_results(results, job_id, query, start, size, facetcoun
                 facetfields=','.join(facetfields), start=start, size=size)
 
     try:
-        async with aiohttp.ClientSession() as session:
+        async with aiohttp.ClientSession(timeout=aiohttp.ClientTimeout(total=10)) as session:
             async with session.get(url) as response:
                 if response.status < 400:
                     return await response.json()
