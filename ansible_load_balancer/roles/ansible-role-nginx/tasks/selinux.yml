@@ -1,7 +1,13 @@
 ---
-- name: Install the selinux python module
-  package: name={{ nginx_python_selinux_pkgs | default(omit)}} state=present
-  when: ansible_os_family == "RedHat" or ansible_os_family == "Debian"
+- name: Permanently set SElinux to allow nginx to set rlimit
+  shell: setsebool -P httpd_can_network_connect 1
 
-- name: Set SELinux boolean to allow nginx to set rlimit
-  seboolean: name=httpd_setrlimit state=yes persistent=yes
+# I had to change this to an imperative command. The original ansible module just doesn't get the job done:
+
+#---
+#- name: Install the selinux python module
+#  package: name={{ nginx_python_selinux_pkgs | default(omit)}} state=present
+#  when: ansible_os_family == "RedHat" or ansible_os_family == "Debian"
+#
+#- name: Set SELinux boolean to allow nginx to set rlimit
+#  seboolean: name=httpd_setrlimit state=yes persistent=yes
