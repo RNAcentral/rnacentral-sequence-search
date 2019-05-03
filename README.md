@@ -137,6 +137,23 @@ https://github.com/adammck/terraform-inventory/releases
 `pushd ansible; ansible-playbook -i hosts ...`
 
 
+#### How to create a load balancer and do blue-green release
+
+1. pushd terraform_load_balancer; terraform apply; popd
+
+2. pushd ansible_load_balaner; ansible-playbook -i hosts --private-key=..terraform_load_balancer/load_balancer_rsa load_balancer.yml; popd;
+
+The load balancer is an nginx server that proxies http requests to the
+currently selected producer machine's 8002 port. If you want to
+configure the ip and port of producer machine, go to load_balancer.yml
+playbook and change the `nginx_backend_ip` and `nginx_backend_port`
+variables.
+
+If you want to seriously modify the nginx configuration, go to
+`ansible_load_balancer/roles/ansible_load_balancer/templates/upstream.conf.js`
+and modify it.
+
+
 ## "Sources of inspiration"
 
 Code in this repository is based on the following projects by other folks (kudos to them):
