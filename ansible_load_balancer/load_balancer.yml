@@ -1,0 +1,13 @@
+---
+- hosts: load_balancer
+  remote_user: centos
+  become: yes
+  become_user: root
+  gather_facts: True
+  roles:
+    - role: ansible-role-nginx
+      nginx_sites:
+        upstream:
+          template: upstream.conf.j2
+      nginx_backend_ip: "193.62.55.44"
+      nginx_backend_port: "8002"

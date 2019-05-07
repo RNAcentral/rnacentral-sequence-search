@@ -7,7 +7,7 @@ variable "flavor" {
 }
 
 variable "ssh_key_file" {
-  default = "sequence_search_rsa"
+  default = "load_balancer_rsa"
 }
 
 variable "ssh_user_name" {
@@ -19,5 +19,5 @@ variable "external_network_id" {
 }
 
 variable "floating_ip" {
-  default = "193.62.55.44"
+  default = "193.62.55.45"
 }
