@@ -50,6 +50,24 @@ async def on_startup(app):
     await create_consumer_scheduler(app)
 
 
+async def check_chunks_and_consumers(app):
+    # if there are any pending jobs and free consumers, schedule their execution
+    chunks = await find_highest_priority_job_chunks(app['engine'])
+    consumers = await find_available_consumers(app['engine'])
+
+    for consumer in consumers:
+        if len(chunks) > 0:
+            (job_id, job_chunk_id, database) = chunks.pop(0)
+            query = await get_job_query(app['engine'], job_id)
+            await delegate_job_chunk_to_consumer(
+                engine=app['engine'],
+                consumer_ip=consumer.ip,
+                job_id=job_id,
+                database=database,
+                query=query
+            )
+
+
 async def create_consumer_scheduler(app):
     """
     Periodically runs a task that checks the status of consumers in the database and
@@ -61,22 +79,7 @@ async def create_consumer_scheduler(app):
     """
     async def periodic():
         while True:
-            # if there are any pending jobs and free consumers, schedule their execution
-            chunks = await find_highest_priority_job_chunks(app['engine'])
-            consumers = await find_available_consumers(app['engine'])
-
-            for consumer in consumers:
-                if len(chunks) > 0:
-                    (job_id, job_chunk_id, database) = chunks.pop(0)
-                    query = await get_job_query(app['engine'], job_id)
-                    await delegate_job_chunk_to_consumer(
-                        engine=app['engine'],
-                        consumer_ip=consumer.ip,
-                        job_id=job_id,
-                        database=database,
-                        query=query
-                    )
-
+            loop.create_task(check_chunks_and_consumers(app))
             await asyncio.sleep(5)
 
     loop = asyncio.get_event_loop()
