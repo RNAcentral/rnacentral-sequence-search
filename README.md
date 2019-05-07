@@ -137,7 +137,7 @@ https://github.com/adammck/terraform-inventory/releases
 `pushd ansible; ansible-playbook -i hosts ...`
 
 
-#### How to work build frontend
+#### How to build frontend
 
 Frontend code of the producer is available in `producer/static`.
 
