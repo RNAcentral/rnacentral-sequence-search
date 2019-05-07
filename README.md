@@ -137,6 +137,36 @@ https://github.com/adammck/terraform-inventory/releases
 `pushd ansible; ansible-playbook -i hosts ...`
 
 
+#### How to work build frontend
+
+Frontend code of the producer is available in `producer/static`.
+
+You build the frontend with `npm run build` command, which goes to
+`package.json` file's 'scripts' section and finds and executes 'build'
+script. You might want to inspect other scripts from that file.
+
+The build system in this project is Webpack. Its main configuration file
+is `producer/static/webpack.config.js`.
+
+All the frontend assets reside either in `producer/static/src` or in
+`producer/static/node_modules`. Webpack builds them, putting javascript,
+css, icons and fonts files into `producer/static/dist` folder, while
+putting references to them into `producer/static/index.html` (not in
+`dist`, because it needs to be served by aiohttp server from the root
+of `static` folder) which is generated from
+`producer/static/src/index.html` template.
+
+For local development, there's also a configuration for
+webpack-dev-server. Dev server serves on port 8080 and proxies requests
+to the backend to the real server (see the last part of
+`webpack.config.js` for the webpack-dev-server configuration).
+
+We're using Webpack 3 here. Webpack 4 was released recently, its
+configuration is somewhat different. See its docs here:
+https://webpack-v3.jsx.app/ or lookup here:
+https://github.com/webpack/webpack.js.org/issues/1854.
+
+
 #### How to create a load balancer and do blue-green release
 
 1. pushd terraform_load_balancer; terraform apply; popd
