@@ -19,6 +19,7 @@ import psycopg2
 from netifaces import interfaces, ifaddresses, AF_INET
 
 from . import DatabaseConnectionError
+from .job_chunks import get_job_chunk_from_job_and_database
 from ..consumer.settings import PORT
 from ..producer.consumer_client import ConsumerClient
 from .models import CONSUMER_STATUS_CHOICES
@@ -100,6 +101,26 @@ async def set_consumer_status(engine, consumer_ip, status):
 
     except psycopg2.Error as e:
         raise DatabaseConnectionError(str(e)) from e
+
+
+async def set_consumer_job_chunk_id(engine, consumer_ip, job_id=None, database=None):
+    try:
+        async with engine.acquire() as connection:
+            if job_id is not None:
+                job_chunk_id = await get_job_chunk_from_job_and_database(engine, job_id, database)
+            else:
+                job_chunk_id = None
+
+            query = sa.text('''
+                UPDATE consumer
+                SET job_chunk_id=:job_chunk_id
+                WHERE ip=:consumer_ip
+                RETURNING consumer.*;
+            ''')
+            result = await connection.execute(query, consumer_ip=consumer_ip, job_chunk_id=job_chunk_id)
+
+    except psycopg2.Error as e:
+        logging.error(str(e))
 
 
 async def delegate_job_chunk_to_consumer(engine, consumer_ip, consumer_port, job_id, database, query):
