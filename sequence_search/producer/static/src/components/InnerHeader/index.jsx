@@ -10,7 +10,7 @@ class InnerHeader extends React.Component {
           {/* local-title */}
           <div className="columns medium-12" id="local-title">
             <h1>
-              <Link to={`/search`}>RNA sequence search</Link>
+              <Link to={`/search`}>RNA sequence search (Production)</Link>
             </h1>
           </div>
           {/* /local-title */}
