@@ -35,19 +35,41 @@ class ConsumerConnectionError(Exception):
 
 async def find_available_consumers(engine):
     """Returns a list of available consumers that can be used to run."""
-    Consumer = namedtuple('Consumer', ['ip', 'status', 'port'])
+    Consumer = namedtuple('Consumer', ['ip', 'status', 'port', 'job_chunk_id'])
 
     try:
         async with engine.acquire() as connection:
             query = sa.text('''
-                SELECT ip, status, port
+                SELECT ip, status, port, job_chunk_id
                 FROM consumer
-                WHERE status=:available
+                WHERE status=:status
             ''')
 
         result = []
-        async for row in connection.execute(query, available=CONSUMER_STATUS_CHOICES.available):
-            result.append(Consumer(row[0], row[1], row[2]))
+        async for row in connection.execute(query, status=CONSUMER_STATUS_CHOICES.available):
+            result.append(Consumer(row[0], row[1], row[2], row[3]))
+
+        return result
+
+    except psycopg2.Error as e:
+        raise DatabaseConnectionError(str(e)) from e
+
+
+async def find_busy_consumers(engine):
+    """Returns a list of busy consumers that can be used to run."""
+    Consumer = namedtuple('Consumer', ['ip', 'status', 'port', 'job_chunk_id'])
+
+    try:
+        async with engine.acquire() as connection:
+            query = sa.text('''
+                SELECT ip, status, port, job_chunk_id
+                FROM consumer
+                WHERE status=:status
+            ''')
+
+        result = []
+        async for row in connection.execute(query, status=CONSUMER_STATUS_CHOICES.busy):
+            result.append(Consumer(row[0], row[1], row[2], row[3]))
 
         return result
 

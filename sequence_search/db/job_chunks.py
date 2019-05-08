@@ -20,6 +20,26 @@ from . import DatabaseConnectionError, SQLError, DoesNotExist
 from .models import Job, JobChunk, JOB_STATUS_CHOICES, JOB_CHUNK_STATUS_CHOICES
 
 
+async def get_job_chunk(engine, job_chunk_id):
+    try:
+        async with engine.acquire() as connection:
+            query = (
+                sa.select([JobChunk.c.id, JobChunk.c.job_id, JobChunk.c.database, JobChunk.c.submitted,
+                           JobChunk.c.finished, JobChunk.c.consumer, JobChunk.c.status])
+                .select_from(JobChunk)
+                .where(JobChunk.c.id == job_chunk_id)
+            )
+
+            async for row in await connection.execute(query):
+                return row
+
+            raise DoesNotExist("JobChunk", "job_chunk_id = %s" % job_chunk_id)
+
+    except psycopg2.Error as e:
+        raise DatabaseConnectionError("Failed to open database connection in get_job_chunk "
+                                      "for job_id = %s, database = %s" % job_chunk_id) from e
+
+
 async def get_job_chunk_from_job_and_database(engine, job_id, database):
     try:
         async with engine.acquire() as connection:
