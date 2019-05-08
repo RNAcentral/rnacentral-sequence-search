@@ -3,7 +3,7 @@ variable "image" {
 }
 
 variable "flavor" {
-  default = "s1.jumbo"
+  default = "s1.tiny"
 }
 
 variable "ssh_key_file" {
