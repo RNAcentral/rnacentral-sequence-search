@@ -80,12 +80,12 @@ async def nhmmer(engine, job_id, sequence, database):
         logger.info('Nhmmer search success for: job_id = %s, database = %s' % (job_id, database))
 
         try:
-            # set status of the job_chunk to the database
-            await set_job_chunk_status(engine, job_id, database, status=JOB_CHUNK_STATUS_CHOICES.success)
-
             # save results of the job_chunk to the database
             results = [record for record in nhmmer_parse(filename=filename)]  # parse nhmmer results to python
             await set_job_chunk_results(engine, job_id, database, results)
+
+            # set status of the job_chunk to the database
+            await set_job_chunk_status(engine, job_id, database, status=JOB_CHUNK_STATUS_CHOICES.success)
         except (DatabaseConnectionError, SQLError) as e:
             # TODO: what do we do in case we lost the database connection here?
             # TODO: probably, clean the nhmmer query and result files?
