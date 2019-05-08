@@ -113,7 +113,7 @@ resource "openstack_compute_instance_v2" "postgres" {
 }
 
 resource "openstack_compute_instance_v2" "consumer" {
-  count = 20
+  count = 10
   depends_on = ["openstack_compute_keypair_v2.sequence_search"]
   name = "consumer-${count.index + 1}"
   image_name = "${var.image}"
@@ -127,14 +127,14 @@ resource "openstack_compute_instance_v2" "consumer" {
 }
 
 resource "openstack_blockstorage_volume_v2" "sequence_search_consumer_databases" {
-  count = 20
+  count = 10
   size = 12
   name = "sequence-search-consumer-databases-${count.index + 1}"
   image_id = "sequence_search_databases"
 }
 
 resource "openstack_compute_volume_attach_v2" "attach_databases_to_consumers" {
-  count = 20
+  count = 10
   instance_id = "${openstack_compute_instance_v2.consumer.*.id[count.index]}"
   volume_id   = "${openstack_blockstorage_volume_v2.sequence_search_consumer_databases.*.id[count.index]}"
 }
