@@ -34,19 +34,19 @@ class ConsumerConnectionError(Exception):
 
 async def find_available_consumers(engine):
     """Returns a list of available consumers that can be used to run."""
-    Consumer = namedtuple('Consumer', ['ip', 'status'])
+    Consumer = namedtuple('Consumer', ['ip', 'status', 'port'])
 
     try:
         async with engine.acquire() as connection:
             query = sa.text('''
-                SELECT ip, status
+                SELECT ip, status, port
                 FROM consumer
                 WHERE status=:available
             ''')
 
         result = []
         async for row in connection.execute(query, available=CONSUMER_STATUS_CHOICES.available):
-            result.append(Consumer(row[0], row[1]))
+            result.append(Consumer(row[0], row[1], row[2]))
 
         return result
 
