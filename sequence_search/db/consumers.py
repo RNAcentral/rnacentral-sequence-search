@@ -108,9 +108,7 @@ async def delegate_job_chunk_to_consumer(engine, consumer_ip, consumer_port, job
         async with engine.acquire() as connection:
             response = await ConsumerClient().submit_job(consumer_ip, consumer_port, job_id, database, query)
 
-            if response.status < 400:
-                await set_consumer_status(engine, consumer_ip, CONSUMER_STATUS_CHOICES.busy)
-            else:
+            if response.status >= 400:
                 text = await response.text()
                 raise ConsumerConnectionError(text)
     except psycopg2.Error as e:

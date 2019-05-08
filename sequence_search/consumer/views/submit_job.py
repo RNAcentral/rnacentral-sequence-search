@@ -146,6 +146,7 @@ async def submit_job(request):
 
     # if request was successful, save the consumer state and job_chunk state to the database
     try:
+        await set_consumer_status(engine, consumer_ip, CONSUMER_STATUS_CHOICES.busy)
         await set_job_chunk_status(engine, job_id, database, status=JOB_CHUNK_STATUS_CHOICES.started)
         await set_job_chunk_consumer(engine, job_id, database, consumer_ip)
     except (DatabaseConnectionError, SQLError) as e:
