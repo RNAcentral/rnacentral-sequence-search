@@ -25,10 +25,10 @@ from ..settings import MAX_RUN_TIME
 from ...db import DatabaseConnectionError, SQLError
 from ...db.models import CONSUMER_STATUS_CHOICES, JOB_STATUS_CHOICES, JOB_CHUNK_STATUS_CHOICES
 from ...db.job_chunk_results import set_job_chunk_results
-from ...db.job_chunks import get_consumer_ip_from_job_chunk, get_job_chunk_from_job_and_database, set_job_chunk_status
-from ...db.consumers import set_job_chunk_consumer, get_ip
+from ...db.job_chunks import get_consumer_ip_from_job_chunk, get_job_chunk_from_job_and_database, \
+    set_job_chunk_status, set_job_chunk_consumer
 from ...db.jobs import update_job_status_from_job_chunks_status
-from ...db.consumers import set_consumer_status
+from ...db.consumers import set_consumer_status, get_ip
 
 
 class NhmmerError(Exception):

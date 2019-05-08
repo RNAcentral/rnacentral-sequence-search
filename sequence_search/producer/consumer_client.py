@@ -17,13 +17,13 @@ import aiohttp
 import json
 from aiohttp import test_utils, web
 
-from .settings import ENVIRONMENT, CONSUMER_SUBMIT_JOB_URL, CONSUMER_PORT
+from .settings import ENVIRONMENT, CONSUMER_SUBMIT_JOB_URL
 
 
 class ConsumerClient(object):
-    async def submit_job(self, consumer_ip, job_id, database, query):
+    async def submit_job(self, consumer_ip, consumer_port, job_id, database, query):
         # prepare the data for request
-        url = "http://" + str(consumer_ip) + ':' + str(CONSUMER_PORT) + '/' + str(CONSUMER_SUBMIT_JOB_URL)
+        url = "http://" + str(consumer_ip) + ':' + str(consumer_port) + '/' + str(CONSUMER_SUBMIT_JOB_URL)
         json_data = json.dumps({"job_id": job_id, "sequence": query, "database": database})
         headers = {'content-type': 'application/json'}
 

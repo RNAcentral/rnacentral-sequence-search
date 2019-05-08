@@ -115,6 +115,7 @@ async def submit_job(request):
             await delegate_job_chunk_to_consumer(
                 engine=request.app['engine'],
                 consumer_ip=consumers[index].ip,
+                consumer_port=consumers[index].port,
                 job_id=job_id,
                 database=databases[index],
                 query=data['query']

@@ -15,15 +15,13 @@ from collections import namedtuple
 import logging
 
 import sqlalchemy as sa
-from aiohttp import web
 import psycopg2
 from netifaces import interfaces, ifaddresses, AF_INET
 
 from . import DatabaseConnectionError
-from .jobs import update_job_status_from_job_chunks_status
-from .job_chunks import set_job_chunk_status, set_job_chunk_consumer
+from ..consumer.settings import PORT
 from ..producer.consumer_client import ConsumerClient
-from .models import CONSUMER_STATUS_CHOICES, JOB_STATUS_CHOICES, JOB_CHUNK_STATUS_CHOICES
+from .models import CONSUMER_STATUS_CHOICES
 
 
 class ConsumerConnectionError(Exception):
@@ -104,11 +102,11 @@ async def set_consumer_status(engine, consumer_ip, status):
         raise DatabaseConnectionError(str(e)) from e
 
 
-async def delegate_job_chunk_to_consumer(engine, consumer_ip, job_id, database, query):
+async def delegate_job_chunk_to_consumer(engine, consumer_ip, consumer_port, job_id, database, query):
     """When a consumer returns result, set its state in the database to 'available'."""
     try:
         async with engine.acquire() as connection:
-            response = await ConsumerClient().submit_job(consumer_ip, job_id, database, query)
+            response = await ConsumerClient().submit_job(consumer_ip, consumer_port, job_id, database, query)
 
             if response.status < 400:
                 await set_consumer_status(engine, consumer_ip, CONSUMER_STATUS_CHOICES.busy)
@@ -170,10 +168,15 @@ async def register_consumer_in_the_database(app):
     try:
         async with app['engine'].acquire() as connection:
             sql_query = sa.text('''
-                INSERT INTO consumer(ip, status)
-                VALUES (:consumer_ip, :available)
+                INSERT INTO consumer(ip, status, port)
+                VALUES (:consumer_ip, :status, :port)
             ''')
-            await connection.execute(sql_query, consumer_ip=get_ip(app), available=CONSUMER_STATUS_CHOICES.available)
+            await connection.execute(
+                sql_query,
+                consumer_ip=get_ip(app),
+                status=CONSUMER_STATUS_CHOICES.available,
+                port=PORT
+            )
     except psycopg2.IntegrityError as e:
         pass  # this is usually a duplicate key error - which is acceptable
     except psycopg2.Error as e:

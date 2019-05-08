@@ -62,6 +62,7 @@ async def check_chunks_and_consumers(app):
             await delegate_job_chunk_to_consumer(
                 engine=app['engine'],
                 consumer_ip=consumer.ip,
+                consumer_port=consumer.port,
                 job_id=job_id,
                 database=database,
                 query=query

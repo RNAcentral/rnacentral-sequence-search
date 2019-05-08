@@ -65,18 +65,20 @@ metadata = sa.MetaData()
 # TODO: consistent naming for tables: either 'jobs' and 'consumers' or 'job' and 'consumer'
 """State of a consumer instance"""
 Consumer = sa.Table('consumer', metadata,
-            sa.Column('ip', sa.String(15), primary_key=True),
-            sa.Column('status', sa.String(255)))  # choices=CONSUMER_STATUS_CHOICES, default='available'
+                  sa.Column('ip', sa.String(15), primary_key=True),
+                  sa.Column('status', sa.String(255)),  # choices=CONSUMER_STATUS_CHOICES, default='available'
+                  sa.Column('job_chunk_id', sa.ForeignKey('job_chunks.id')),
+                  sa.Column('port', sa.String(10)))
 
 """A search job that is divided into multiple job chunks per database"""
 Job = sa.Table('jobs', metadata,
-                 sa.Column('id', sa.String(36), primary_key=True),
-                 sa.Column('query', sa.Text),
-                 sa.Column('description', sa.Text, nullable=True),
-                 sa.Column('ordering', sa.Text, nullable=True),
-                 sa.Column('submitted', sa.DateTime),
-                 sa.Column('finished', sa.DateTime, nullable=True),
-                 sa.Column('status', sa.String(255)))  # choices=JOB_STATUS_CHOICES, default='started'
+                  sa.Column('id', sa.String(36), primary_key=True),
+                  sa.Column('query', sa.Text),
+                  sa.Column('description', sa.Text, nullable=True),
+                  sa.Column('ordering', sa.Text, nullable=True),
+                  sa.Column('submitted', sa.DateTime),
+                  sa.Column('finished', sa.DateTime, nullable=True),
+                  sa.Column('status', sa.String(255)))  # choices=JOB_STATUS_CHOICES, default='started'
 
 """Part of the search job, run against a specific database and assigned to a specific consumer"""
 JobChunk = sa.Table('job_chunks', metadata,
@@ -136,7 +138,9 @@ async def migrate(ENVIRONMENT):
             await connection.execute('''
                 CREATE TABLE consumer (
                   ip VARCHAR(15) PRIMARY KEY,
-                  status VARCHAR(255) NOT NULL)
+                  status VARCHAR(255) NOT NULL,
+                  job_chunk_id VARCHAR(15),
+                  port VARCHAR(10))
             ''')
 
             await connection.execute('''

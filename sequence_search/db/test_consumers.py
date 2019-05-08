@@ -147,10 +147,12 @@ class DelegateJobChunkToConsumerTestCase(DBTestCase):
 
         async with self.app['engine'].acquire() as connection:
             self.consumer_ip = '192.168.1.1'
+            self.consumer_port = '8000'
             await connection.execute(
                 Consumer.insert().values(
                     ip=self.consumer_ip,
-                    status='avaiable'
+                    status='avaiable',
+                    port=self.consumer_port
                 )
             )
 
@@ -179,6 +181,7 @@ class DelegateJobChunkToConsumerTestCase(DBTestCase):
         await delegate_job_chunk_to_consumer(
             self.app['engine'],
             self.consumer_ip,
+            self.consumer_port,
             self.job_id,
             'mirbase',
             'AACAGCATGAGTGCGCTGGATGCTG'
@@ -203,11 +206,12 @@ class RegisterConsumerInTheDatabaseTestCase(DBTestCase):
             await register_consumer_in_the_database(self.app)
 
             query = sa.text('''
-                SELECT ip, status
+                SELECT ip, status, port
                 FROM consumer
-                WHERE ip=:ip
+                WHERE ip=:ip, port=:port
             ''')
 
-            async for row in await connection.execute(query, ip='192.168.1.1'):
+            async for row in await connection.execute(query, ip='192.168.1.1', port='8000'):
                 assert row.ip == '192.168.1.1'
+                assert row.port == '8000'
                 break
