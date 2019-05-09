@@ -18,6 +18,10 @@ variable "external_network_id" {
   default = "e25c3173-bb5c-4bbc-83a7-f0551099c8cd"  # ext-net-36
 }
 
-variable "floating_ip" {
+variable "default_floating_ip" {
   default = "193.62.55.44"
+}
+
+variable "test_floating_ip" {
+  default = "193.62.55.123"
 }
