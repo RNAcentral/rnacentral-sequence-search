@@ -1,5 +1,12 @@
 locals {
   count="${terraform.workspace == "default" ? 10 : 10}"
+  floating_ip="${terraform.workspace == "default" ? var.default_floating_ip : var.test_floating_ip }"
+}
+
+resource "null_resource" "pre-flight" {
+  provisioner "local-exec" {
+    command = "ansible-playbook --extra-vars='{\"floating_ip\": ${local.floating_ip}}' -i '../ansible/hosts ' ../ansible/localhost.yml"
+  }
 }
 
 resource "openstack_compute_keypair_v2" "sequence_search" {
@@ -156,7 +163,7 @@ resource "openstack_compute_volume_attach_v2" "attach_databases_to_producer" {
 
 resource "openstack_compute_floatingip_associate_v2" "sequence_search" {
   depends_on = ["openstack_compute_instance_v2.producer", "openstack_networking_router_interface_v2.sequence_search"]
-  floating_ip = "${terraform.workspace == "default" ? var.default_floating_ip : var.test_floating_ip }"
+  floating_ip = "${local.floating_ip}"
   instance_id = "${openstack_compute_instance_v2.producer.id}"
   # fixed_ip = "${openstack_compute_instance_v2.multi-net.network.1.fixed_ip_v4}"
 }

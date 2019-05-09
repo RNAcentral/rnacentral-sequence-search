@@ -8,6 +8,8 @@
     template:
       src: ssh-bastion.conf
       dest: "~/.ssh/config"
+    vars:
+      floating_ip: 0.0.0.0
 
   - name: Copy private key to your users ssh configuration directory
     become: false
