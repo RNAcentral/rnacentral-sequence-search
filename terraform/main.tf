@@ -3,6 +3,10 @@ locals {
   floating_ip="${terraform.workspace == "default" ? var.default_floating_ip : var.test_floating_ip }"
 }
 
+output "floating_ip" {
+  value = ["${local.floating_ip}"]
+}
+
 resource "null_resource" "pre-flight" {
   provisioner "local-exec" {
     command = "ansible-playbook --extra-vars='{\"floating_ip\": ${local.floating_ip}}' -i '../ansible/hosts ' ../ansible/localhost.yml"
