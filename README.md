@@ -1,33 +1,27 @@
-# Non-coding RNA Sequence Search Repository DevOps code
+# RNAcentral Sequence Search DevOps code
 
-This repository contains DevOps code for managing a non-coding RNA Sequence Search microservice infrastructure.
-
-Basically, it provides a set of Jenkinsfiles for managing Sequence Search infrastructure as a
-Kubernetes cluster on top of EBI OpenStack. Internally those Jenkinsfiles rely upon a set of bash scripts,
-Ansible playbooks and OpenStack console client commands.
-
-Unfortunately, Red Hat OpenStack doesn't support the Magnum API that allows for provisioning a Kubernetes
-clusters from the console. Thus, we had to resort to Kubespray scipts.
-
+This repository contains DevOps code for managing the [RNAcentral](https://rnacentral.org) sequence search
+microservice infrastructure.
 
 ## Installation
 
-The project is supposed to be run in 4 environments:
- - local:
-     when developing new features, both producer and consumer are
+There are 2 main environments:
+ - **local**
+      when developing new features, both producer and consumer are
      supposed to be run from local machine and postgres database server
      is also meant to be run on localhost:5432
- - test:
-    this environment is used for running unit-tests on local machine only,
-    it is not using any database or network communications
- - docker-compose
-    when running manual quality assurance tests on a single machine, this
-    environment is deployed with docker-compose up and create containers
-    with producer, consumer and postgres
- - production
-    this is the real production environment, where the code is deployed
-    to openstack cloud
 
+ - **production**
+    this is the production cloud environment, where the code is deployed to openstack
+
+There are 2 other environments that are not currently documented:
+  - test
+     this environment is used for running unit-tests on local machine only,
+     it is not using any database or network communications
+  - docker-compose
+     when running manual quality assurance tests on a single machine, this
+     environment is deployed with `docker-compose up` and creates containers
+     with producer, consumer and postgres
 
 ### Installation in local environment
 
@@ -60,26 +54,12 @@ The project is supposed to be run in 4 environments:
 21. `python3 -m sequence_search.producer` - starts producer server on port 8002
 22. `python3 -m sequence_search.consumer` - starts consumer server on port 8000
 
-
-### Installation in docker-compose
-
-TODO
-
-### Installation in production
-
-Suppose that you want to install this set of Jenkins pipelines to an entirely new machine.
-
-Here are the steps required to do this:
-
-- Install and configure Jenkins on that machine
-- In Jenkins interface create a one-branch pipeline for each `*.jenkinsfile` in `/jenkins` folder
-- In Jenkins upload secret file `openstack.rc` copied from RedHat Horizon dashboard
- (Project -> Compute -> Access & Security -> API Access)
-- Install python-based dependencies via `pip install -r requirements.txt` (possibly, using a virtualenv)
-
 ### Manual deployment in production
 
-Requirements: install Terraform and install dependencies in the virtual environment.
+Requirements:
+
+- Terraform
+- Virtual environment with installed dependencies
 
 1. Generate `sequence_search_rsa` key:
 
@@ -95,14 +75,25 @@ Requirements: install Terraform and install dependencies in the virtual environm
   - Run ansible to create producer instance
   - Run ansible to create consumer instances
 
+
+### Installation in production using Jenkins
+
+Suppose that you want to install this set of Jenkins pipelines to an entirely new machine.
+
+Here are the steps required to do this:
+
+- Install and configure Jenkins on that machine
+- In Jenkins interface create a one-branch pipeline for each `*.jenkinsfile` in `/jenkins` folder
+- In Jenkins upload secret file `openstack.rc` copied from RedHat Horizon dashboard
+ (Project -> Compute -> Access & Security -> API Access)
+- Install python-based dependencies via `pip install -r requirements.txt` (possibly, using a virtualenv)
+
+
 #### How to upload image with databases to openstack
 
-See: https://matt.berther.io/2008/12/14/creating-iso-images-from-a-folder-in-osx/
-
-1. To create an .iso image from databases folder on your MacOS:
+1. Create an .iso image from `databases` folder on your Mac:
 
  `cd sequence_search/consumer`
-
  `hdiutil makehybrid -o databases.iso databases -iso -joliet`
 
 2. To upload image to the cloud first download openstack.rc from Horizon dashboard
@@ -113,6 +104,7 @@ See: https://matt.berther.io/2008/12/14/creating-iso-images-from-a-folder-in-osx
 
  `glance image-create --name sequence_search_databases --disk-format=iso --container-format=bare --file databases.iso`
 
+See: https://matt.berther.io/2008/12/14/creating-iso-images-from-a-folder-in-osx/
 
 #### How to dynamically generate ansible inventory from terraform state
 
@@ -169,27 +161,28 @@ https://github.com/webpack/webpack.js.org/issues/1854.
 
 #### How to create a load balancer and do blue-green release
 
-1. pushd terraform_load_balancer; terraform apply; popd
+1. `pushd terraform_load_balancer; terraform apply; popd`
 
-2. pushd ansible_load_balaner; ansible-playbook -i hosts --private-key=..terraform_load_balancer/load_balancer_rsa load_balancer.yml; popd;
+2. Update IP address in `load_balancer.yml`, then run:
+
+    ```
+    cd ansible_load_balaner
+    ansible-playbook -i hosts --private-key=..terraform_load_balancer/load_balancer_rsa load_balancer.yml
+    ```
 
 The load balancer is an nginx server that proxies http requests to the
-currently selected producer machine's 8002 port. If you want to
-configure the ip and port of producer machine, go to load_balancer.yml
+currently selected producer machine's `8002` port. If you want to
+configure the ip and port of producer machine, go to `load_balancer.yml`
 playbook and change the `nginx_backend_ip` and `nginx_backend_port`
 variables.
 
-If you want to seriously modify the nginx configuration, go to
-`ansible_load_balancer/roles/ansible_load_balancer/templates/upstream.conf.js`
-and modify it.
-
+If you want to update nginx configuration, make changes in
+`ansible_load_balancer/roles/ansible_load_balancer/templates/upstream.conf.js`.
 
 ## "Sources of inspiration"
 
 Code in this repository is based on the following projects by other folks (kudos to them):
 
-- https://github.com/pcm32/kubespray-ebi-portal/tree/v2.3.0-ubuntu-xenial - my Kubespray customization scripts are based on this
-- https://github.com/kubernetes-incubator/kubespray/blob/master/upgrade-cluster.yml - Kubespray ansible commands
 - https://cloudbase.it/easily-deploy-a-kubernetes-cluster-on-openstack/ - OpenStack console client commands
 - https://docs.oracle.com/cd/E36784_01/html/E54155/clicreatevm.html - example OpenStack provisioning commands
 - https://github.com/kubernetes-incubator/kubespray - Kubespray main repo
