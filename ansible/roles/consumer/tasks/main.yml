@@ -34,6 +34,8 @@
 
   - name: Install pip3
     shell: easy_install-3.6 pip
+    args:
+      creates: /usr/local/bin/pip
     tags: [ install-deps ]
 
 
@@ -48,7 +50,7 @@
       make install
       cd easel; make install
     args:
-      creates:  /usr/local/bin/nhmmer
+      creates: /usr/local/bin/nhmmer
 
 
 
@@ -62,6 +64,7 @@
         - "--exclude=/sequence_search/consumer/databases_back"
         - "--exclude=/sequence_search/consumer/queries/*.fasta"
         - "--exclude=/sequence_search/consumer/results/*.fasta"
+        - "--exclude=/sequence_search/producer/static/node_modules"
     tags: [ quick ]
 
 
