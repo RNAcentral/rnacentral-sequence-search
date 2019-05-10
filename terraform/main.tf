@@ -113,18 +113,6 @@ resource "openstack_compute_instance_v2" "postgres" {
     fixed_ip_v4 = "192.168.0.6"
   }
 
-#  provisioner "remote-exec" {
-#    connection {
-#      type = "ssh"
-#      user = "${var.ssh_user_name}"
-#      host = "${var.floating_ip}"
-#      private_key = "${openstack_compute_keypair_v2.sequence_search.private_key}"
-#    }
-#
-#    inline = [
-#      "sudo echo 'hi'",
-#    ]
-#  }
 }
 
 resource "openstack_compute_instance_v2" "consumer" {
@@ -169,10 +157,4 @@ resource "openstack_compute_floatingip_associate_v2" "sequence_search" {
   depends_on = ["openstack_compute_instance_v2.producer", "openstack_networking_router_interface_v2.sequence_search"]
   floating_ip = "${local.floating_ip}"
   instance_id = "${openstack_compute_instance_v2.producer.id}"
-  # fixed_ip = "${openstack_compute_instance_v2.multi-net.network.1.fixed_ip_v4}"
 }
-
-#resource "local_file" "private_key" {
-#  content = "${openstack_compute_keypair_v2.sequence_search.private_key}"
-#  filename = "production_rsa"
-#}
