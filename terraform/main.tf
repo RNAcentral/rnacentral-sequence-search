@@ -1,6 +1,7 @@
 locals {
   count="${terraform.workspace == "default" ? 10 : 10}"
   floating_ip="${terraform.workspace == "default" ? var.default_floating_ip : var.test_floating_ip }"
+  postgres_floating_ip = "${terraform.workspace == "default" ? var.default_postgres_floating_ip : var.test_postgres_floating_ip }"
 }
 
 output "floating_ip" {
@@ -157,4 +158,10 @@ resource "openstack_compute_floatingip_associate_v2" "sequence_search" {
   depends_on = ["openstack_compute_instance_v2.producer", "openstack_networking_router_interface_v2.sequence_search"]
   floating_ip = "${local.floating_ip}"
   instance_id = "${openstack_compute_instance_v2.producer.id}"
+}
+
+resource "openstack_compute_floatingip_associate_v2" "associate_postgres_floating_ip" {
+  depends_on = ["openstack_compute_instance_v2.postgres", "openstack_networking_router_interface_v2.sequence_search"]
+  floating_ip = "${local.postgres_floating_ip}"
+  instance_id = "${openstack_compute_instance_v2.postgres.id}"
 }
