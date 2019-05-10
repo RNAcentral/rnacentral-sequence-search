@@ -1,5 +1,10 @@
 ---
 - hosts: localhost
   gather_facts: False
+  vars:
+    floating_ip: "{{ lookup('pipe', 'cd ../terraform && terraform output floating_ip') }}"
   roles:
     - {role: bastion-ssh-config, tags: ["localhost", "bastion"]}
+  tasks:
+      - debug:
+          msg: "Floating IP: {{ floating_ip }}"
