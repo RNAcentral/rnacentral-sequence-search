@@ -47,6 +47,8 @@
       make
       make install
       cd easel; make install
+    args:
+      creates:  /usr/local/bin/nhmmer
 
 
 
