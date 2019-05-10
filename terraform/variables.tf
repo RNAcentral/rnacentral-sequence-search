@@ -33,3 +33,11 @@ variable "default_postgres_floating_ip" {
 variable "test_postgres_floating_ip" {
   default = "193.62.55.122"
 }
+
+variable "default_instances" {
+  default = 10
+}
+
+variable "test_instances" {
+  default = 10
+}

@@ -1,6 +1,6 @@
 locals {
-  count="${terraform.workspace == "default" ? 10 : 10}"
-  floating_ip="${terraform.workspace == "default" ? var.default_floating_ip : var.test_floating_ip }"
+  count = "${terraform.workspace == "default" ? var.default_instances : var.test_instances}"
+  floating_ip = "${terraform.workspace == "default" ? var.default_floating_ip : var.test_floating_ip }"
   postgres_floating_ip = "${terraform.workspace == "default" ? var.default_postgres_floating_ip : var.test_postgres_floating_ip }"
 }
 
