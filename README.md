@@ -159,6 +159,25 @@ https://webpack-v3.jsx.app/ or lookup here:
 https://github.com/webpack/webpack.js.org/issues/1854.
 
 
+#### Using terraform workspaces for blue-green release
+
+1. Choose a workspace: `terraform workspace select <environment>`
+
+  Environment can be `default` or `test`. Al subsequent terraform commands
+  will apply only to that environment.
+
+2. Apply terraform changes: `terraform apply`
+
+  The `main.tf` will automatically configure the correct IP depending on the workspace.
+
+3. Update local ssh config: `ansible-playbook -i hosts localhost.yml`
+
+  The IP address will be set depending on the current `terraform.tfstate` which
+  is enabled by the terraform workspace.
+
+4. Run any other ansible playbooks: `ansible-playbook -i hosts producer.yml`
+
+
 #### How to create a load balancer and do blue-green release
 
 1. `pushd terraform_load_balancer; terraform apply; popd`
