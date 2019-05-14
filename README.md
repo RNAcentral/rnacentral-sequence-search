@@ -185,8 +185,8 @@ https://github.com/webpack/webpack.js.org/issues/1854.
 2. Update IP address in `load_balancer.yml`, then run:
 
     ```
-    cd ansible_load_balaner
-    ansible-playbook -i hosts --private-key=..terraform_load_balancer/load_balancer_rsa load_balancer.yml
+    cd ansible_load_balancer
+    ansible-playbook -i hosts --private-key=../terraform_load_balancer/load_balancer_rsa load_balancer.yml
     ```
 
 The load balancer is an nginx server that proxies http requests to the
