@@ -44,6 +44,8 @@ async def list_rnacentral_ids(request):
     try:
         results = await get_job_results(request.app['engine'], job_id)
         ids = [result['rnacentral_id'] for result in results]
+        if not ids:
+            return web.HTTPNotFound()
         data = "\n".join(ids)
         return web.Response(text=data)
     except Exception as e:
