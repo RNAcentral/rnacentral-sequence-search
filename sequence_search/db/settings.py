@@ -52,7 +52,7 @@ def get_postgres_credentials(ENVIRONMENT):
             POSTGRES_PORT=5432,
             POSTGRES_DATABASE='producer',
             POSTGRES_USER='docker',
-            POSTGRES_PASSWORD=os.getenv('POSTRGES_PASSWORD', 'pass'),
+            POSTGRES_PASSWORD=os.getenv('POSTGRES_PASSWORD', 'pass'),
             ENVIRONMENT=ENVIRONMENT
         )
     elif ENVIRONMENT == 'TEST':
