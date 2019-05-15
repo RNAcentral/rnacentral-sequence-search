@@ -56,10 +56,11 @@ There are 2 other environments that are not currently documented:
 
 ### Manual deployment in production
 
-Requirements:
+**Requirements**
 
-- Terraform
-- Virtual environment with installed dependencies
+- [Terraform](https://www.terraform.io)
+- [Terraform inventory](https://github.com/adammck/terraform-inventory)
+- [Virtual environment](https://virtualenv.pypa.io/en/latest/) with installed dependencies
 
 1. Generate `sequence_search_rsa` key:
 
@@ -75,28 +76,33 @@ Requirements:
   - Run ansible to create producer instance
   - Run ansible to create consumer instances
 
+### Development workflow
 
-### Installation in production using Jenkins
+1. Choose terraform workspace:
 
-Suppose that you want to install this set of Jenkins pipelines to an entirely new machine.
+  `terraform workspace select <env>` where `env` can be `default` or `test`.
+  Once the workspace is selected, terraform will choose the correct `tfstate`
+  file and will know how to configure ssh keys.
 
-Here are the steps required to do this:
+2. Run `terraform apply`. This will check that the infrastructure is up and running,
+configure ssh keys, and update ansible inventory on each run.
 
-- Install and configure Jenkins on that machine
-- In Jenkins interface create a one-branch pipeline for each `*.jenkinsfile` in `/jenkins` folder
-- In Jenkins upload secret file `openstack.rc` copied from RedHat Horizon dashboard
- (Project -> Compute -> Access & Security -> API Access)
-- Install python-based dependencies via `pip install -r requirements.txt` (possibly, using a virtualenv)
+3. To apply python or ansible changes, run the appropriate ansible playbook:
 
+  `ansible-playbook -i hosts ...`
+
+---------------------------
+
+### Additional notes
 
 #### How to upload image with databases to openstack
 
-1. Create an .iso image from `databases` folder on your Mac:
+1. Create an .iso image from `databases` folder on Mac:
 
  `cd sequence_search/consumer`
  `hdiutil makehybrid -o databases.iso databases -iso -joliet`
 
-2. To upload image to the cloud first download openstack.rc from Horizon dashboard
+2. To upload image to the cloud first download `openstack.rc` (v2) from Horizon dashboard
 
 3. Source it: `source openstack.rc`, enter your user's password
 
@@ -126,7 +132,7 @@ https://github.com/adammck/terraform-inventory/releases
 
 4. You can run ansible commands now with:
 
-`pushd ansible; ansible-playbook -i hosts ...`
+`pushd ansible;  ...`
 
 
 #### How to build frontend
@@ -198,9 +204,17 @@ variables.
 If you want to update nginx configuration, make changes in
 `ansible_load_balancer/roles/ansible_load_balancer/templates/upstream.conf.js`.
 
-## "Sources of inspiration"
+#### Installation in production using Jenkins
 
-Code in this repository is based on the following projects by other folks (kudos to them):
+To configure Jenkins deployment:
+
+- Install and configure Jenkins
+- In Jenkins interface create a one-branch pipeline for each `*.jenkinsfile` in `/jenkins` folder
+- In Jenkins upload secret file `openstack.rc` copied from RedHat Horizon dashboard
+ (Project -> Compute -> Access & Security -> API Access)
+- Install python-based dependencies via `pip install -r requirements.txt` (possibly, using a virtualenv)
+
+### Sources of inspiration
 
 - https://cloudbase.it/easily-deploy-a-kubernetes-cluster-on-openstack/ - OpenStack console client commands
 - https://docs.oracle.com/cd/E36784_01/html/E54155/clicreatevm.html - example OpenStack provisioning commands
