@@ -2,10 +2,15 @@ locals {
   count = "${terraform.workspace == "default" ? var.default_instances : var.test_instances}"
   floating_ip = "${terraform.workspace == "default" ? var.default_floating_ip : var.test_floating_ip }"
   postgres_floating_ip = "${terraform.workspace == "default" ? var.default_postgres_floating_ip : var.test_postgres_floating_ip }"
+  tfstate_file = "${terraform.workspace == "default" ? var.default_tfstate : var.test_tfstate }"
 }
 
 output "floating_ip" {
   value = ["${local.floating_ip}"]
+}
+
+output "tfstate_file" {
+  value = ["${local.tfstate_file}"]
 }
 
 resource "null_resource" "pre-flight" {
@@ -164,4 +169,13 @@ resource "openstack_compute_floatingip_associate_v2" "associate_postgres_floatin
   depends_on = ["openstack_compute_instance_v2.postgres", "openstack_networking_router_interface_v2.sequence_search"]
   floating_ip = "${local.postgres_floating_ip}"
   instance_id = "${openstack_compute_instance_v2.postgres.id}"
+}
+
+resource "null_resource" "post-flight" {
+  triggers {
+      build_number = "${timestamp()}"
+  }
+  provisioner "local-exec" {
+    command = "terraform-inventory -inventory ${local.tfstate_file} > ../ansible/hosts"
+  }
 }

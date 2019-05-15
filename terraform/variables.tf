@@ -41,4 +41,11 @@ variable "default_instances" {
 variable "test_instances" {
   default = 5
 }
+
+variable "default_tfstate" {
+  default = "terraform.tfstate"
+}
+
+variable "test_tfstate" {
+  default = "terraform.tfstate.d/test/terraform.tfstate"
 }
