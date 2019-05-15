@@ -35,9 +35,10 @@ variable "test_postgres_floating_ip" {
 }
 
 variable "default_instances" {
-  default = 10
+  default = 15
 }
 
 variable "test_instances" {
-  default = 10
+  default = 5
+}
 }
