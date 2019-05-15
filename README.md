@@ -25,31 +25,31 @@ There are 2 other environments that are not currently documented:
 
 ### Installation in local environment
 
-1. `$ git clone https://github.com/RNAcentral/rnacentral-sequence-search.git`
-2. `$ cd rnacentral-sequence-search`
-3. `$ virtualenv ENV --python=python3`
-4. `$ source ENV/bin/activate`
-5. `$ pip3 install -r sequence_search/requirements.txt`
-6. `$ pushd sequence_search/consumer`
-7. `$ curl -OL http://eddylab.org/software/hmmer/hmmer-3.2.1.tar.gz && \
+1. `git clone https://github.com/RNAcentral/rnacentral-sequence-search.git`
+2. `cd rnacentral-sequence-search`
+3. `virtualenv ENV --python=python3`
+4. `source ENV/bin/activate`
+5. `pip3 install -r sequence_search/requirements.txt`
+6. `pushd sequence_search/consumer`
+7. `curl -OL http://eddylab.org/software/hmmer/hmmer-3.2.1.tar.gz && \
     tar -zxvf hmmer-3.2.1.tar.gz && \
     cd hmmer-3.2.1 && \
     ./configure --prefix /usr/local && \
     make && \
     make install && \
     cd easel; make install`
-8. `$ rsync <database/fasta/files/location/on/local/machine> databases/` - copy `.fasta` files with databases we want to search against into `sequence_search/consumer/databases folder`
+8. `rsync <database/fasta/files/location/on/local/machine> databases/` - copy `.fasta` files with databases we want to search against into `sequence_search/consumer/databases folder`
 9. Update the contents of `sequence_search/consumer/rnacentral_database.py` accordingly (there's a mapping of database human-readable names to file names).
-10. `$ popd`
-11. `$ pushd sequence_search/producer/static`
-12. `$ npm install --save-dev && npm run build`
-13. `$ popd`
+10. `popd`
+11. `pushd sequence_search/producer/static`
+12. `npm install --save-dev && npm run build`
+13. `popd`
 14. Edit `postgres/local_init.sql` file and replace role `burkov` there with your username on local machine
 15. Edit `sequence_search/db/settings.py` and replace role `burkov` with your username on local machine
-16. `$ mkdir sequence_search/consumer/queries` - create queries directory in consumer
-17. `$ mkdir sequence_search/consumer/results` - create results directory in consumer
-18. `$ docker build -t local-postgres -f postgres/local.Dockerfile postgres` - this will create an image with postgres databases.
-19. `$ docker run -d -p 5432:5432 -t local-postgres` - this will create and start an instance of postgres on your local machine's 5432 port.
+16. `mkdir sequence_search/consumer/queries` - create queries directory in consumer
+17. `mkdir sequence_search/consumer/results` - create results directory in consumer
+18. `docker build -t local-postgres -f postgres/local.Dockerfile postgres` - this will create an image with postgres databases.
+19. `docker run -d -p 5432:5432 -t local-postgres` - this will create and start an instance of postgres on your local machine's 5432 port.
 20. `python3 -m sequence_search.db` - creates necessary database tables for producer and consumer to run
 21. `python3 -m sequence_search.producer` - starts producer server on port 8002
 22. `python3 -m sequence_search.consumer` - starts consumer server on port 8000
@@ -80,16 +80,18 @@ There are 2 other environments that are not currently documented:
 
 1. Choose terraform workspace:
 
-  `terraform workspace select <env>` where `env` can be `default` or `test`.
-  Once the workspace is selected, terraform will choose the correct `tfstate`
-  file and will know how to configure ssh keys.
+    `terraform workspace select <env>` where `env` can be `default` or `test`.
+    Once the workspace is selected, terraform will choose the correct `tfstate`
+    file and will know how to configure ssh keys.
 
-2. Run `terraform apply`. This will check that the infrastructure is up and running,
-configure ssh keys, and update ansible inventory on each run.
+2. Run `terraform apply`.
+
+    This will check that the infrastructure is up and running, configure ssh keys,
+    and update ansible inventory on each run.
 
 3. To apply python or ansible changes, run the appropriate ansible playbook:
 
-  `ansible-playbook -i hosts ...`
+    `ansible-playbook -i hosts ...`
 
 ---------------------------
 
