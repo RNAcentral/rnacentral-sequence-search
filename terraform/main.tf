@@ -14,6 +14,9 @@ output "tfstate_file" {
 }
 
 resource "null_resource" "pre-flight" {
+  triggers {
+      build_number = "${timestamp()}"
+  }
   provisioner "local-exec" {
     command = "ansible-playbook --extra-vars='{\"floating_ip\": ${local.floating_ip}}' -i '../ansible/hosts ' ../ansible/localhost.yml"
   }
