@@ -5,54 +5,22 @@ microservice infrastructure.
 
 ## Installation
 
-There are 2 main environments:
+There are 3 environments:
+
+ - **docker-compose**
+    to start up the database, producer, and consumer for local development
+    using `docker-compose up`.
+
  - **local**
-      when developing new features, both producer and consumer are
+     when developing new features, both producer and consumer are
      supposed to be run from local machine and postgres database server
      is also meant to be run on localhost:5432
 
  - **production**
     this is the production cloud environment, where the code is deployed to openstack
 
-There are 2 other environments that are not currently documented:
-  - test
-     this environment is used for running unit-tests on local machine only,
-     it is not using any database or network communications
-  - docker-compose
-     when running manual quality assurance tests on a single machine, this
-     environment is deployed with `docker-compose up` and creates containers
-     with producer, consumer and postgres
-
-### Installation in local environment
-
-1. `git clone https://github.com/RNAcentral/rnacentral-sequence-search.git`
-2. `cd rnacentral-sequence-search`
-3. `virtualenv ENV --python=python3`
-4. `source ENV/bin/activate`
-5. `pip3 install -r sequence_search/requirements.txt`
-6. `pushd sequence_search/consumer`
-7. `curl -OL http://eddylab.org/software/hmmer/hmmer-3.2.1.tar.gz && \
-    tar -zxvf hmmer-3.2.1.tar.gz && \
-    cd hmmer-3.2.1 && \
-    ./configure --prefix /usr/local && \
-    make && \
-    make install && \
-    cd easel; make install`
-8. `rsync <database/fasta/files/location/on/local/machine> databases/` - copy `.fasta` files with databases we want to search against into `sequence_search/consumer/databases folder`
-9. Update the contents of `sequence_search/consumer/rnacentral_database.py` accordingly (there's a mapping of database human-readable names to file names).
-10. `popd`
-11. `pushd sequence_search/producer/static`
-12. `npm install --save-dev && npm run build`
-13. `popd`
-14. Edit `postgres/local_init.sql` file and replace role `burkov` there with your username on local machine
-15. Edit `sequence_search/db/settings.py` and replace role `burkov` with your username on local machine
-16. `mkdir sequence_search/consumer/queries` - create queries directory in consumer
-17. `mkdir sequence_search/consumer/results` - create results directory in consumer
-18. `docker build -t local-postgres -f postgres/local.Dockerfile postgres` - this will create an image with postgres databases.
-19. `docker run -d -p 5432:5432 -t local-postgres` - this will create and start an instance of postgres on your local machine's 5432 port.
-20. `python3 -m sequence_search.db` - creates necessary database tables for producer and consumer to run
-21. `python3 -m sequence_search.producer` - starts producer server on port 8002
-22. `python3 -m sequence_search.consumer` - starts consumer server on port 8000
+There is also a _test_ environment that is not currently documented. It is used for
+running unit-tests on local machine only, it is not using any database or network communications.
 
 ### Manual deployment in production
 
@@ -215,6 +183,37 @@ To configure Jenkins deployment:
 - In Jenkins upload secret file `openstack.rc` copied from RedHat Horizon dashboard
  (Project -> Compute -> Access & Security -> API Access)
 - Install python-based dependencies via `pip install -r requirements.txt` (possibly, using a virtualenv)
+
+#### Manual installation in local environment
+
+1. `git clone https://github.com/RNAcentral/rnacentral-sequence-search.git`
+2. `cd rnacentral-sequence-search`
+3. `virtualenv ENV --python=python3`
+4. `source ENV/bin/activate`
+5. `pip3 install -r sequence_search/requirements.txt`
+6. `pushd sequence_search/consumer`
+7. `curl -OL http://eddylab.org/software/hmmer/hmmer-3.2.1.tar.gz && \
+    tar -zxvf hmmer-3.2.1.tar.gz && \
+    cd hmmer-3.2.1 && \
+    ./configure --prefix /usr/local && \
+    make && \
+    make install && \
+    cd easel; make install`
+8. `rsync <database/fasta/files/location/on/local/machine> databases/` - copy `.fasta` files with databases we want to search against into `sequence_search/consumer/databases folder`
+9. Update the contents of `sequence_search/consumer/rnacentral_database.py` accordingly (there's a mapping of database human-readable names to file names).
+10. `popd`
+11. `pushd sequence_search/producer/static`
+12. `npm install --save-dev && npm run build`
+13. `popd`
+14. Edit `postgres/local_init.sql` file and replace role `burkov` there with your username on local machine
+15. Edit `sequence_search/db/settings.py` and replace role `burkov` with your username on local machine
+16. `mkdir sequence_search/consumer/queries` - create queries directory in consumer
+17. `mkdir sequence_search/consumer/results` - create results directory in consumer
+18. `docker build -t local-postgres -f postgres/local.Dockerfile postgres` - this will create an image with postgres databases.
+19. `docker run -d -p 5432:5432 -t local-postgres` - this will create and start an instance of postgres on your local machine's 5432 port.
+20. `python3 -m sequence_search.db` - creates necessary database tables for producer and consumer to run
+21. `python3 -m sequence_search.producer` - starts producer server on port 8002
+22. `python3 -m sequence_search.consumer` - starts consumer server on port 8000
 
 ### Sources of inspiration
 
