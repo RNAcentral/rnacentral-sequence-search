@@ -65,7 +65,7 @@ metadata = sa.MetaData()
 # TODO: consistent naming for tables: either 'jobs' and 'consumers' or 'job' and 'consumer'
 """State of a consumer instance"""
 Consumer = sa.Table('consumer', metadata,
-                  sa.Column('ip', sa.String(15), primary_key=True),
+                  sa.Column('ip', sa.String(20), primary_key=True),
                   sa.Column('status', sa.String(255)),  # choices=CONSUMER_STATUS_CHOICES, default='available'
                   sa.Column('job_chunk_id', sa.ForeignKey('job_chunks.id')),
                   sa.Column('port', sa.String(10)))
@@ -137,7 +137,7 @@ async def migrate(ENVIRONMENT):
 
             await connection.execute('''
                 CREATE TABLE consumer (
-                  ip VARCHAR(15) PRIMARY KEY,
+                  ip VARCHAR(20) PRIMARY KEY,
                   status VARCHAR(255) NOT NULL,
                   job_chunk_id VARCHAR(15),
                   port VARCHAR(10))
@@ -161,7 +161,7 @@ async def migrate(ENVIRONMENT):
                   database VARCHAR(255),
                   submitted TIMESTAMP,
                   finished TIMESTAMP,
-                  consumer VARCHAR(15) references consumer(ip),
+                  consumer VARCHAR(20) references consumer(ip),
                   status VARCHAR(255))
             ''')
 
