@@ -211,14 +211,13 @@ async def set_job_chunk_consumer(engine, job_id, database, consumer_ip):
                     WHERE job_id=:job_id AND database=:database
                     RETURNING *;
                 ''')
-
                 id = None  # if connection didn't return any rows, return None
                 async for row in connection.execute(query, job_id=job_id, database=database, consumer_ip=consumer_ip):
                     id = row.id
 
                 return id
             except Exception as e:
-                raise SQLError("Failed to set_job_chunk_status in the database,"
+                raise SQLError("Failed to set_job_chunk_consumer in the database,"
                                " job_id = %s, database = %s" % (job_id, database)) from e
     except psycopg2.Error as e:
         raise DatabaseConnectionError("Failed to open connection to the database in "
