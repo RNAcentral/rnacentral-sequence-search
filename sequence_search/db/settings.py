@@ -39,7 +39,7 @@ def get_postgres_credentials(ENVIRONMENT):
         )
     elif ENVIRONMENT == 'LOCAL':
         return Settings(
-            POSTGRES_HOST='localhost',
+            POSTGRES_HOST='localhost', # 'host.docker.internal'
             POSTGRES_PORT=5432,
             POSTGRES_DATABASE='producer',
             POSTGRES_USER='apetrov',

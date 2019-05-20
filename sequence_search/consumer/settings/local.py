@@ -9,7 +9,7 @@ QUERY_DIR = PROJECT_ROOT / 'queries'
 
 # producer server location
 PRODUCER_PROTOCOL = 'http'
-PRODUCER_HOST = 'localhost'
+PRODUCER_HOST = 'localhost' # 'host.docker.internal'
 PRODUCER_PORT = '8002'
 PRODUCER_JOB_DONE_URL = 'api/job-done'
 

@@ -143,7 +143,7 @@ async def submit_job(request):
     job_id = data['job_id']
     sequence = data['sequence']
     database = data['database']
-    consumer_ip = get_ip(request.app)
+    consumer_ip =  get_ip(request.app) # 'host.docker.internal'
 
     # if request was successful, save the consumer state and job_chunk state to the database
     try:

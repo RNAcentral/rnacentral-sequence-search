@@ -214,7 +214,7 @@ async def register_consumer_in_the_database(app):
             ''')
             await connection.execute(
                 sql_query,
-                consumer_ip=get_ip(app),
+                consumer_ip=get_ip(app), # 'host.docker.internal',
                 status=CONSUMER_STATUS_CHOICES.available,
                 port=PORT
             )
