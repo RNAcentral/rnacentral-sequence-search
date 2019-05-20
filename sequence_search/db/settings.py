@@ -42,7 +42,7 @@ def get_postgres_credentials(ENVIRONMENT):
             POSTGRES_HOST='localhost',
             POSTGRES_PORT=5432,
             POSTGRES_DATABASE='producer',
-            POSTGRES_USER='burkov',
+            POSTGRES_USER='apetrov',
             POSTGRES_PASSWORD='example',
             ENVIRONMENT=ENVIRONMENT
         )
