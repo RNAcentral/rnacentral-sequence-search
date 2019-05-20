@@ -30,8 +30,10 @@ RUN curl -OL http://eddylab.org/software/hmmer/hmmer-3.2.1.tar.gz && \
     make install && \
     cd easel; make install
 
-ADD requirements.txt .
+ADD sequence_search/requirements.txt .
 
 RUN pip3 install -r requirements.txt
 
-CMD python36 -m consumer.main
+EXPOSE 8000
+
+ENTRYPOINT cd /rnacentral && python36 -m sequence_search.consumer

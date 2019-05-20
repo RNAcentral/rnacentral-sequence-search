@@ -22,8 +22,10 @@ RUN yum install -y \
 
 RUN easy_install-3.6 pip
 
-ADD requirements.txt .
+ADD sequence_search/requirements.txt .
 
 RUN pip3 install -r requirements.txt
 
-CMD python36 -m producer.models && python36 -m producer.main
+EXPOSE 8002
+
+ENTRYPOINT cd /rnacentral && python36 -m sequence_search.db && python3 -m sequence_search.producer

@@ -3,13 +3,15 @@ version: '2'
 services:
   producer:
     restart: always
-    build: ./producer
+    build:
+      context: .
+      dockerfile: sequence_search/producer/Dockerfile
     ports:
       - "8002:8002"
     depends_on:
       - postgres
     volumes:
-      - ./producer/producer:/producer
+      - ./:/rnacentral
     environment:
       ENVIRONMENT: "DOCKER-COMPOSE"
       POSTGRES_USER: docker
@@ -22,12 +24,14 @@ services:
 
   consumer:
     restart: always
-    build: ./consumer
+    build:
+      context: .
+      dockerfile: sequence_search/consumer/Dockerfile
     ports:
       - "8000:8000"
       - "8001:8001"
     volumes:
-      - ./consumer/consumer:/consumer
+      - ./:/rnacentral
     environment:
       ENVIRONMENT: "DOCKER-COMPOSE"
       HOST: "0.0.0.0"
@@ -36,6 +40,8 @@ services:
       PRODUCER_PORT: "8002"
     stdin_open: true
     tty: true
+    depends_on:
+      - producer
 #    entrypoint: sleep infinity  # if we need to debug
 
   postgres:
