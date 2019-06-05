@@ -28,4 +28,7 @@ RUN pip3 install -r requirements.txt
 
 EXPOSE 8002
 
-ENTRYPOINT cd /rnacentral && python36 -m sequence_search.db && python3 -m sequence_search.producer
+# to get around click python 3 warnings
+ENV LC_ALL=en_US.utf-8 LANG=en_US.utf-8
+
+ENTRYPOINT cd /rnacentral && python36 -m sequence_search.db && adev runserver --port 8002 sequence_search/producer/__main__.py

@@ -36,4 +36,6 @@ RUN pip3 install -r requirements.txt
 
 EXPOSE 8000
 
-ENTRYPOINT cd /rnacentral && python36 -m sequence_search.consumer
+ENV LC_ALL=en_US.utf-8 LANG=en_US.utf-8
+
+ENTRYPOINT cd /rnacentral && adev runserver sequence_search/consumer/__main__.py
