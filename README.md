@@ -30,13 +30,15 @@ running unit-tests on local machine only, it is not using any database or networ
 - [Terraform inventory](https://github.com/adammck/terraform-inventory)
 - [Virtual environment](https://virtualenv.pypa.io/en/latest/) with installed dependencies
 
-1. Generate `sequence_search_rsa` key:
+1. Create `terraform/providers.tf` using the `providers.tf.template` file.
+
+2. Generate `sequence_search_rsa` key:
 
   `cd terraform && ssh-keygen -t rsa -b 4096`
 
   See: https://help.github.com/en/articles/generating-a-new-ssh-key-and-adding-it-to-the-ssh-agent
 
-2. Follow steps in `redeploy.jenkinsfile`.
+3. Follow steps in `redeploy.jenkinsfile`.
 
   - Install SSH keys
   - Run `terraform init && terraform apply` to create the infrastructure
