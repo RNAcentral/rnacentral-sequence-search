@@ -39,7 +39,7 @@ variable "default_instances" {
 }
 
 variable "test_instances" {
-  default = 5
+  default = 2
 }
 
 variable "default_tfstate" {
