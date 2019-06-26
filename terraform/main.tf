@@ -97,6 +97,40 @@ resource "openstack_compute_secgroup_v2" "sequence_search" {
   }
 }
 
+resource "openstack_compute_instance_v2" "nfs_server" {
+  depends_on = ["openstack_compute_keypair_v2.sequence_search"]
+  name              = "${terraform.workspace}-nfs-server"
+  image_name        = "${var.image}"
+  flavor_name       = "${var.flavor}"
+  key_pair          = "${openstack_compute_keypair_v2.sequence_search.name}"
+  security_groups   = [ "${openstack_compute_secgroup_v2.sequence_search.name}" ]
+
+  network {
+    uuid = "${openstack_networking_network_v2.sequence_search.id}"
+  }
+}
+
+resource "openstack_blockstorage_volume_v2" "nfs_vol" {
+  name = "nfs_vol"
+  size = 10
+}
+
+resource "openstack_compute_volume_attach_v2" "attached" {
+  instance_id = "${openstack_compute_instance_v2.nfs_server.id}"
+  volume_id = "${openstack_blockstorage_volume_v2.nfs_vol.id}"
+}
+
+resource "openstack_compute_floatingip_associate_v2" "associate_nfs_floating_ip" {
+  floating_ip = "${local.floating_ip}"
+  instance_id = "${openstack_compute_instance_v2.producer.id}"
+}
+
+resource "openstack_compute_floatingip_associate_v2" "nfs_server_floating_ip" {
+  depends_on = ["openstack_compute_instance_v2.producer", "openstack_networking_router_interface_v2.sequence_search"]
+  floating_ip = "${local.postgres_floating_ip}"
+  instance_id = "${openstack_compute_instance_v2.nfs_server.id}"
+}
+
 resource "openstack_compute_instance_v2" "producer" {
   depends_on = ["openstack_compute_keypair_v2.sequence_search"]
   name = "${terraform.workspace}-producer"
@@ -168,11 +202,11 @@ resource "openstack_compute_floatingip_associate_v2" "sequence_search" {
   instance_id = "${openstack_compute_instance_v2.producer.id}"
 }
 
-resource "openstack_compute_floatingip_associate_v2" "associate_postgres_floating_ip" {
-  depends_on = ["openstack_compute_instance_v2.postgres", "openstack_networking_router_interface_v2.sequence_search"]
-  floating_ip = "${local.postgres_floating_ip}"
-  instance_id = "${openstack_compute_instance_v2.postgres.id}"
-}
+# resource "openstack_compute_floatingip_associate_v2" "associate_postgres_floating_ip" {
+#   depends_on = ["openstack_compute_instance_v2.postgres", "openstack_networking_router_interface_v2.sequence_search"]
+#   floating_ip = "${local.postgres_floating_ip}"
+#   instance_id = "${openstack_compute_instance_v2.postgres.id}"
+# }
 
 resource "null_resource" "post-flight" {
   triggers {
