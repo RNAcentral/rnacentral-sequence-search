@@ -90,45 +90,39 @@ resource "openstack_compute_secgroup_v2" "sequence_search" {
   }
 
   rule {
+    from_port = 2049
+    to_port = 2049
+    ip_protocol = "tcp"
+    cidr = "0.0.0.0/0"
+  }
+
+  rule {
+    from_port = 2049
+    to_port = 2049
+    ip_protocol = "udp"
+    cidr = "0.0.0.0/0"
+  }
+
+  rule {
+    from_port = 111
+    to_port = 111
+    ip_protocol = "tcp"
+    cidr = "0.0.0.0/0"
+  }
+
+  rule {
+    from_port = 111
+    to_port = 111
+    ip_protocol = "udp"
+    cidr = "0.0.0.0/0"
+  }
+
+  rule {
     from_port = -1
     to_port = -1
     ip_protocol = "icmp"
     cidr = "0.0.0.0/0"
   }
-}
-
-resource "openstack_compute_instance_v2" "nfs_server" {
-  depends_on = ["openstack_compute_keypair_v2.sequence_search"]
-  name              = "${terraform.workspace}-nfs-server"
-  image_name        = "${var.image}"
-  flavor_name       = "${var.flavor}"
-  key_pair          = "${openstack_compute_keypair_v2.sequence_search.name}"
-  security_groups   = [ "${openstack_compute_secgroup_v2.sequence_search.name}" ]
-
-  network {
-    uuid = "${openstack_networking_network_v2.sequence_search.id}"
-  }
-}
-
-resource "openstack_blockstorage_volume_v2" "nfs_vol" {
-  name = "nfs_vol"
-  size = 10
-}
-
-resource "openstack_compute_volume_attach_v2" "attached" {
-  instance_id = "${openstack_compute_instance_v2.nfs_server.id}"
-  volume_id = "${openstack_blockstorage_volume_v2.nfs_vol.id}"
-}
-
-resource "openstack_compute_floatingip_associate_v2" "associate_nfs_floating_ip" {
-  floating_ip = "${local.floating_ip}"
-  instance_id = "${openstack_compute_instance_v2.producer.id}"
-}
-
-resource "openstack_compute_floatingip_associate_v2" "nfs_server_floating_ip" {
-  depends_on = ["openstack_compute_instance_v2.producer", "openstack_networking_router_interface_v2.sequence_search"]
-  floating_ip = "${local.postgres_floating_ip}"
-  instance_id = "${openstack_compute_instance_v2.nfs_server.id}"
 }
 
 resource "openstack_compute_instance_v2" "producer" {
@@ -158,6 +152,20 @@ resource "openstack_compute_instance_v2" "postgres" {
 
 }
 
+resource "openstack_compute_instance_v2" "nfs_server" {
+  depends_on = ["openstack_compute_keypair_v2.sequence_search"]
+  name              = "${terraform.workspace}-nfs-server"
+  image_name        = "ubuntu-16.04"
+  flavor_name       = "${var.flavor}"
+  key_pair          = "${openstack_compute_keypair_v2.sequence_search.name}"
+  security_groups   = [ "${openstack_compute_secgroup_v2.sequence_search.name}" ]
+
+  network {
+    uuid = "${openstack_networking_network_v2.sequence_search.id}"
+    fixed_ip_v4 = "192.168.0.7"
+  }
+}
+
 resource "openstack_compute_instance_v2" "consumers" {
   count = "${local.count}"
   depends_on = ["openstack_compute_keypair_v2.sequence_search"]
@@ -168,38 +176,30 @@ resource "openstack_compute_instance_v2" "consumers" {
   security_groups = [ "${openstack_compute_secgroup_v2.sequence_search.name}" ]
   network {
     uuid = "${openstack_networking_network_v2.sequence_search.id}"
-    fixed_ip_v4 = "192.168.0.${count.index + 7}"
+    fixed_ip_v4 = "192.168.0.${count.index + 8}"
   }
 }
 
-resource "openstack_blockstorage_volume_v2" "sequence_search_consumer_databases" {
-  count = "${local.count}"
-  size = 12
-  name = "${terraform.workspace}-sequence-search-consumer-databases-${count.index + 1}"
-  image_id = "sequence_search_databases"
+resource "openstack_blockstorage_volume_v2" "nfs_volume" {
+  name = "${terraform.workspace}-nfs-volume"
+  size = 20
 }
 
-resource "openstack_compute_volume_attach_v2" "attach_databases_to_consumers" {
-  count = "${local.count}"
-  instance_id = "${openstack_compute_instance_v2.consumers.*.id[count.index]}"
-  volume_id   = "${openstack_blockstorage_volume_v2.sequence_search_consumer_databases.*.id[count.index]}"
-}
-
-resource "openstack_blockstorage_volume_v2" "sequence_search_producer_databases" {
-  size = 12
-  name = "${terraform.workspace}-sequence-search-producer-databases"
-  image_id = "sequence_search_databases"
-}
-
-resource "openstack_compute_volume_attach_v2" "attach_databases_to_producer" {
-  instance_id = "${openstack_compute_instance_v2.producer.id}"
-  volume_id = "${openstack_blockstorage_volume_v2.sequence_search_producer_databases.id}"
+resource "openstack_compute_volume_attach_v2" "attached" {
+  instance_id = "${openstack_compute_instance_v2.nfs_server.id}"
+  volume_id = "${openstack_blockstorage_volume_v2.nfs_volume.id}"
 }
 
 resource "openstack_compute_floatingip_associate_v2" "sequence_search" {
   depends_on = ["openstack_compute_instance_v2.producer", "openstack_networking_router_interface_v2.sequence_search"]
   floating_ip = "${local.floating_ip}"
   instance_id = "${openstack_compute_instance_v2.producer.id}"
+}
+
+resource "openstack_compute_floatingip_associate_v2" "nfs_server_floating_ip" {
+  depends_on = ["openstack_compute_instance_v2.nfs_server", "openstack_networking_router_interface_v2.sequence_search"]
+  floating_ip = "${local.postgres_floating_ip}"
+  instance_id = "${openstack_compute_instance_v2.nfs_server.id}"
 }
 
 # resource "openstack_compute_floatingip_associate_v2" "associate_postgres_floating_ip" {

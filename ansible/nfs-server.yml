@@ -1,0 +1,72 @@
+- name: NFS server installation and setup
+  hosts: nfs_server
+  vars:
+    ansible_python_interpreter: "/usr/bin/python3" # set ansible interpreter to python3
+    ansible_ssh_private_key_file: "../terraform/sequence_search_rsa"
+    network_ip: 192.168.0.0/24
+  become: true
+  gather_facts: no
+  user: ubuntu
+
+  tasks:
+
+    - name: Update apt
+      apt:
+        update_cache: yes
+        state: present
+
+    - name: Install nfs on the compute instance
+      apt:
+        name: "{{ packages }}"
+        state: present
+      vars:
+        packages:
+        - python3-pip
+        - nfs-kernel-server
+
+    - name: Create the export nfs directory
+      file:
+        path: /nfs
+        state: directory
+        mode: "u=r,g=r,o=rwx"
+        recurse: yes
+
+    - name: Format the volume
+      filesystem:
+        fstype: xfs
+        dev: /dev/vdb
+
+    - name: Mount volume to nfs directory
+      mount:
+        path: /nfs
+        src: /dev/vdb
+        fstype: xfs
+        state: mounted
+
+    - name: Make nfs directory accessible to all
+      file:
+        path: /nfs
+        owner: nobody
+        group: nogroup
+
+    - name: chmod 777 equivalent
+      file:
+        path: /nfs
+        mode: u=rwX,g=rwX,o=rwX
+        recurse: yes
+
+    - name: Create exports file
+      lineinfile:
+        dest: /etc/exports
+        regexp: '^#*'
+        insertafter: '^#*'
+        line: "/nfs {{ network_ip }}(rw,sync,fsid=0,crossmnt,no_subtree_check,no_root_squash)"
+        owner: root
+        group: root
+        mode: 0644
+        state: present
+
+    - name: restart nfs server
+      service:
+        name: nfs-kernel-server
+        state: restarted
