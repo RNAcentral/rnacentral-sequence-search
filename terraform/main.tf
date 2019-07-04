@@ -13,7 +13,7 @@ output "tfstate_file" {
   value = ["${local.tfstate_file}"]
 }
 
-resource "null_resource" "pre-flight" {
+resource "null_resource" "pre_flight" {
   triggers {
       build_number = "${timestamp()}"
   }
@@ -208,9 +208,9 @@ resource "openstack_compute_floatingip_associate_v2" "nfs_server_floating_ip" {
 #   instance_id = "${openstack_compute_instance_v2.postgres.id}"
 # }
 
-resource "null_resource" "post-flight" {
+resource "null_resource" "post_flight" {
   triggers {
-      build_number = "${timestamp()}"
+      before = "${null_resource.pre_flight.id}"
   }
   provisioner "local-exec" {
     command = "terraform-inventory -inventory ${local.tfstate_file} > ../ansible/hosts"
