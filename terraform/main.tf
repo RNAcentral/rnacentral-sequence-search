@@ -14,7 +14,7 @@ output "tfstate_file" {
 }
 
 resource "null_resource" "pre_flight" {
-  triggers {
+  triggers = {
       build_number = "${timestamp()}"
   }
   provisioner "local-exec" {
@@ -209,7 +209,7 @@ resource "openstack_compute_floatingip_associate_v2" "nfs_server_floating_ip" {
 # }
 
 resource "null_resource" "post_flight" {
-  triggers {
+  triggers = {
       before = "${null_resource.pre_flight.id}"
   }
   provisioner "local-exec" {
