@@ -5,4 +5,9 @@ provider "openstack" {
   password    = ""
   auth_url    = "https://extcloud05.ebi.ac.uk:13000/v2.0"
   region      = "regionOne"
+  version     = "~> 1.21.1"
+}
+
+provider "null" {
+  version = "~> 2.1"
 }
