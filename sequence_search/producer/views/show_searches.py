@@ -19,5 +19,11 @@ async def show_searches(request):
     async with request.app['engine'].acquire() as conn:
         cursor = await conn.execute(Job.select())
         records = await cursor.fetchall()
-        jobs = [dict(j) for j in records]
-        return web.Response(text=str(jobs))
+        jobs = []
+        for row in records:
+            item = dict(row.items())
+            item['submitted'] = str(item['submitted'])
+            item['finished'] = str(item['finished'])
+            jobs.append(item)
+
+        return web.json_response(jobs)
