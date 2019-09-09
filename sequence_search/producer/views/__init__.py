@@ -24,3 +24,4 @@ from .facets_search import facets_search
 from .list_rnacentral_ids import list_rnacentral_ids
 from .post_rnacentral_ids import post_rnacentral_ids
 from .consumers_statuses import consumers_statuses
+from .show_searches import show_searches
