@@ -13,8 +13,6 @@ limitations under the License.
 import datetime
 from aiohttp import web
 
-from ...db.models import Job
-
 YESTERDAY = datetime.datetime.now() - datetime.timedelta(days=1)
 LAST_WEEK = datetime.datetime.now() - datetime.timedelta(days=7)
 
@@ -23,28 +21,31 @@ def get_results(records):
     jobs = []
     for row in records:
         item = dict(row.items())
-        item['submitted'] = str(item['submitted'])
-        item['finished'] = str(item['finished'])
+        item['avg_time'] = str(datetime.timedelta(seconds=int(item['avg_time'].seconds))) if item['avg_time'] else 0
         jobs.append(item)
     return web.json_response(jobs)
 
 
 async def show_searches(request):
     async with request.app['engine'].acquire() as conn:
-        cursor = await conn.execute(Job.select())
+        cursor = await conn.execute("SELECT count(*), avg(finished - submitted) as avg_time FROM jobs")
         records = await cursor.fetchall()
         return get_results(records)
 
 
 async def searches_today(request):
     async with request.app['engine'].acquire() as conn:
-        cursor = await conn.execute(Job.select().where(Job.columns.submitted > YESTERDAY))
+        cursor = await conn.execute(
+            "SELECT count(*), avg(finished - submitted) as avg_time FROM jobs WHERE submitted > %s", (YESTERDAY,)
+        )
         records = await cursor.fetchall()
         return get_results(records)
 
 
 async def searches_last_week(request):
     async with request.app['engine'].acquire() as conn:
-        cursor = await conn.execute(Job.select().where(Job.columns.submitted > LAST_WEEK))
+        cursor = await conn.execute(
+            "SELECT count(*), avg(finished - submitted) as avg_time FROM jobs WHERE submitted > %s", (LAST_WEEK,)
+        )
         records = await cursor.fetchall()
         return get_results(records)
