@@ -13,39 +13,38 @@ limitations under the License.
 import datetime
 from aiohttp import web
 
-YESTERDAY = datetime.datetime.now() - datetime.timedelta(days=1)
+LAST_24_HOURS = datetime.datetime.now() - datetime.timedelta(days=1)
 LAST_WEEK = datetime.datetime.now() - datetime.timedelta(days=7)
 
 
-def get_results(records):
-    jobs = []
+def convert_average_time(records):
+    result = []
     for row in records:
         item = dict(row.items())
         item['avg_time'] = str(datetime.timedelta(seconds=int(item['avg_time'].seconds))) if item['avg_time'] else 0
-        jobs.append(item)
-    return web.json_response(jobs)
+        result.append(item)
+    return result
 
 
 async def show_searches(request):
     async with request.app['engine'].acquire() as conn:
-        cursor = await conn.execute("SELECT count(*), avg(finished - submitted) as avg_time FROM jobs")
-        records = await cursor.fetchall()
-        return get_results(records)
+        all_searches = await conn.execute("SELECT count(*), avg(finished - submitted) as avg_time FROM jobs")
+        all_searches_records = await all_searches.fetchall()
+        all_searches_result = convert_average_time(all_searches_records)
+        all_searches_result[0].update({'search': 'all'})
 
-
-async def searches_today(request):
-    async with request.app['engine'].acquire() as conn:
-        cursor = await conn.execute(
-            "SELECT count(*), avg(finished - submitted) as avg_time FROM jobs WHERE submitted > %s", (YESTERDAY,)
+        last_24_hours = await conn.execute(
+            "SELECT count(*), avg(finished - submitted) as avg_time FROM jobs WHERE submitted > %s", LAST_24_HOURS
         )
-        records = await cursor.fetchall()
-        return get_results(records)
+        last_24_hours_records = await last_24_hours.fetchall()
+        last_24_hours_result = convert_average_time(last_24_hours_records)
+        last_24_hours_result[0].update({'search': 'last-24-hours'})
 
-
-async def searches_last_week(request):
-    async with request.app['engine'].acquire() as conn:
-        cursor = await conn.execute(
-            "SELECT count(*), avg(finished - submitted) as avg_time FROM jobs WHERE submitted > %s", (LAST_WEEK,)
+        last_week = await conn.execute(
+            "SELECT count(*), avg(finished - submitted) as avg_time FROM jobs WHERE submitted > %s", LAST_WEEK
         )
-        records = await cursor.fetchall()
-        return get_results(records)
+        last_week_records = await last_week.fetchall()
+        last_week_result = convert_average_time(last_week_records)
+        last_week_result[0].update({'search': 'last-week'})
+
+        return web.json_response(all_searches_result + last_24_hours_result + last_week_result)
