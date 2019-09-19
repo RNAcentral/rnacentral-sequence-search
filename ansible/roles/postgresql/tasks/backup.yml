@@ -9,3 +9,7 @@
       state: directory
       owner: postgres
       mode: '0777'
+
+  - name: Set Time Zone
+    timezone:
+      name: Europe/London
