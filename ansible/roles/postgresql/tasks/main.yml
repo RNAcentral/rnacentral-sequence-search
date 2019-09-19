@@ -39,3 +39,7 @@
 - import_tasks: monit.yml
   when: monit_protection is defined and monit_protection == true
   tags: [postgresql, postgresql-monit]
+
+# Added by cribas
+- import_tasks: backup.yml
+  tags: backup
