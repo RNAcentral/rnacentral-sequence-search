@@ -19,6 +19,7 @@ __pycache__/
 *.retry
 
 ansible/hosts
+ansible/producer_latest.dump
 node_modules/
 ENV/
 sequence_search/consumer/hmmer-3.2.1/
