@@ -1,0 +1,4 @@
+SMTP="smtps://smtp.example.com:465"
+FROM="from@example.com"
+TO="to@example.com"
+PASSWORD="FROM-password"
