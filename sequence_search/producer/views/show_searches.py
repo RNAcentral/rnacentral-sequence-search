@@ -25,13 +25,16 @@ def convert_average_time(records):
 
 async def show_searches(request):
     async with request.app['engine'].acquire() as conn:
-        all_searches = await conn.execute("SELECT count(*), avg(finished - submitted) as avg_time FROM jobs")
+        all_searches = await conn.execute(
+            "SELECT count(*), avg(finished - submitted) as avg_time FROM jobs WHERE query !='CUGUACUAUCUACUGUCUCUC'"
+        )
         all_searches_records = await all_searches.fetchall()
         all_searches_result = convert_average_time(all_searches_records)
         all_searches_result[0].update({'search': 'all'})
 
         last_24_hours = await conn.execute(
-            "SELECT count(*), avg(finished - submitted) as avg_time FROM jobs WHERE submitted > %s",
+            "SELECT count(*), avg(finished - submitted) as avg_time FROM jobs "
+            "WHERE query !='CUGUACUAUCUACUGUCUCUC' AND submitted > %s",
             datetime.datetime.now() - datetime.timedelta(days=1)
         )
         last_24_hours_records = await last_24_hours.fetchall()
@@ -39,7 +42,8 @@ async def show_searches(request):
         last_24_hours_result[0].update({'search': 'last-24-hours'})
 
         last_week = await conn.execute(
-            "SELECT count(*), avg(finished - submitted) as avg_time FROM jobs WHERE submitted > %s",
+            "SELECT count(*), avg(finished - submitted) as avg_time FROM jobs "
+            "WHERE query !='CUGUACUAUCUACUGUCUCUC' AND submitted > %s",
             datetime.datetime.now() - datetime.timedelta(days=7)
         )
         last_week_records = await last_week.fetchall()
