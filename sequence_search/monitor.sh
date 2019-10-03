@@ -7,7 +7,7 @@ source .conf-file
 set +o allexport
 
 CONTENT_TYPE="Content-Type: application/json"
-DATABASE_AND_QUERY="{\"databases\": [\"mirbase\"], \"query\": \"CUGUACUAUCUACUGUCUCUC\"}"
+DATABASE_AND_QUERY="{\"databases\": [\"mirbase\"], \"query\": \">sequence-search-test\nCUGUACUAUCUACUGUCUCUC\"}"
 HOST="https://rnacentral.org"
 ENDPOINT="sequence-search-beta"
 
