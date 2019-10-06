@@ -9,8 +9,10 @@
   user: centos
 
   tasks:
-    - name: Install nfs client
-      command: yum install nfs-utils nfs-utils-lib
+    - name: Install yum dependencies
+      yum:
+        name:
+          - nfs-utils
 
     - name: Create an nfs directory where to mount nfs server dir
       file:
