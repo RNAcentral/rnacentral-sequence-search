@@ -14,6 +14,7 @@ terraform_load_balancer/load_balancer_rsa.pub
 terraform_load_balancer/.terraform
 
 __pycache__/
+.idea/
 *.pyc
 *.pyo
 *.retry
