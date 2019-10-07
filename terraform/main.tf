@@ -166,6 +166,19 @@ resource "openstack_compute_instance_v2" "nfs_server" {
   }
 }
 
+resource "openstack_compute_instance_v2" "monitor" {
+  depends_on = ["openstack_compute_keypair_v2.sequence_search"]
+  name = "${terraform.workspace}-monitor"
+  image_name = "${var.image}"
+  flavor_name = "${var.flavor_monitor}"
+  key_pair = "${openstack_compute_keypair_v2.sequence_search.name}"
+  security_groups = [ "${openstack_compute_secgroup_v2.sequence_search.name}" ]
+  network {
+    uuid = "${openstack_networking_network_v2.sequence_search.id}"
+    fixed_ip_v4 = "192.168.0.8"
+  }
+}
+
 resource "openstack_compute_instance_v2" "consumers" {
   count = "${local.count}"
   depends_on = ["openstack_compute_keypair_v2.sequence_search"]
@@ -176,7 +189,7 @@ resource "openstack_compute_instance_v2" "consumers" {
   security_groups = [ "${openstack_compute_secgroup_v2.sequence_search.name}" ]
   network {
     uuid = "${openstack_networking_network_v2.sequence_search.id}"
-    fixed_ip_v4 = "192.168.0.${count.index + 8}"
+    fixed_ip_v4 = "192.168.0.${count.index + 9}"
   }
 }
 

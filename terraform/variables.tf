@@ -6,6 +6,10 @@ variable "flavor" {
   default = "s1.jumbo"
 }
 
+variable "flavor_monitor" {
+  default = "s1.tiny"
+}
+
 variable "ssh_key_file" {
   default = "sequence_search_rsa"
 }
