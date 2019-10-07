@@ -29,6 +29,11 @@ with open('current_state') as json_file:
     file.write([obj for obj in data['values']['root_module']['resources'] if obj['address'] == 'openstack_compute_instance_v2.producer'][0]['values']['access_ip_v4'] + '\n')
     file.write('\n')
 
+    file.write('[monitor]\n')
+    file.write([obj for obj in data['values']['root_module']['resources'] if
+                obj['address'] == 'openstack_compute_instance_v2.monitor'][0]['values']['access_ip_v4'] + '\n')
+    file.write('\n')
+
     file.write('[consumers]\n')
     for obj in data['values']['root_module']['resources']:
         if obj['address'] == 'openstack_compute_instance_v2.consumers':
