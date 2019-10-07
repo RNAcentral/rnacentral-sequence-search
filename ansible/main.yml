@@ -21,3 +21,4 @@
 
 
 - import_playbook: consumers.yml
+- import_playbook: monitor.yml
