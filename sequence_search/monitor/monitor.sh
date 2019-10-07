@@ -19,15 +19,23 @@ if curl -s --head  --request GET $HOST | grep "200 OK" > /dev/null; then
     JOB_ID=$(curl -s -H "${CONTENT_TYPE}" -d "${DATABASE_AND_QUERY}" ${HOST}/api/submit-job | jq -r '.job_id')
 
     # Job status
-    # Expected response: "started"
-    INITIAL_STATUS=$(curl -s ${HOST}/api/job-status/$JOB_ID | jq -r '.chunks | .[] | .status')
+    STATUS=$(curl -s ${HOST}/api/job-status/$JOB_ID | jq -r '.chunks | .[] | .status')
 
-    # Waits 5 seconds.
-    sleep 5s
-
-    # Job status
-    # Expected response: "success"
-    FINAL_STATUS=$(curl -s ${HOST}/api/job-status/$JOB_ID | jq -r '.chunks | .[] | .status')
+    # Wait up to 30 minutes to finish
+    PAUSE="0"
+    if [ "$STATUS" == "started" ] || [ "$STATUS" == "pending" ]
+    then
+        while [ $PAUSE -lt 30 ]
+        do
+            sleep 60
+            STATUS=$(curl -s ${HOST}/api/job-status/$JOB_ID | jq -r '.chunks | .[] | .status')
+            if [ "$STATUS" == "success" ] || [ "$STATUS" == "error" ] || [ "$STATUS" == "timeout" ]
+            then
+                break
+            fi
+            PAUSE=$[$PAUSE+1]
+        done
+    fi
 
     # Facets search
     # Expected response: "hitCount = 23 and textSearchError = false"
@@ -36,15 +44,15 @@ if curl -s --head  --request GET $HOST | grep "200 OK" > /dev/null; then
     SEARCH_ERROR=$(echo ${FACETS_SEARCH} |  jq '.[1]')
 
     # Send message in case of unexpected result
-    if [ "$INITIAL_STATUS" != "started" ] || [ "$FINAL_STATUS" != "success" ] || [ "$HIT_COUNT" != "23" ] || [ "$SEARCH_ERROR" != "false" ]
+    if [ "$STATUS" != "success" ] || [ "$HIT_COUNT" != "23" ] || [ "$SEARCH_ERROR" != "false" ]
     then
         text="Ops! There is something wrong with the RNAcentral sequence search. Please check the links below: \n
         \n
         To check the status see: ${HOST}/api/job-status/$JOB_ID \n
-        The status output: ${INITIAL_STATUS} and ${FINAL_STATUS}. The expected status: started and success. \n
+        The job status is ${STATUS} (the expected status is success). \n
         \n
         To check the results see: ${HOST}/api/facets-search/$JOB_ID \n
-        The result output: ${HIT_COUNT} and ${SEARCH_ERROR}. The expected result: 23 and false."
+        The job results are ${HIT_COUNT} and ${SEARCH_ERROR} (the expected results are 23 and false)."
         escapedText=$(echo ${text} | sed 's/"/\"/g' | sed "s/'/\'/g" )
         json="{\"text\": \"$escapedText\"}"
         curl -s -d "payload=$json" $WEBHOOK_URL
