@@ -6,6 +6,7 @@ terraform/terraform.tfstate.d/test/*.backup
 terraform/sequence_search_rsa
 terraform/sequence_search_rsa.pub
 terraform/.terraform
+terraform/current_state
 
 terraform_load_balancer/providers.tf
 terraform_load_balancer/terraform.tfstate.backup
