@@ -20,11 +20,11 @@
     tags: [ install-deps ]
 
   - name: Copy script
-    copy: src=../../../../sequence_search/monitor.sh dest=/home/centos owner=centos mode=0744
+    copy: src=../../../../sequence_search/monitor/monitor.sh dest=/home/centos owner=centos mode=0744
     tags: [ copy-script ]
 
   - name: Copy config
-    copy: src=../../../../sequence_search/.conf-file dest=/home/centos owner=centos mode=0744
+    copy: src=../../../../sequence_search/monitor/.conf-file dest=/home/centos owner=centos mode=0744
     tags: [ copy-config ]
 
   - name: Insert the floating_ip
