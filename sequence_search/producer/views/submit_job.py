@@ -95,6 +95,10 @@ async def submit_job(request):
     """
     data = await request.json()
 
+    # Leave databases name in lowercase.
+    if data['databases']:
+        data['databases'] = [db.lower() for db in data['databases']]
+
     try:
         data = serialize(request, data)
     except (KeyError, TypeError, ValueError) as e:

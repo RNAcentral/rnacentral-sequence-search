@@ -59,7 +59,7 @@ def create_app():
     app.update(name='consumer', settings=settings)
 
     # setup Jinja2 template renderer
-    aiohttp_jinja2.setup(app, loader=jinja2.PackageLoader('sequence_search', 'consumer', 'templates'))
+    aiohttp_jinja2.setup(app, loader=jinja2.FileSystemLoader(str(settings.PROJECT_ROOT / 'templates')))
 
     # create db connection on startup, shutdown on exit
     for key, value in get_postgres_credentials(settings.ENVIRONMENT)._asdict().items():

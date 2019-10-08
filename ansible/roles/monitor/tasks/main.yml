@@ -1,0 +1,47 @@
+# file: monitor/tasks/main.yml
+
+---
+  # This role is related to monitor installation
+  - name: Enable epel repository
+    yum_repository:
+      name: epel
+      baseurl: https://download.fedoraproject.org/pub/epel/$releasever/$basearch/
+      enabled: yes
+      state: present
+      description: epel repostiory
+      gpgcheck: no
+    tags: [ install-deps ]
+
+  - name: Install yum dependencies
+    yum:
+      name:
+      - epel-release
+      - jq
+    tags: [ install-deps ]
+
+  - name: Copy script
+    copy: src=../../../../sequence_search/monitor/monitor.sh dest=/home/centos owner=centos mode=0744
+    tags: [ copy-script ]
+
+  - name: Copy config
+    copy: src=../../../../sequence_search/monitor/.conf-file dest=/home/centos owner=centos mode=0744
+    tags: [ copy-config ]
+
+  - name: Insert the floating_ip
+    lineinfile:
+      path: /home/centos/.conf-file
+      line: "FLOATING_IP={{ floating_ip }}"
+    tags: [ copy-floating-ip ]
+
+  - name: Add cronjob
+    cron:
+      name: "Check the Sequence Search service"
+      user: "centos"
+      minute: 0
+      job: "sh /home/centos/monitor.sh"
+    tags: [ cronjob ]
+
+  - name: Set Time Zone
+    timezone:
+      name: Europe/London
+    tags: [ timezone ]
