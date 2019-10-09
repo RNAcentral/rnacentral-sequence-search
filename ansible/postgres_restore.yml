@@ -9,3 +9,5 @@
   tasks: 
   - copy: src=producer_latest.dump dest=/tmp/producer_latest.dump mode=0777
   - shell: pg_restore -U docker -c -n public -n pg_catalog -d producer /tmp/producer_latest.dump
+
+- import_playbook: consumers.yml
