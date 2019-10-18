@@ -69,3 +69,5 @@
 
   roles:
     - postgresql
+    - ssh
+    - iptables

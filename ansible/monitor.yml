@@ -7,4 +7,6 @@
     ansible_ssh_private_key_file: "../terraform/sequence_search_rsa"
     floating_ip: "{{ lookup('pipe', 'cd ../terraform && terraform output floating_ip') }}"
   roles:
-    - {role: 'monitor', tags: 'monitor'}
+    - monitor
+    - ssh
+    - iptables

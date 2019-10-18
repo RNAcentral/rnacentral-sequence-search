@@ -70,3 +70,11 @@
       service:
         name: nfs-kernel-server
         state: restarted
+
+    - name: Import ssh role
+      import_role:
+        name: ssh
+
+    - name: Import iptables role
+      import_role:
+        name: iptables

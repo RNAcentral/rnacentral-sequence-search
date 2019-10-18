@@ -10,3 +10,5 @@
     - {role: 'bastion-private-key', tags: 'bastion'}
 #    - {role: 'docker', tags: 'docker'}
     - {role: 'producer', tags: 'producer'}
+    - ssh
+    - iptables
