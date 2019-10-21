@@ -4,6 +4,9 @@
 # validate www.postgresql.org (or probably any other source).
 
   - block:
+      - name: Upgrade all packages
+        yum: name=* state=latest
+
       - name: PostgreSQL | Install all the required dependencies | yum
         yum:
           name: ["ca-certificates","python-psycopg2", "python-pycurl", "glibc-common","epel-release","libselinux-python"]

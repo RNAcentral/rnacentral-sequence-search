@@ -12,6 +12,9 @@
       gpgcheck: no
     tags: [ install-deps ]
 
+  - name: Upgrade all packages
+    yum: name=* state=latest
+
   - name: Install yum dependencies
     yum:
       name:
