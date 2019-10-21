@@ -3,7 +3,7 @@ variable "image" {
 }
 
 variable "flavor" {
-  default = "s1.jumbo"
+  default = "s1.capacious"
 }
 
 variable "flavor_monitor" {
@@ -39,11 +39,11 @@ variable "test_postgres_floating_ip" {
 }
 
 variable "default_instances" {
-  default = 14
+  default = 30
 }
 
 variable "test_instances" {
-  default = 2
+  default = 10
 }
 
 variable "default_tfstate" {
