@@ -36,6 +36,14 @@ async def init_pg(app):
     )
 
 
+# Graceful shutdown
+# -----------------
+
+async def close_pg(app):
+    app['engine'].close()
+    await app['engine'].wait_closed()
+
+
 # Models schema
 # -------------
 

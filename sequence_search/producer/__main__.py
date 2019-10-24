@@ -22,7 +22,7 @@ from aiojobs.aiohttp import setup as setup_aiojobs
 from aiohttp import web, web_middlewares
 
 from . import settings
-from ..db.models import init_pg, migrate
+from ..db.models import close_pg, init_pg, migrate
 from ..db.job_chunks import find_highest_priority_job_chunks, get_job_chunk
 from ..db.jobs import get_job_query
 from ..db.consumers import delegate_job_chunk_to_consumer, find_available_consumers, find_busy_consumers, \
@@ -116,7 +116,7 @@ def create_app():
 
     # create db connection on startup, shutdown on exit
     app.on_startup.append(on_startup)
-    # app.on_cleanup.append(close_pg)
+    app.on_cleanup.append(close_pg)
 
     # setup views and routes
     setup_routes(app)
