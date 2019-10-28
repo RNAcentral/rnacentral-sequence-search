@@ -63,7 +63,7 @@
         - "--exclude=/sequence_search/consumer/queries/*.fasta"
         - "--exclude=/sequence_search/consumer/results/*.fasta"
         - "--exclude=/sequence_search/producer/static/node_modules"
-    tags: [ quick ]
+    tags: [ rsync, quick ]
 
 
 
