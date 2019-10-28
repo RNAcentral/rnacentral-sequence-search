@@ -160,11 +160,11 @@ https://github.com/webpack/webpack.js.org/issues/1854.
 
 1. `pushd terraform_load_balancer; terraform apply; popd`
 
-2. Update IP address in `load_balancer.yml`, then run:
+2. Run the command bellow passing the IPs as variables on the command line:
 
     ```
     cd ansible_load_balancer
-    ansible-playbook -i hosts --private-key=../terraform_load_balancer/load_balancer_rsa load_balancer.yml
+    ansible-playbook -i hosts --private-key=../terraform_load_balancer/load_balancer_rsa --extra-vars "main_ip=main.ip.address fallback_ip=fallback.ip.address" load_balancer.yml
     ```
 
 The load balancer is an nginx server that proxies http requests to the
@@ -209,13 +209,11 @@ To configure Jenkins deployment:
 13. `popd`
 14. Edit `postgres/local_init.sql` file and replace role `burkov` there with your username on local machine
 15. Edit `sequence_search/db/settings.py` and replace role `burkov` with your username on local machine
-16. `mkdir sequence_search/consumer/queries` - create queries directory in consumer
-17. `mkdir sequence_search/consumer/results` - create results directory in consumer
-18. `docker build -t local-postgres -f postgres/local.Dockerfile postgres` - this will create an image with postgres databases.
-19. `docker run -d -p 5432:5432 -t local-postgres` - this will create and start an instance of postgres on your local machine's 5432 port.
-20. `python3 -m sequence_search.db` - creates necessary database tables for producer and consumer to run
-21. `python3 -m sequence_search.producer` - starts producer server on port 8002
-22. `python3 -m sequence_search.consumer` - starts consumer server on port 8000
+16. `docker build -t local-postgres -f postgres/local.Dockerfile postgres` - this will create an image with postgres databases.
+17. `docker run -d -p 5432:5432 -t local-postgres` - this will create and start an instance of postgres on your local machine's 5432 port.
+18. `python3 -m sequence_search.db` - creates necessary database tables for producer and consumer to run
+19. `python3 -m sequence_search.producer` - starts producer server on port 8002
+20. `python3 -m sequence_search.consumer` - starts consumer server on port 8000
 
 ### Sources of inspiration
 
