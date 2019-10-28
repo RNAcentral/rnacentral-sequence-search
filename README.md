@@ -167,11 +167,9 @@ https://github.com/webpack/webpack.js.org/issues/1854.
     ansible-playbook -i hosts --private-key=../terraform_load_balancer/load_balancer_rsa --extra-vars "main_ip=main.ip.address fallback_ip=fallback.ip.address" load_balancer.yml
     ```
 
-The load balancer is an nginx server that proxies http requests to the
-currently selected producer machine's `8002` port. If you want to
-configure the ip and port of producer machine, go to `load_balancer.yml`
-playbook and change the `nginx_backend_ip` and `nginx_backend_port`
-variables.
+The load balancer is an nginx server that proxies http requests to the currently selected producer machine's `8002` 
+port. If you want to change the port of producer machine, go to `load_balancer.yml` playbook and change the 
+`nginx_backend_port` variable.
 
 If you want to update nginx configuration, make changes in
 `ansible_load_balancer/roles/ansible_load_balancer/templates/upstream.conf.js`.
