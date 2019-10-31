@@ -110,7 +110,7 @@ def create_app():
     # setup Jinja2 template renderer; jinja2 contains various loaders, can also try PackageLoader etc.
     aiohttp_jinja2.setup(app, loader=jinja2.FileSystemLoader(str(settings.PROJECT_ROOT / 'static')))
 
-    # create db connection on startup, shutdown on exit
+    # get credentials of the correct environment
     for key, value in get_postgres_credentials(settings.ENVIRONMENT)._asdict().items():
         setattr(app['settings'], key, value)
 
