@@ -16,9 +16,10 @@ import re
 from aiohttp import web
 from aiojobs.aiohttp import atomic
 
+from sequence_search.db.models import JOB_CHUNK_STATUS_CHOICES
 from ...db.consumers import delegate_job_chunk_to_consumer, find_available_consumers
 from ...db.jobs import save_job
-from ...db.job_chunks import save_job_chunk
+from ...db.job_chunks import save_job_chunk, set_job_chunk_status
 from ...consumer.rnacentral_databases import producer_validator, producer_to_consumers_databases
 
 
@@ -95,7 +96,7 @@ async def submit_job(request):
     """
     data = await request.json()
 
-    # Leave databases name in lowercase.
+    # leave databases name in lowercase.
     if data['databases']:
         data['databases'] = [db.lower() for db in data['databases']]
 
@@ -109,11 +110,15 @@ async def submit_job(request):
 
     databases = producer_to_consumers_databases(data['databases'])
     for database in databases:
-        job_chunk_id = await save_job_chunk(request.app['engine'], job_id, database)
+        # save job_chunk with "created" status. This prevents the check_chunks_and_consumers function,
+        # which runs every 5 seconds, from executing the same job_chunk again.
+        await save_job_chunk(request.app['engine'], job_id, database)
 
     # TODO: what if Job was saved and JobChunk was not? Need transactions?
 
     consumers = await find_available_consumers(request.app['engine'])
+
+    # if there are consumers available, delegate job_chunk to consumer
     for index in range(min(len(consumers), len(databases))):
         try:
             await delegate_job_chunk_to_consumer(
@@ -123,6 +128,18 @@ async def submit_job(request):
                 job_id=job_id,
                 database=databases[index],
                 query=data['query']
+            )
+        except Exception as e:
+            return web.HTTPBadGateway(text=str(e))
+
+    # change job_chunk status to pending if no consumer is available
+    for index in range(len(consumers), len(databases)):
+        try:
+            await set_job_chunk_status(
+                request.app['engine'],
+                job_id,
+                databases[index],
+                status=JOB_CHUNK_STATUS_CHOICES.pending
             )
         except Exception as e:
             return web.HTTPBadGateway(text=str(e))
