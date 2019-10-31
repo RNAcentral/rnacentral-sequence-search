@@ -56,6 +56,7 @@ class JOB_STATUS_CHOICES(object):
 
 
 class JOB_CHUNK_STATUS_CHOICES(object):
+    created = 'created'
     pending = 'pending'
     started = 'started'
     error = 'error'
