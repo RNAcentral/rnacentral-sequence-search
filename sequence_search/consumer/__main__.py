@@ -20,7 +20,7 @@ from aiojobs.aiohttp import setup as setup_aiojobs
 from aiohttp import web, web_middlewares
 
 from . import settings
-from ..db.models import init_pg
+from ..db.models import close_pg, init_pg
 from ..db.consumers import register_consumer_in_the_database
 from ..db.settings import get_postgres_credentials
 from .urls import setup_routes
@@ -61,11 +61,13 @@ def create_app():
     # setup Jinja2 template renderer
     aiohttp_jinja2.setup(app, loader=jinja2.FileSystemLoader(str(settings.PROJECT_ROOT / 'templates')))
 
-    # create db connection on startup, shutdown on exit
+    # get credentials of the correct environment
     for key, value in get_postgres_credentials(settings.ENVIRONMENT)._asdict().items():
         setattr(app['settings'], key, value)
 
+    # create db connection on startup, shutdown on exit
     app.on_startup.append(on_startup)
+    app.on_cleanup.append(close_pg)
 
     # setup views and routes
     setup_routes(app)
