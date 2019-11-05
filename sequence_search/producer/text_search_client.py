@@ -10,10 +10,8 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
 """
-
-import os
-
 import aiohttp
+import socket
 
 from .settings import EBI_SEARCH_PROXY_URL, PROJECT_ROOT
 
@@ -93,8 +91,16 @@ async def get_text_search_results(results, job_id, query, start, size, facetcoun
         except Exception as e:
             raise ProxyConnectionError() from e
 
-    # request facets from ebi text search
-    url = "http://wwwdev.ebi.ac.uk/ebisearch/ws/rest/rnacentral/seqtoolresults/" \
+    # get the hostname of the machine to use the correct URL
+    hostname = socket.gethostname()
+
+    if hostname == 'default-producer':
+        ebi_search_url = 'https://www.ebi.ac.uk/ebisearch/ws/rest/rnacentral/seqtoolresults/'
+    else:
+        ebi_search_url = 'https://wwwdev.ebi.ac.uk/ebisearch/ws/rest/rnacentral/seqtoolresults/'
+
+    # request facets from ebi text search (dev or prod)
+    url = "{ebi_search_url}" \
           "?toolid=nhmmer" \
           "&jobid={job_id}" \
           "&query={query}" \
@@ -103,8 +109,8 @@ async def get_text_search_results(results, job_id, query, start, size, facetcoun
           "&facetfields={facetfields}" \
           "&start={start}" \
           "&size={size}" \
-        .format(job_id=job_id, query=query, fields=','.join(fields), facetcount=facetcount,
-                facetfields=','.join(facetfields), start=start, size=size)
+        .format(ebi_search_url=ebi_search_url, job_id=job_id, query=query, fields=','.join(fields),
+                facetcount=facetcount, facetfields=','.join(facetfields), start=start, size=size)
 
     try:
         # using default timeout. It means that the whole operation should finish in 5 minutes.
