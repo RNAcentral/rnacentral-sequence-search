@@ -53,7 +53,7 @@ resource "openstack_networking_router_interface_v2" "sequence_search" {
 
 resource "openstack_compute_secgroup_v2" "sequence_search" {
   name = "${terraform.workspace}_sequence_search"
-  description = "Security group for the sequence_search instances (except NFS)"
+  description = "Security group for the sequence_search instances (except NFS and monitor)"
   rule {
     from_port = 22
     to_port = 22
@@ -136,6 +136,31 @@ resource "openstack_compute_secgroup_v2" "sequence_search_nfs_instance" {
   }
 }
 
+resource "openstack_compute_secgroup_v2" "sequence_search_monitor_instance" {
+  name = "${terraform.workspace}_sequence_search_monitor_instance"
+  description = "Security group for the monitor instance"
+  rule {
+    from_port = 22
+    to_port = 22
+    ip_protocol = "tcp"
+    cidr = "0.0.0.0/0"
+  }
+
+  rule {
+    from_port = 11211
+    to_port = 11211
+    ip_protocol = "tcp"
+    cidr = "192.168.0.0/24"
+  }
+
+  rule {
+    from_port = -1
+    to_port = -1
+    ip_protocol = "icmp"
+    cidr = "0.0.0.0/0"
+  }
+}
+
 resource "openstack_compute_instance_v2" "producer" {
   depends_on = ["openstack_compute_keypair_v2.sequence_search", "openstack_networking_subnet_v2.sequence_search"]
   name = "${terraform.workspace}-producer"
@@ -181,7 +206,7 @@ resource "openstack_compute_instance_v2" "monitor" {
   image_name = "${var.image}"
   flavor_name = "${var.flavor_monitor}"
   key_pair = "${openstack_compute_keypair_v2.sequence_search.name}"
-  security_groups = [ "${openstack_compute_secgroup_v2.sequence_search.name}" ]
+  security_groups = [ "${openstack_compute_secgroup_v2.sequence_search_monitor_instance.name}" ]
   network {
     uuid = "${openstack_networking_network_v2.sequence_search.id}"
     fixed_ip_v4 = "192.168.0.8"
@@ -204,7 +229,7 @@ resource "openstack_compute_instance_v2" "consumers" {
 
 resource "openstack_blockstorage_volume_v2" "nfs_volume" {
   name = "${terraform.workspace}-nfs-volume"
-  size = 20
+  size = 100
 }
 
 resource "openstack_compute_volume_attach_v2" "attached" {
