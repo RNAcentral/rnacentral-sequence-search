@@ -20,6 +20,7 @@
       name:
       - epel-release
       - jq
+      - memcached
     tags: [ install-deps ]
 
   - name: Copy script
@@ -48,3 +49,21 @@
     timezone:
       name: Europe/London
     tags: [ timezone ]
+
+  - name: Update memcached configuration
+    lineinfile:
+      dest: /etc/sysconfig/memcached
+      regexp: "{{item.regexp}}"
+      line: "{{item.line}}"
+      state: present
+    with_items:
+      - regexp: '^#?MAXCONN="1024"'
+        line: 'MAXCONN="2048"'
+      - regexp: '^#?CACHESIZE="64"'
+        line: 'CACHESIZE="1024"'
+      - regexp: '^#?OPTIONS=""'
+        line: 'OPTIONS="-l 192.168.0.8 -U 0 -vv >> /var/log/memcached 2>&1"'
+
+  - name: Ensure Memcached is started and set to run on startup
+    service: name=memcached state=started enabled=yes
+    tags: [ memcached ]
