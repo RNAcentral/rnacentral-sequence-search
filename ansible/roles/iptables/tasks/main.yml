@@ -80,6 +80,13 @@
       jump: ACCEPT
       protocol: udp
 
+  - name: Allow port 11211 (tcp) / Memcache
+    iptables:
+      chain: INPUT
+      destination_port: 11211
+      jump: ACCEPT
+      protocol: tcp
+
   - name: Drop any traffic without rule
     iptables:
       chain: INPUT
