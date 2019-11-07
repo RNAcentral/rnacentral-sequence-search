@@ -7,7 +7,7 @@ variable "flavor" {
 }
 
 variable "flavor_monitor" {
-  default = "s1.tiny"
+  default = "s1.small"
 }
 
 variable "ssh_key_file" {
