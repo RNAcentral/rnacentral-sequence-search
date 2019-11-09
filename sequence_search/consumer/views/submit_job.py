@@ -14,6 +14,7 @@ limitations under the License.
 import os
 import logging
 import asyncio
+import datetime
 
 from aiohttp import web
 from aiojobs.aiohttp import spawn
@@ -60,8 +61,12 @@ async def nhmmer(engine, job_id, sequence, database):
     process, filename = await nhmmer_search(sequence=sequence, job_id=job_id, database=database)
 
     try:
+        t0 = datetime.datetime.now()
         task = asyncio.ensure_future(process.communicate())
         await asyncio.wait_for(task, MAX_RUN_TIME)
+        logging.debug("Time - Nhmmer searched for sequences in {} for {} seconds".format(
+            database, (datetime.datetime.now() - t0).total_seconds())
+        )
 
         return_code = process.returncode
         if return_code != 0:
@@ -81,8 +86,12 @@ async def nhmmer(engine, job_id, sequence, database):
 
         try:
             # save results of the job_chunk to the database
+            t0 = datetime.datetime.now()
             results = [record for record in nhmmer_parse(filename=filename)]  # parse nhmmer results to python
             await set_job_chunk_results(engine, job_id, database, results)
+            logging.debug("Time - saving {} results in {} seconds".format(
+                len(results), (datetime.datetime.now() - t0).total_seconds())
+            )
 
             # set status of the job_chunk to the database
             await set_job_chunk_status(engine, job_id, database, status=JOB_CHUNK_STATUS_CHOICES.success)
