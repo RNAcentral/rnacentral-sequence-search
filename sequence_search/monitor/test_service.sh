@@ -24,9 +24,10 @@ if curl -s --head  --request GET $HOST_TO_TEST | grep "200 OK" > /dev/null; then
     declare -a arr
 
     # Submit jobs
-    # Each job runs a different sequence
+    # Each job searches a different sequence with a different size
     for ((i=1;i<=$TOTAL;i++)); do
-        NEW_SEQUENCE=$(cat /dev/urandom | env LC_CTYPE=C tr -dc ACGTU | head -c 22)
+        SIZE=$(( $RANDOM % 80 + 20 ))
+        NEW_SEQUENCE=$(cat /dev/urandom | env LC_CTYPE=C tr -dc ACGTU | head -c $SIZE)
         DATABASE_AND_QUERY_TEST="{\"databases\": [], \"query\": \"$NEW_SEQUENCE\"}"
         JOB_ID=$(curl -s -H "${CONTENT_TYPE}" -d "${DATABASE_AND_QUERY_TEST}" ${HOST_TO_TEST}/api/submit-job | jq -r '.job_id')
         arr=("${arr[@]}" $JOB_ID)
