@@ -86,13 +86,13 @@ async def nhmmer(engine, job_id, sequence, database):
 
         try:
             # save results of the job_chunk to the database
-            t0 = datetime.datetime.now()
             results = [record for record in nhmmer_parse(filename=filename)]  # parse nhmmer results to python
-            await set_job_chunk_results(engine, job_id, database, results)
-            logging.debug("Time - saving {} results in {} seconds".format(
-                len(results), (datetime.datetime.now() - t0).total_seconds())
-            )
-
+            if results:
+                t0 = datetime.datetime.now()
+                await set_job_chunk_results(engine, job_id, database, results)
+                logging.debug("Time - saving {} results in {} seconds".format(
+                    len(results), (datetime.datetime.now() - t0).total_seconds())
+                )
             # set status of the job_chunk to the database
             await set_job_chunk_status(engine, job_id, database, status=JOB_CHUNK_STATUS_CHOICES.success)
         except (DatabaseConnectionError, SQLError) as e:

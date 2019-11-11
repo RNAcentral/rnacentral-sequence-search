@@ -32,11 +32,10 @@ async def set_job_chunk_results(engine, job_id, database, results):
                     job_chunk_id = row.id
                     break
 
-                if results:
-                    for result in results:
-                        result['job_chunk_id'] = job_chunk_id
+                for result in results:
+                    result['job_chunk_id'] = job_chunk_id
 
-                    await connection.execute(JobChunkResult.insert().values(results))
+                await connection.execute(JobChunkResult.insert().values(results))
             except Exception as e:
                 raise SQLError("Failed to set_job_chunk_results in the database, "
                                "job_id = %s, database = %s" % (job_id, database)) from e
