@@ -45,23 +45,13 @@
       src: ../../../../sequence_search
       dest: /srv
       rsync_opts:
-        - "--exclude=/sequence_search/consumer/databases.iso"
         - "--exclude=/sequence_search/consumer/databases"
-        - "--exclude=/sequence_search/consumer/databases_back"
         - "--exclude=/sequence_search/consumer/queries/*.fasta"
         - "--exclude=/sequence_search/consumer/results/*.fasta"
         - "--exclude=/sequence_search/producer/static/node_modules"
         - "--exclude=/sequence_search/producer/static/package-lock.json"
     tags: [ rsync, quick ]
 
-  - name: Umount volume for databases (so that chown doesn't complain)
-    mount:
-      path: /srv/sequence_search/consumer/databases
-      src: /dev/vdb
-      fstype: iso9660
-      state: unmounted
-    ignore_errors: yes
-    tags: [ rsync, quick ]
 
   - name: Chown aiohttp code
     command: "chown -R centos:centos /srv/sequence_search"
@@ -108,14 +98,11 @@
     tags: [ logs ]
 
 
-  - name: Mount volume for databases
-    mount:
-      path: /srv/sequence_search/consumer/databases
-      src: /dev/vdb
-      fstype: iso9660
-      state: mounted
-    tags: [ volume, volume-mount, quick ]
-
+  - name: Create a symbolic link to sequence databases
+    file:
+      src: /nfs
+      dest: /srv/sequence_search/consumer/databases
+      state: link
 
 
   - name: Install node_modules
@@ -142,7 +129,7 @@
   - name: Drop the database and re-create it
     shell:
       chdir: /srv
-      cmd: ENVIRONMENT=PRODUCTION python36 -m sequence_search.db
+      cmd: ENVIRONMENT=PRODUCTION python3 -m sequence_search.db
     tags: [ never, migrate ]
 
 
@@ -182,12 +169,12 @@
   - name: Clean database
     shell:
       chdir: /srv
-      cmd: ENVIRONMENT=PRODUCTION python36 -m sequence_search.db
+      cmd: ENVIRONMENT=PRODUCTION python3 -m sequence_search.db
     tags: [ never, clean-db ]
 
   - name: Run producer service
     shell:
       chdir: /srv
 #      cmd: /usr/local/bin/gunicorn producer.main:app --daemon --bind 0.0.0.0:8002 --worker-class aiohttp.worker.GunicornWebWorker --access-logfile /var/log/gunicorn/access_log --error-logfile /var/log/gunicorn/error_log --env ENVIRONMENT=PRODUCTION --log-level=DEBUG --timeout 120
-      cmd: ENVIRONMENT=PRODUCTION nohup python36 -m sequence_search.producer &> /var/log/gunicorn/access_log &
+      cmd: ENVIRONMENT=PRODUCTION nohup python3 -m sequence_search.producer &> /var/log/gunicorn/access_log &
     tags: [ restart, quick ]

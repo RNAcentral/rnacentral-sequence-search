@@ -67,13 +67,12 @@ async def save_job_chunk(engine, job_id, database):
                     JobChunk.insert().values(
                         job_id=job_id,
                         database=database,
-                        status=JOB_CHUNK_STATUS_CHOICES.pending
+                        status=JOB_CHUNK_STATUS_CHOICES.created
                     )
                 )
                 return job_chunk_id
             except Exception as e:
-                raise SQLError("Failed to save job_chunk for "
-                                              "job_id = %s, database = %s" % (job_id, database)) from e
+                raise SQLError("Failed to save job_chunk for job_id = %s, database = %s" % (job_id, database)) from e
     except psycopg2.Error as e:
         raise DatabaseConnectionError("Failed to open database connection in save_job_chunk "
                                       "for job_id = %s, database = %s" % (job_id, database)) from e
@@ -195,7 +194,7 @@ async def set_job_chunk_status(engine, job_id, database, status):
                     return id
             except Exception as e:
                 raise SQLError("Failed to set_job_chunk_status in the database,"
-                               " job_id = %s, database = %s" % (job_id, database)) from e
+                               " job_id = %s, database = %s, status = %s" % (job_id, database, status)) from e
     except psycopg2.Error as e:
         raise DatabaseConnectionError("Failed to open connection to the database in "
                       "set_job_chunk_status, job_id = %s, database = %s" % (job_id, database)) from e

@@ -13,8 +13,8 @@ output "tfstate_file" {
   value = ["${local.tfstate_file}"]
 }
 
-resource "null_resource" "pre-flight" {
-  triggers {
+resource "null_resource" "pre_flight" {
+  triggers = {
       build_number = "${timestamp()}"
   }
   provisioner "local-exec" {
@@ -53,7 +53,7 @@ resource "openstack_networking_router_interface_v2" "sequence_search" {
 
 resource "openstack_compute_secgroup_v2" "sequence_search" {
   name = "${terraform.workspace}_sequence_search"
-  description = "Security group for the sequence_search instances"
+  description = "Security group for the sequence_search instances (except NFS and monitor)"
   rule {
     from_port = 22
     to_port = 22
@@ -62,29 +62,22 @@ resource "openstack_compute_secgroup_v2" "sequence_search" {
   }
 
   rule {
-    from_port = 80
-    to_port = 80
+    from_port = 5432
+    to_port = 5432
     ip_protocol = "tcp"
-    cidr = "0.0.0.0/0"
+    cidr = "192.168.0.0/24"
   }
 
   rule {
     from_port = 8000
     to_port = 8000
     ip_protocol = "tcp"
-    cidr = "0.0.0.0/0"
+    cidr = "192.168.0.0/24"
   }
 
   rule {
     from_port = 8002
     to_port = 8002
-    ip_protocol = "tcp"
-    cidr = "0.0.0.0/0"
-  }
-
-  rule {
-    from_port = 5432
-    to_port = 5432
     ip_protocol = "tcp"
     cidr = "0.0.0.0/0"
   }
@@ -97,8 +90,79 @@ resource "openstack_compute_secgroup_v2" "sequence_search" {
   }
 }
 
+resource "openstack_compute_secgroup_v2" "sequence_search_nfs_instance" {
+  name = "${terraform.workspace}_sequence_search_nfs_instance"
+  description = "Security group for the NFS instance"
+  rule {
+    from_port = 22
+    to_port = 22
+    ip_protocol = "tcp"
+    cidr = "0.0.0.0/0"
+  }
+
+  rule {
+    from_port = 2049
+    to_port = 2049
+    ip_protocol = "tcp"
+    cidr = "192.168.0.0/24"
+  }
+
+  rule {
+    from_port = 2049
+    to_port = 2049
+    ip_protocol = "udp"
+    cidr = "192.168.0.0/24"
+  }
+
+  rule {
+    from_port = 111
+    to_port = 111
+    ip_protocol = "tcp"
+    cidr = "192.168.0.0/24"
+  }
+
+  rule {
+    from_port = 111
+    to_port = 111
+    ip_protocol = "udp"
+    cidr = "192.168.0.0/24"
+  }
+
+  rule {
+    from_port = -1
+    to_port = -1
+    ip_protocol = "icmp"
+    cidr = "0.0.0.0/0"
+  }
+}
+
+resource "openstack_compute_secgroup_v2" "sequence_search_monitor_instance" {
+  name = "${terraform.workspace}_sequence_search_monitor_instance"
+  description = "Security group for the monitor instance"
+  rule {
+    from_port = 22
+    to_port = 22
+    ip_protocol = "tcp"
+    cidr = "0.0.0.0/0"
+  }
+
+  rule {
+    from_port = 11211
+    to_port = 11211
+    ip_protocol = "tcp"
+    cidr = "192.168.0.0/24"
+  }
+
+  rule {
+    from_port = -1
+    to_port = -1
+    ip_protocol = "icmp"
+    cidr = "0.0.0.0/0"
+  }
+}
+
 resource "openstack_compute_instance_v2" "producer" {
-  depends_on = ["openstack_compute_keypair_v2.sequence_search"]
+  depends_on = ["openstack_compute_keypair_v2.sequence_search", "openstack_networking_subnet_v2.sequence_search"]
   name = "${terraform.workspace}-producer"
   image_name = "${var.image}"
   flavor_name = "${var.flavor}"
@@ -111,7 +175,7 @@ resource "openstack_compute_instance_v2" "producer" {
 }
 
 resource "openstack_compute_instance_v2" "postgres" {
-  depends_on = ["openstack_compute_keypair_v2.sequence_search"]
+  depends_on = ["openstack_compute_keypair_v2.sequence_search", "openstack_networking_subnet_v2.sequence_search"]
   name = "${terraform.workspace}-postgres"
   image_name = "${var.image}"
   flavor_name = "${var.flavor}"
@@ -121,12 +185,37 @@ resource "openstack_compute_instance_v2" "postgres" {
     uuid = "${openstack_networking_network_v2.sequence_search.id}"
     fixed_ip_v4 = "192.168.0.6"
   }
+}
 
+resource "openstack_compute_instance_v2" "nfs_server" {
+  depends_on = ["openstack_compute_keypair_v2.sequence_search", "openstack_networking_subnet_v2.sequence_search"]
+  name              = "${terraform.workspace}-nfs-server"
+  image_name        = "ubuntu-16.04"
+  flavor_name       = "${var.flavor}"
+  key_pair          = "${openstack_compute_keypair_v2.sequence_search.name}"
+  security_groups   = [ "${openstack_compute_secgroup_v2.sequence_search_nfs_instance.name}" ]
+  network {
+    uuid = "${openstack_networking_network_v2.sequence_search.id}"
+    fixed_ip_v4 = "192.168.0.7"
+  }
+}
+
+resource "openstack_compute_instance_v2" "monitor" {
+  depends_on = ["openstack_compute_keypair_v2.sequence_search", "openstack_networking_subnet_v2.sequence_search"]
+  name = "${terraform.workspace}-monitor"
+  image_name = "${var.image}"
+  flavor_name = "${var.flavor_monitor}"
+  key_pair = "${openstack_compute_keypair_v2.sequence_search.name}"
+  security_groups = [ "${openstack_compute_secgroup_v2.sequence_search_monitor_instance.name}" ]
+  network {
+    uuid = "${openstack_networking_network_v2.sequence_search.id}"
+    fixed_ip_v4 = "192.168.0.8"
+  }
 }
 
 resource "openstack_compute_instance_v2" "consumers" {
   count = "${local.count}"
-  depends_on = ["openstack_compute_keypair_v2.sequence_search"]
+  depends_on = ["openstack_compute_keypair_v2.sequence_search", "openstack_networking_subnet_v2.sequence_search"]
   name = "${terraform.workspace}-consumer-${count.index + 1}"
   image_name = "${var.image}"
   flavor_name = "${var.flavor}"
@@ -134,32 +223,18 @@ resource "openstack_compute_instance_v2" "consumers" {
   security_groups = [ "${openstack_compute_secgroup_v2.sequence_search.name}" ]
   network {
     uuid = "${openstack_networking_network_v2.sequence_search.id}"
-    fixed_ip_v4 = "192.168.0.${count.index + 7}"
+    fixed_ip_v4 = "192.168.0.${count.index + 9}"
   }
 }
 
-resource "openstack_blockstorage_volume_v2" "sequence_search_consumer_databases" {
-  count = "${local.count}"
-  size = 12
-  name = "${terraform.workspace}-sequence-search-consumer-databases-${count.index + 1}"
-  image_id = "sequence_search_databases"
+resource "openstack_blockstorage_volume_v2" "nfs_volume" {
+  name = "${terraform.workspace}-nfs-volume"
+  size = 100
 }
 
-resource "openstack_compute_volume_attach_v2" "attach_databases_to_consumers" {
-  count = "${local.count}"
-  instance_id = "${openstack_compute_instance_v2.consumers.*.id[count.index]}"
-  volume_id   = "${openstack_blockstorage_volume_v2.sequence_search_consumer_databases.*.id[count.index]}"
-}
-
-resource "openstack_blockstorage_volume_v2" "sequence_search_producer_databases" {
-  size = 12
-  name = "${terraform.workspace}-sequence-search-producer-databases"
-  image_id = "sequence_search_databases"
-}
-
-resource "openstack_compute_volume_attach_v2" "attach_databases_to_producer" {
-  instance_id = "${openstack_compute_instance_v2.producer.id}"
-  volume_id = "${openstack_blockstorage_volume_v2.sequence_search_producer_databases.id}"
+resource "openstack_compute_volume_attach_v2" "attached" {
+  instance_id = "${openstack_compute_instance_v2.nfs_server.id}"
+  volume_id = "${openstack_blockstorage_volume_v2.nfs_volume.id}"
 }
 
 resource "openstack_compute_floatingip_associate_v2" "sequence_search" {
@@ -168,17 +243,23 @@ resource "openstack_compute_floatingip_associate_v2" "sequence_search" {
   instance_id = "${openstack_compute_instance_v2.producer.id}"
 }
 
-resource "openstack_compute_floatingip_associate_v2" "associate_postgres_floating_ip" {
-  depends_on = ["openstack_compute_instance_v2.postgres", "openstack_networking_router_interface_v2.sequence_search"]
+resource "openstack_compute_floatingip_associate_v2" "nfs_server_floating_ip" {
+  depends_on = ["openstack_compute_instance_v2.nfs_server", "openstack_networking_router_interface_v2.sequence_search"]
   floating_ip = "${local.postgres_floating_ip}"
-  instance_id = "${openstack_compute_instance_v2.postgres.id}"
+  instance_id = "${openstack_compute_instance_v2.nfs_server.id}"
 }
 
-resource "null_resource" "post-flight" {
-  triggers {
-      build_number = "${timestamp()}"
-  }
-  provisioner "local-exec" {
-    command = "terraform-inventory -inventory ${local.tfstate_file} > ../ansible/hosts"
-  }
-}
+# resource "openstack_compute_floatingip_associate_v2" "associate_postgres_floating_ip" {
+#   depends_on = ["openstack_compute_instance_v2.postgres", "openstack_networking_router_interface_v2.sequence_search"]
+#   floating_ip = "${local.postgres_floating_ip}"
+#   instance_id = "${openstack_compute_instance_v2.postgres.id}"
+# }
+
+# resource "null_resource" "post_flight" {
+#   triggers = {
+#       before = "${null_resource.pre_flight.id}"
+#   }
+#   provisioner "local-exec" {
+#     command = "terraform-inventory -inventory ${local.tfstate_file} > ../ansible/hosts"
+#   }
+# }

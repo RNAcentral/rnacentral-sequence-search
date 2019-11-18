@@ -36,6 +36,14 @@ async def init_pg(app):
     )
 
 
+# Graceful shutdown
+# -----------------
+
+async def close_pg(app):
+    app['engine'].close()
+    await app['engine'].wait_closed()
+
+
 # Models schema
 # -------------
 
@@ -48,6 +56,7 @@ class JOB_STATUS_CHOICES(object):
 
 
 class JOB_CHUNK_STATUS_CHOICES(object):
+    created = 'created'
     pending = 'pending'
     started = 'started'
     error = 'error'

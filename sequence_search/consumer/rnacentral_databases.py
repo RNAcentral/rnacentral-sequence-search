@@ -20,11 +20,28 @@ from .settings import PROJECT_ROOT
 
 RnacentralDatabases = namedtuple("rnacentral_databases", ["id", "label"])
 
+# TODO: get the bds from elsewhere and not leave them hard coded
 rnacentral_databases = [
+    RnacentralDatabases("dictybase", "dictyBase"),
     RnacentralDatabases("ena", "ENA"),
+    RnacentralDatabases("ensembl", "Ensembl"),
+    RnacentralDatabases("ensembl_fungi", "Ensembl Fungi"),
+    RnacentralDatabases("ensembl_metazoa", "Ensembl Metazoa"),
+    RnacentralDatabases("ensembl_plants", "Ensembl Plants"),
+    RnacentralDatabases("ensembl_protists", "Ensembl Protists"),
+    RnacentralDatabases("flybase", "FlyBase"),
+    RnacentralDatabases("gencode", "GENCODE"),
     RnacentralDatabases("greengenes", "GreenGenes"),
+    RnacentralDatabases("gtrnadb", "GtRNAdb"),
+    RnacentralDatabases("hgnc", "HGNC"),
+    RnacentralDatabases("lncbase", "LncBase"),
+    RnacentralDatabases("lncbook", "LncBook"),
+    RnacentralDatabases("lncipedia", "LNCipedia"),
     RnacentralDatabases("lncrnadb", "lncRNAdb"),
+    RnacentralDatabases("mgi", "MGI"),
     RnacentralDatabases("mirbase", "miRBase"),
+    RnacentralDatabases("modomics", "Modomics"),
+    RnacentralDatabases("noncode", "NONCODE"),
     RnacentralDatabases("pdbe", "PDBe"),
     RnacentralDatabases("pombase", "PomBase"),
     RnacentralDatabases("rdp", "RDP"),
@@ -32,11 +49,14 @@ rnacentral_databases = [
     RnacentralDatabases("rfam", "Rfam"),
     RnacentralDatabases("rgd", "RGD"),
     RnacentralDatabases("sgd", "SGD"),
+    RnacentralDatabases("silva", "SILVA"),
     RnacentralDatabases("snopy", "snOPY"),
     RnacentralDatabases("srpdb", "SRPDB"),
     RnacentralDatabases("tair", "TAIR"),
+    RnacentralDatabases("tarbase", "TarBase"),
     RnacentralDatabases("tmrna_web", "tmRNA Website"),
-    RnacentralDatabases("wormbase", "WormBase")
+    RnacentralDatabases("wormbase", "WormBase"),
+    RnacentralDatabases("zwd", "ZWD")
 ]
 
 
@@ -69,19 +89,18 @@ def producer_to_consumers_databases(databases):
     """
     output = []
 
-    # in case of empty databases list, return output
-    if databases == []:
+    if databases:
+        # new fasta files have been split into files up to 150 MB;
+        # therefore, we can now have more than one file for each database. 
+        for database in databases:
+            for file in get_database_files():
+                if file.name.startswith(database):
+                    output.append(file.name)
+    else:
+        # in case of empty databases list, use all-except-rrna and whitelist-rrna fasta files
         for file in get_database_files():
             if file.name.startswith('all-except-rrna') or file.name.startswith('whitelist-rrna'):
                 output.append(file.name)
-    else:
-        for database in databases:
-            if database == 'ena':  # ena needs to be split into multiple files
-                for file in get_database_files():
-                    if file.name.startswith('ena'):  # WARNING: this might be overzealous!
-                        output.append(file.name)
-            else:
-                output.append(database + '.fasta')
 
     return output
 

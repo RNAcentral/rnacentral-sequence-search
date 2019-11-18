@@ -3,7 +3,11 @@ variable "image" {
 }
 
 variable "flavor" {
-  default = "s1.jumbo"
+  default = "s1.capacious"
+}
+
+variable "flavor_monitor" {
+  default = "s1.small"
 }
 
 variable "ssh_key_file" {
@@ -35,11 +39,11 @@ variable "test_postgres_floating_ip" {
 }
 
 variable "default_instances" {
-  default = 15
+  default = 30
 }
 
 variable "test_instances" {
-  default = 5
+  default = 10
 }
 
 variable "default_tfstate" {

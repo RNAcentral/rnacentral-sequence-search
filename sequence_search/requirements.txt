@@ -13,3 +13,4 @@ requests==2.22.0
 netifaces==0.10.9
 gunicorn==19.9.0
 glance==18.0.0
+pymemcache==2.2.2

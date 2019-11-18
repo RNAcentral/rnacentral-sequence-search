@@ -85,5 +85,5 @@ nginx_amplify_script_url: "https://github.com/nginxinc/nginx-amplify-agent/raw/m
 nginx_amplify_script_path: "/tmp/install-amplify-agent.sh"
 
 # added by burkov
-nginx_backend_ip: "193.62.55.44"
+nginx_backend_ip: "{{ main_ip }}"
 nginx_backend_port: "8002"

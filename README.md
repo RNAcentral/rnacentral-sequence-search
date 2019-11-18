@@ -30,13 +30,15 @@ running unit-tests on local machine only, it is not using any database or networ
 - [Terraform inventory](https://github.com/adammck/terraform-inventory)
 - [Virtual environment](https://virtualenv.pypa.io/en/latest/) with installed dependencies
 
-1. Generate `sequence_search_rsa` key:
+1. Create `terraform/providers.tf` using the `providers.tf.template` file.
+
+2. Generate `sequence_search_rsa` key:
 
   `cd terraform && ssh-keygen -t rsa -b 4096`
 
   See: https://help.github.com/en/articles/generating-a-new-ssh-key-and-adding-it-to-the-ssh-agent
 
-2. Follow steps in `redeploy.jenkinsfile`.
+3. Follow steps in `redeploy.jenkinsfile`.
 
   - Install SSH keys
   - Run `terraform init && terraform apply` to create the infrastructure
@@ -158,18 +160,16 @@ https://github.com/webpack/webpack.js.org/issues/1854.
 
 1. `pushd terraform_load_balancer; terraform apply; popd`
 
-2. Update IP address in `load_balancer.yml`, then run:
+2. Run the command bellow passing the IPs as variables on the command line:
 
     ```
     cd ansible_load_balancer
-    ansible-playbook -i hosts --private-key=../terraform_load_balancer/load_balancer_rsa load_balancer.yml
+    ansible-playbook -i hosts --private-key=../terraform_load_balancer/load_balancer_rsa --extra-vars "main_ip=main.ip.address fallback_ip=fallback.ip.address" load_balancer.yml
     ```
 
-The load balancer is an nginx server that proxies http requests to the
-currently selected producer machine's `8002` port. If you want to
-configure the ip and port of producer machine, go to `load_balancer.yml`
-playbook and change the `nginx_backend_ip` and `nginx_backend_port`
-variables.
+The load balancer is an nginx server that proxies http requests to the currently selected producer machine's `8002` 
+port. If you want to change the port of producer machine, go to `load_balancer.yml` playbook and change the 
+`nginx_backend_port` variable.
 
 If you want to update nginx configuration, make changes in
 `ansible_load_balancer/roles/ansible_load_balancer/templates/upstream.conf.js`.

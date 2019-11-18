@@ -6,6 +6,7 @@ terraform/terraform.tfstate.d/test/*.backup
 terraform/sequence_search_rsa
 terraform/sequence_search_rsa.pub
 terraform/.terraform
+terraform/current_state
 
 terraform_load_balancer/providers.tf
 terraform_load_balancer/terraform.tfstate.backup
@@ -14,14 +15,17 @@ terraform_load_balancer/load_balancer_rsa.pub
 terraform_load_balancer/.terraform
 
 __pycache__/
+.idea/
 *.pyc
 *.pyo
 *.retry
 
 ansible/hosts
+ansible/producer_latest.dump
 node_modules/
 ENV/
 sequence_search/consumer/hmmer-3.2.1/
 sequence_search/consumer/results
 sequence_search/consumer/queries
 sequence_search/consumer/databases
+sequence_search/monitor/.conf-file

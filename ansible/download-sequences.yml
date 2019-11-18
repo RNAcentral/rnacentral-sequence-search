@@ -1,0 +1,17 @@
+- name: Download sequence database
+  hosts: producer
+  become: true
+  gather_facts: no
+  user: centos
+
+  tasks:
+    - name: Download compressed archive from RNAcentral FTP
+      get_url:
+        url: ftp://ftp.ebi.ac.uk/pub/databases/RNAcentral/current_release/sequences/.internal/sequence-database.fa.tar.gz
+        dest: /nfs/sequence-database.fa.tar.gz
+
+    - name: Uncompress the archive
+      shell: tar -xf sequence-database.fa.tar.gz
+      args:
+        chdir: /nfs
+        creates: /nfs/zwd.fasta

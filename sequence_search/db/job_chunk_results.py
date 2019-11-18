@@ -33,10 +33,12 @@ async def set_job_chunk_results(engine, job_id, database, results):
                     break
 
                 for result in results:
-                    await connection.scalar(JobChunkResult.insert().values(job_chunk_id=job_chunk_id, **result))
+                    result['job_chunk_id'] = job_chunk_id
+
+                await connection.execute(JobChunkResult.insert().values(results))
             except Exception as e:
                 raise SQLError("Failed to set_job_chunk_results in the database, "
-                                              "job_id = %s, database = %s" % (job_id, database)) from e
+                               "job_id = %s, database = %s" % (job_id, database)) from e
     except psycopg2.Error as e:
-        raise DatabaseConnectionError("Failed to open connection to the database in "
-                      "set_job_chunk_results, job_id = %s, database = %s" % (job_id, database)) from e
+        raise DatabaseConnectionError("Failed to open connection to the database in set_job_chunk_results, "
+                                      "job_id = %s, database = %s" % (job_id, database)) from e

@@ -1,0 +1,24 @@
+---
+- import_playbook: nfs-server.yml
+- import_playbook: nfs-client.yml
+- import_playbook: download-sequences.yml
+- import_playbook: postgres.yml
+- import_playbook: producer.yml
+
+
+- hosts: producer
+  gather_facts: Yes
+  remote_user: centos
+  become: true
+  become_method: sudo
+  vars:
+    ansible_ssh_private_key_file: "../terraform/sequence_search_rsa"
+  tasks:
+    - name: Drop the database and re-create it
+      shell:
+        chdir: /srv
+        cmd: ENVIRONMENT=PRODUCTION python3 -m sequence_search.db
+
+
+- import_playbook: consumers.yml
+- import_playbook: monitor.yml

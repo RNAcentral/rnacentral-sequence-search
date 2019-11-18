@@ -59,13 +59,11 @@
       src: ../../../../sequence_search
       dest: /srv
       rsync_opts:
-        - "--exclude=/sequence_search/consumer/databases.iso"
         - "--exclude=/sequence_search/consumer/databases"
-        - "--exclude=/sequence_search/consumer/databases_back"
         - "--exclude=/sequence_search/consumer/queries/*.fasta"
         - "--exclude=/sequence_search/consumer/results/*.fasta"
         - "--exclude=/sequence_search/producer/static/node_modules"
-    tags: [ quick ]
+    tags: [ rsync, quick ]
 
 
 
@@ -120,16 +118,6 @@
     tags: [ results, quick ]
 
 
-
-  - name: Umount volume for databases (so that chown doesn't complain)
-    mount:
-      path: /srv/sequence_search/consumer/databases
-      src: /dev/vdb
-      fstype: iso9660
-      state: unmounted
-    ignore_errors: yes
-    tags: [ quick ]
-
 # Ansible chown is slow, cause it checks ownership before assigning it - so just run chown imperatively
 # https://groups.google.com/forum/#!topic/ansible-project/2O5u8GIZ5Rw
 
@@ -156,14 +144,12 @@
     args:
       chdir: /srv/sequence_search
 
-  - name: Mount volume for databases
-    mount:
-      path: /srv/sequence_search/consumer/databases
-      src: /dev/vdb
-      fstype: iso9660
-      state: mounted
-    tags: [ quick ]
 
+  - name: Create a symbolic link to sequence databases
+    file:
+      src: /nfs
+      dest: /srv/sequence_search/consumer/databases
+      state: link
 
 
   - name: Get running processes
@@ -203,5 +189,5 @@
     shell:
       chdir: /srv
 #      cmd: /usr/local/bin/gunicorn consumer.main:app --daemon --bind 0.0.0.0:8000 --worker-class aiohttp.worker.GunicornWebWorker --access-logfile /var/log/gunicorn/access_log --error-logfile /var/log/gunicorn/error_log --env ENVIRONMENT=PRODUCTION --log-level=DEBUG
-      cmd: ENVIRONMENT=PRODUCTION nohup python36 -m sequence_search.consumer &> /var/log/gunicorn/access_log &
+      cmd: ENVIRONMENT=PRODUCTION nohup python3 -m sequence_search.consumer &> /var/log/gunicorn/access_log &
     tags: [ restart, quick ]

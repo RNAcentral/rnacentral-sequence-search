@@ -1,0 +1,32 @@
+- name: NFS client installation and nfs server mount
+  vars:
+    ansible_ssh_private_key_file: "../terraform/sequence_search_rsa"
+    nfs_server_ip: 192.168.0.7
+    nfs_mount_path: "/nfs"
+  hosts: producer:consumers
+  become: true
+  gather_facts: no
+  user: centos
+
+  tasks:
+    - name: Upgrade all packages
+      yum: name=* state=latest
+
+    - name: Install yum dependencies
+      yum:
+        name:
+          - nfs-utils
+
+    - name: Create an nfs directory where to mount nfs server dir
+      file:
+        path: "{{ nfs_mount_path }}"
+        state: directory
+        mode: "u=r,g=r,o=rwx" # might need to change these privileges
+        recurse: yes
+
+    - name: Mount nfs server directory on clients
+      mount:
+        path: "{{ nfs_mount_path }}"
+        src: "{{ nfs_server_ip }}:/"
+        fstype: nfs
+        state: mounted

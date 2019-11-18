@@ -12,9 +12,12 @@ limitations under the License.
 """
 
 import logging
+import hashlib
 
 from aiohttp import web
 from aiojobs.aiohttp import atomic
+from ast import literal_eval
+from pymemcache.client import base
 
 from ...db.jobs import get_job_results, get_job, job_exists, set_job_ordering
 from ..text_search_client import get_text_search_results, ProxyConnectionError, EBITextSearchConnectionError, \
@@ -300,13 +303,38 @@ async def facets_search(request):
     # try to get facets from EBI text search, otherwise stub facets
     try:
         ENVIRONMENT = request.app['settings'].ENVIRONMENT
-        text_search_data = await get_text_search_results(results, job_id, query, start, size, facetcount, ENVIRONMENT)
+
+        # we want to cache the EBI Search result
+        if ENVIRONMENT == 'PRODUCTION':
+            client = base.Client(('192.168.0.8', 11211))
+        else:
+            client = base.Client(('localhost', 11211))
+
+        # create a hash with query parameters
+        text_search_key = hashlib.md5(
+            (job_id + query + str(start) + str(size) + str(facetcount) + ordering).encode('utf-8')
+        ).hexdigest()
+
+        # check if the result is cached
+        cached_result = client.get(text_search_key)
+
+        if cached_result:
+            text_search_data = literal_eval(cached_result.decode('utf8'))
+            logging.debug("Using cache. This is the key used: {}".format(text_search_key))
+        else:
+            text_search_data = await get_text_search_results(
+                results, job_id, query, start, size, facetcount, ENVIRONMENT
+            )
+            # cache the result
+            client.set(text_search_key, text_search_data)
 
         # if this worked, inject text search results into facets json
         for entry in text_search_data['entries']:
             for result in results:
                 if result['rnacentral_id'] == entry['id']:
+                    result['description'] = entry['fields']['description'][0]
                     entry.update(result)
+                    break
 
         # sort facets in the same order as in text_search_client
         text_search_data['facets'].sort(key=lambda el: facetfields.index(el['id']))
@@ -343,4 +371,3 @@ async def facets_search(request):
             text_search_data['entries'].append(result)
 
     return web.json_response(text_search_data)
-

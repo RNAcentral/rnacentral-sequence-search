@@ -1,0 +1,13 @@
+---
+# Playbook to restore a PostgreSQL database from an archive file created by pg_dump
+- hosts: postgres
+  remote_user: centos
+  become: true
+  become_method: sudo
+  vars:
+    ansible_ssh_private_key_file: "../terraform/sequence_search_rsa"
+  tasks: 
+  - copy: src=producer_latest.dump dest=/tmp/producer_latest.dump mode=0777
+  - shell: pg_restore -U docker -c -n public -n pg_catalog -d producer /tmp/producer_latest.dump
+
+- import_playbook: consumers.yml
