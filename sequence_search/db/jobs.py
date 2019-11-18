@@ -29,6 +29,28 @@ class JobNotFound(Exception):
         return "Job '%s' not found" % self.job_id
 
 
+async def sequence_exists(engine, query):
+    """
+    Check if this query has already been searched
+    :param engine: params to connect to the db
+    :param query: the sequence that the user wants to search
+    :return: job_id if this query is in the db, otherwise returns none
+    """
+    try:
+        async with engine.acquire() as connection:
+            try:
+                sql_query = sa.select([Job.c.id]).select_from(Job).where(
+                    (Job.c.query == query) & Job.c.result_in_db
+                )
+                async for row in connection.execute(sql_query):
+                    return row[0] if row else None
+            except Exception as e:
+                raise SQLError("Failed to check if query exists for query = %s" % query) from e
+    except psycopg2.Error as e:
+        raise DatabaseConnectionError("Failed to open connection to the database in sequence_exists() for "
+                                      "sequence with query = %s" % query) from e
+
+
 async def get_job(engine, job_id):
     try:
         async with engine.acquire() as connection:
@@ -81,8 +103,8 @@ async def save_job(engine, query, description):
                 raise SQLError("Failed to save job for query = %s, "
                                "description = %s to the database" % (query, description)) from e
     except psycopg2.Error as e:
-        raise DatabaseConnectionError("Failed to open connection to the database in "
-                                "save_job() for job with job_id = %s" % job_id) from e
+        raise DatabaseConnectionError("Failed to open connection to the database in save_job() for job with "
+                                      "job_id = %s" % job_id) from e
 
 
 async def set_job_status(engine, job_id, status):
@@ -96,11 +118,12 @@ async def set_job_status(engine, job_id, status):
     try:
         async with engine.acquire() as connection:
             try:
-                query = sa.text('''UPDATE jobs SET status = :status, finished = :finished WHERE id = :job_id''')
-                await connection.execute(query, job_id=job_id, status=status, finished=finished)
+                query = sa.text('''UPDATE jobs SET status = :status, finished = :finished, 
+                result_in_db = :result_in_db WHERE id = :job_id''')
+                await connection.execute(query, job_id=job_id, status=status, finished=finished, result_in_db=True)
             except Exception as e:
-                raise SQLError("Failed to save job to the database about failed job, "
-                                              "job_id = %s, status = %s" % (job_id, status)) from e
+                raise SQLError("Failed to save job to the database about failed job, job_id = %s, "
+                               "status = %s" % (job_id, status)) from e
     except psycopg2.Error as e:
         raise DatabaseConnectionError("Failed to open connection to the database in set_job_status() "
                                       "for job with job_id = %s" % job_id) from e
@@ -125,18 +148,14 @@ async def get_jobs_statuses(engine):
                 jobs_dict = {}
                 async for row in connection.execute(query):
                     if row.job_id not in jobs_dict:
-                       jobs_dict[row.job_id] = {
-                           'id': row.job_id,
-                           'status': row.job_status,
-                           'submitted': str(row.submitted),
-                           'chunks': [
-                               {
-                                   'database': row.database,
-                                   'status': row.status,
-                                   'consumer': row.consumer
-                               }
-                           ]
-                       }
+                        jobs_dict[row.job_id] = {
+                            'id': row.job_id,
+                            'status': row.job_status,
+                            'submitted': str(row.submitted),
+                            'chunks': [
+                                {'database': row.database, 'status': row.status, 'consumer': row.consumer}
+                            ]
+                        }
                     else:
                         jobs_dict[row.job_id]['chunks'].append({
                             'database': row.database,
