@@ -74,53 +74,54 @@ metadata = sa.MetaData()
 # TODO: consistent naming for tables: either 'jobs' and 'consumers' or 'job' and 'consumer'
 """State of a consumer instance"""
 Consumer = sa.Table('consumer', metadata,
-                  sa.Column('ip', sa.String(20), primary_key=True),
-                  sa.Column('status', sa.String(255)),  # choices=CONSUMER_STATUS_CHOICES, default='available'
-                  sa.Column('job_chunk_id', sa.ForeignKey('job_chunks.id')),
-                  sa.Column('port', sa.String(10)))
+                    sa.Column('ip', sa.String(20), primary_key=True),
+                    sa.Column('status', sa.String(255)),  # choices=CONSUMER_STATUS_CHOICES, default='available'
+                    sa.Column('job_chunk_id', sa.ForeignKey('job_chunks.id')),
+                    sa.Column('port', sa.String(10)))
 
 """A search job that is divided into multiple job chunks per database"""
 Job = sa.Table('jobs', metadata,
-                  sa.Column('id', sa.String(36), primary_key=True),
-                  sa.Column('query', sa.Text),
-                  sa.Column('description', sa.Text, nullable=True),
-                  sa.Column('ordering', sa.Text, nullable=True),
-                  sa.Column('submitted', sa.DateTime),
-                  sa.Column('finished', sa.DateTime, nullable=True),
-                  sa.Column('status', sa.String(255)))  # choices=JOB_STATUS_CHOICES, default='started'
+               sa.Column('id', sa.String(36), primary_key=True),
+               sa.Column('query', sa.Text),
+               sa.Column('description', sa.Text, nullable=True),
+               sa.Column('ordering', sa.Text, nullable=True),
+               sa.Column('submitted', sa.DateTime),
+               sa.Column('finished', sa.DateTime, nullable=True),
+               sa.Column('result_in_db', sa.Boolean),
+               sa.Column('status', sa.String(255)))  # choices=JOB_STATUS_CHOICES
 
 """Part of the search job, run against a specific database and assigned to a specific consumer"""
 JobChunk = sa.Table('job_chunks', metadata,
-                  sa.Column('id', sa.Integer, primary_key=True),
-                  sa.Column('job_id', sa.String(36), sa.ForeignKey('jobs.id')),
-                  sa.Column('database', sa.String(255)),
-                  sa.Column('submitted', sa.DateTime, nullable=True),
-                  sa.Column('finished', sa.DateTime, nullable=True),
-                  sa.Column('consumer', sa.ForeignKey('consumer.ip'), nullable=True),
-                  sa.Column('status', sa.String(255)))  # choices=JOB_CHUNK_STATUS_CHOICES, default='started'
+                    sa.Column('id', sa.Integer, primary_key=True),
+                    sa.Column('job_id', sa.String(36), sa.ForeignKey('jobs.id')),
+                    sa.Column('database', sa.String(255)),
+                    sa.Column('submitted', sa.DateTime, nullable=True),
+                    sa.Column('finished', sa.DateTime, nullable=True),
+                    sa.Column('consumer', sa.ForeignKey('consumer.ip'), nullable=True),
+                    sa.Column('status', sa.String(255)))  # choices=JOB_CHUNK_STATUS_CHOICES, default='started'
 
 """Result of a specific JobChunk"""
 JobChunkResult = sa.Table('job_chunk_results', metadata,
-                  sa.Column('id', sa.Integer, primary_key=True),
-                  sa.Column('job_chunk_id', None, sa.ForeignKey('job_chunks.id')),
-                  sa.Column('rnacentral_id', sa.String(255)),
-                  sa.Column('description', sa.Text, nullable=True),
-                  sa.Column('score', sa.Float),
-                  sa.Column('bias', sa.Float),
-                  sa.Column('e_value', sa.Float),
-                  sa.Column('target_length', sa.Integer),
-                  sa.Column('alignment', sa.Text),
-                  sa.Column('alignment_length', sa.Integer),
-                  sa.Column('gap_count', sa.Integer),
-                  sa.Column('match_count', sa.Integer),
-                  sa.Column('nts_count1', sa.Integer),
-                  sa.Column('nts_count2', sa.Integer),
-                  sa.Column('identity', sa.Float),
-                  sa.Column('query_coverage', sa.Float),
-                  sa.Column('target_coverage', sa.Float),
-                  sa.Column('gaps', sa.Float),
-                  sa.Column('query_length', sa.Integer),
-                  sa.Column('result_id', sa.Integer))
+                          sa.Column('id', sa.Integer, primary_key=True),
+                          sa.Column('job_chunk_id', None, sa.ForeignKey('job_chunks.id')),
+                          sa.Column('rnacentral_id', sa.String(255)),
+                          sa.Column('description', sa.Text, nullable=True),
+                          sa.Column('score', sa.Float),
+                          sa.Column('bias', sa.Float),
+                          sa.Column('e_value', sa.Float),
+                          sa.Column('target_length', sa.Integer),
+                          sa.Column('alignment', sa.Text),
+                          sa.Column('alignment_length', sa.Integer),
+                          sa.Column('gap_count', sa.Integer),
+                          sa.Column('match_count', sa.Integer),
+                          sa.Column('nts_count1', sa.Integer),
+                          sa.Column('nts_count2', sa.Integer),
+                          sa.Column('identity', sa.Float),
+                          sa.Column('query_coverage', sa.Float),
+                          sa.Column('target_coverage', sa.Float),
+                          sa.Column('gaps', sa.Float),
+                          sa.Column('query_length', sa.Integer),
+                          sa.Column('result_id', sa.Integer))
 
 
 # Migrations
@@ -160,6 +161,7 @@ async def migrate(ENVIRONMENT):
                   ordering TEXT,
                   submitted TIMESTAMP,
                   finished TIMESTAMP,
+                  result_in_db BOOLEAN,
                   status VARCHAR(255))
             ''')
 
