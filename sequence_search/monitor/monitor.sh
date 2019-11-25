@@ -1,4 +1,5 @@
-# Script to regularly run a specific search and check the results
+# Script to regularly run a search and check the results.
+# Each job searches a different sequence with a different size to avoid retrieving database results.
 
 # -o allexport enables all following variable definitions to be exported.
 # +o allexport disables this feature.
@@ -7,7 +8,11 @@ source $PWD/.conf-file
 set +o allexport
 
 CONTENT_TYPE="Content-Type: application/json"
-DATABASE_AND_QUERY="{\"databases\": [\"mirbase\"], \"query\": \">sequence-search-test\nCUGUACUAUCUACUGUCUCUC\"}"
+SIZE=$(( $RANDOM % 5 + 20 ))
+NEW_SEQUENCE=$(cat /dev/urandom | env LC_CTYPE=C tr -dc ACGTU | head -c $SIZE)
+DATABASES_LIST=("flybase" "gencode" "mirbase" "pdbe" "snopy" "srpdb")
+DATABASE=${DATABASES_LIST[RANDOM%${#DATABASES_LIST[@]}]}
+DATABASE_AND_QUERY="{\"databases\": [\"$DATABASE\"], \"query\": \">sequence-search-test\n$NEW_SEQUENCE\"}"
 
 # Run search on the correct target (test or default).
 # Ansible adds the correct floating_ip to the .conf-file
@@ -25,11 +30,11 @@ if curl -s --head  --request GET $HOST | grep "200 OK" > /dev/null; then
     PAUSE="0"
     if [ "$STATUS" == "started" ] || [ "$STATUS" == "pending" ]
     then
-        while [ $PAUSE -lt 30 ]
+        while [ $PAUSE -lt 300 ]
         do
-            sleep 60
+            sleep 10
             STATUS=$(curl -s ${HOST}/api/job-status/$JOB_ID | jq -r '.chunks | .[] | .status')
-            if [ "$STATUS" == "success" ] || [ "$STATUS" == "error" ] || [ "$STATUS" == "timeout" ]
+            if [ "$STATUS" == "success" ] || [ "$STATUS" = "partial_success" ] || [ "$STATUS" == "error" ] || [ "$STATUS" == "timeout" ]
             then
                 break
             fi
@@ -38,13 +43,12 @@ if curl -s --head  --request GET $HOST | grep "200 OK" > /dev/null; then
     fi
 
     # Facets search
-    # Expected response: "hitCount = 23 and textSearchError = false"
     FACETS_SEARCH=$(curl -s ${HOST}/api/facets-search/$JOB_ID | jq '[.hitCount,.textSearchError]')
     HIT_COUNT=$(echo ${FACETS_SEARCH} |  jq '.[0]')
     SEARCH_ERROR=$(echo ${FACETS_SEARCH} |  jq '.[1]')
 
     # Send message in case of unexpected result
-    if [ "$STATUS" != "success" ] || [ "$HIT_COUNT" != "23" ] || [ "$SEARCH_ERROR" != "false" ]
+    if [ "$STATUS" != "success" ] || [ "$HIT_COUNT" -gt 0 ] && [ "$SEARCH_ERROR" != "false" ] || [ "$HIT_COUNT" == 0 ] && [ "$SEARCH_ERROR" != "true" ]
     then
         text="Ops! There is something wrong with the RNAcentral sequence search. Please check the links below: \n
         \n
@@ -52,7 +56,7 @@ if curl -s --head  --request GET $HOST | grep "200 OK" > /dev/null; then
         The job status is ${STATUS} (the expected status is success). \n
         \n
         To check the results see: ${HOST}/api/facets-search/$JOB_ID \n
-        The job results are ${HIT_COUNT} and ${SEARCH_ERROR} (the expected results are 23 and false)."
+        The job results are ${HIT_COUNT} and ${SEARCH_ERROR}."
         escapedText=$(echo ${text} | sed 's/"/\"/g' | sed "s/'/\'/g" )
         json="{\"text\": \"$escapedText\"}"
         curl -s -d "payload=$json" $WEBHOOK_URL
