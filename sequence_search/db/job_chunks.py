@@ -60,6 +60,14 @@ async def get_job_chunk_from_job_and_database(engine, job_id, database):
 
 
 async def save_job_chunk(engine, job_id, database):
+    """
+    Jobs are divided into chunks and each chunk searches for sequences in a piece of the database.
+    Here we are saving a job chunk for a specific fasta file.
+    :param engine: params to connect to the db
+    :param job_id: id of the job
+    :param database: fasta file with RNAcentral data
+    :return: id of the job chunk
+    """
     try:
         async with engine.acquire() as connection:
             try:
