@@ -20,7 +20,7 @@ __pycache__/
 *.pyo
 *.retry
 
-ansible/hosts
+ansible/hosts*
 ansible/producer_latest.dump
 node_modules/
 ENV/
@@ -29,3 +29,4 @@ sequence_search/consumer/results
 sequence_search/consumer/queries
 sequence_search/consumer/databases
 sequence_search/monitor/.conf-file
+sequence_search/monitor/test*
