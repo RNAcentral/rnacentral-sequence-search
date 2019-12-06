@@ -7,6 +7,15 @@ RESULTS_DIR = PROJECT_ROOT / 'results'
 # full path to query files
 QUERY_DIR = PROJECT_ROOT / 'queries'
 
+# full path to infernal results files
+INFERNAL_RESULTS_DIR = PROJECT_ROOT / 'infernal-results'
+
+# full path to infernal query files
+INFERNAL_QUERY_DIR = PROJECT_ROOT / 'infernal-queries'
+
+# full path to the rfam.cm
+RFAM_CM = PROJECT_ROOT / 'rfam' / 'Rfam.cm'
+
 # producer server location
 PRODUCER_PROTOCOL = 'http'
 PRODUCER_HOST = '192.168.0.5'
@@ -15,3 +24,6 @@ PRODUCER_JOB_DONE_URL = 'api/job-done'
 
 # full path to nhmmer executable
 NHMMER_EXECUTABLE = '/usr/local/bin/nhmmer'
+
+# full path to cmscan executable
+CMSCAN_EXECUTABLE = '/usr/local/bin/cmscan'
