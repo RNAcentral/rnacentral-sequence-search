@@ -31,6 +31,8 @@ PROJECT_ROOT = pathlib.Path(__file__).parent.parent
 
 CONSUMER_SUBMIT_JOB_URL = 'submit-job'
 
+CONSUMER_SUBMIT_INFERNAL_JOB_URL = 'submit-infernal-job'
+
 ENVIRONMENT = os.getenv('ENVIRONMENT', 'LOCAL')
 
 # add settings from environment-specific files
