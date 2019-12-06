@@ -123,6 +123,24 @@ JobChunkResult = sa.Table('job_chunk_results', metadata,
                           sa.Column('query_length', sa.Integer),
                           sa.Column('result_id', sa.Integer))
 
+InfernalJob = sa.Table('infernal_job', metadata,
+                       sa.Column('id', sa.Integer, primary_key=True),
+                       sa.Column('job_id', sa.String(36), sa.ForeignKey('jobs.id')),
+                       sa.Column('consumer', sa.ForeignKey('consumer.ip'), nullable=True),
+                       sa.Column('submitted', sa.DateTime, nullable=True),
+                       sa.Column('finished', sa.DateTime, nullable=True),
+                       sa.Column('status', sa.String(255)))  # choices=JOB_CHUNK_STATUS_CHOICES
+
+InfernalResult = sa.Table('infernal_result', metadata,
+                          sa.Column('id', sa.Integer, primary_key=True),
+                          sa.Column('infernal_job_id', None, sa.ForeignKey('infernal_job.id')),
+                          sa.Column('family', sa.String(255)),
+                          sa.Column('accession', sa.String(255)),
+                          sa.Column('start', sa.Integer),
+                          sa.Column('tail_end', sa.Integer),
+                          sa.Column('bits_score', sa.Float),
+                          sa.Column('e_value', sa.Float))
+
 
 # Migrations
 # ----------
@@ -142,6 +160,8 @@ async def migrate(ENVIRONMENT):
         async with engine.acquire() as connection:
             await connection.execute('DROP TABLE IF EXISTS job_chunk_results')
             await connection.execute('DROP TABLE IF EXISTS job_chunks')
+            await connection.execute('DROP TABLE IF EXISTS infernal_result')
+            await connection.execute('DROP TABLE IF EXISTS infernal_job')
             await connection.execute('DROP TABLE IF EXISTS jobs')
             await connection.execute('DROP TABLE IF EXISTS consumer')
 
@@ -198,4 +218,26 @@ async def migrate(ENVIRONMENT):
                   gaps FLOAT NOT NULL,
                   query_length INTEGER NOT NULL,
                   result_id INTEGER NOT NULL)
+            ''')
+
+            await connection.execute('''
+                CREATE TABLE infernal_job (
+                  id serial PRIMARY KEY,
+                  job_id VARCHAR(36) references jobs(id),
+                  consumer VARCHAR(20) references consumer(ip),
+                  submitted TIMESTAMP,
+                  finished TIMESTAMP,
+                  status VARCHAR(255))
+            ''')
+
+            await connection.execute('''
+                CREATE TABLE infernal_result (
+                  id serial PRIMARY KEY,
+                  infernal_job_id INT references infernal_job(id),
+                  family VARCHAR(255),
+                  accession VARCHAR(255),
+                  start INTEGER NOT NULL,
+                  tail_end INTEGER NOT NULL,
+                  bits_score FLOAT NOT NULL,
+                  e_value FLOAT NOT NULL)
             ''')
