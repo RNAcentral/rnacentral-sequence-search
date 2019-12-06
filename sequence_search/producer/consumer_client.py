@@ -17,7 +17,7 @@ import aiohttp
 import json
 from aiohttp import test_utils, web
 
-from .settings import ENVIRONMENT, CONSUMER_SUBMIT_JOB_URL
+from .settings import ENVIRONMENT, CONSUMER_SUBMIT_JOB_URL, CONSUMER_SUBMIT_INFERNAL_JOB_URL
 
 
 class ConsumerClient(object):
@@ -36,6 +36,29 @@ class ConsumerClient(object):
         else:
             # in TEST environment mock the request
             logging.debug("Queuing JobChunk to consumer: url = {}, json_data = {}, headers = {}, consumer_ip = {}"
+                          .format(url, json_data, headers, consumer_ip))
+
+            request = test_utils.make_mocked_request('POST', url, headers=headers)
+            await asyncio.sleep(1)
+            response = web.Response(status=200)
+
+        return response
+
+    async def submit_infernal_job(self, consumer_ip, consumer_port, job_id, query):
+        # prepare the data for request
+        url = "http://" + str(consumer_ip) + ':' + str(consumer_port) + '/' + str(CONSUMER_SUBMIT_INFERNAL_JOB_URL)
+        json_data = json.dumps({"job_id": job_id, "sequence": query})
+        headers = {'content-type': 'application/json'}
+
+        if ENVIRONMENT != 'TEST':
+            async with aiohttp.ClientSession() as session:
+                logging.debug("Queuing InfernalJob to consumer url = {}, json_data = {}, headers = {}, consumer_ip = {}"
+                              .format(url, json_data, headers, consumer_ip))
+
+                response = await session.post(url, data=json_data, headers=headers)
+        else:
+            # in TEST environment mock the request
+            logging.debug("Queuing InfernalJob to consumer: url = {}, json_data = {}, headers = {}, consumer_ip = {}"
                           .format(url, json_data, headers, consumer_ip))
 
             request = test_utils.make_mocked_request('POST', url, headers=headers)
