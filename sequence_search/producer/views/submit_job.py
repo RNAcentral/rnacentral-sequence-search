@@ -17,9 +17,10 @@ from aiohttp import web
 from aiojobs.aiohttp import atomic
 
 from sequence_search.db.models import JOB_CHUNK_STATUS_CHOICES
-from ...db.consumers import delegate_job_chunk_to_consumer, find_available_consumers
+from ...db.consumers import delegate_job_chunk_to_consumer, delegate_infernal_job_to_consumer, find_available_consumers
 from ...db.jobs import save_job, sequence_exists
 from ...db.job_chunks import save_job_chunk, set_job_chunk_status
+from ...db.infernal_job import save_infernal_job
 from ...consumer.rnacentral_databases import producer_validator, producer_to_consumers_databases
 
 
@@ -111,19 +112,23 @@ async def submit_job(request):
     if job_id:
         return web.json_response({"job_id": job_id}, status=201)
     else:
-        # save metadata about this job and job_chunks to the database
+        # save metadata about this job to the database
         job_id = await save_job(request.app['engine'], data['query'], data['description'])
 
+        # save metadata about job_chunks to the database
+        # TODO: what if Job was saved and JobChunk was not? Need transactions?
         databases = producer_to_consumers_databases(data['databases'])
         for database in databases:
             # save job_chunk with "created" status. This prevents the check_chunks_and_consumers function,
             # which runs every 5 seconds, from executing the same job_chunk again.
             await save_job_chunk(request.app['engine'], job_id, database)
 
-        # TODO: what if Job was saved and JobChunk was not? Need transactions?
+        # save metadata about infernal_job to the database
+        # TODO: what if Job was saved and InfernalJob was not? Need transactions?
+        await save_infernal_job(request.app['engine'], job_id)
 
         consumers = await find_available_consumers(request.app['engine'])
-
+        # TODO: figure out how to delegate_infernal_job_to_consumer
         # if there are consumers available, delegate job_chunk to consumer
         for index in range(min(len(consumers), len(databases))):
             try:
