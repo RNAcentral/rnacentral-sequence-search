@@ -158,6 +158,18 @@ async def delegate_job_chunk_to_consumer(engine, consumer_ip, consumer_port, job
         logging.error(str(e))
 
 
+async def delegate_infernal_job_to_consumer(engine, consumer_ip, consumer_port, job_id, query):
+    try:
+        async with engine.acquire() as connection:
+            response = await ConsumerClient().submit_infernal_job(consumer_ip, consumer_port, job_id, query)
+
+            if response.status >= 400:
+                text = await response.text()
+                raise ConsumerConnectionError(text)
+    except psycopg2.Error as e:
+        logging.error(str(e))
+
+
 def get_ip(app):
     """
     Stolen from:
