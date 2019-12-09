@@ -24,9 +24,10 @@ from aiohttp import web, web_middlewares
 from . import settings
 from ..db.models import close_pg, init_pg, migrate
 from ..db.job_chunks import find_highest_priority_job_chunks, get_job_chunk
+from ..db.infernal_job import find_highest_priority_infernal_job
 from ..db.jobs import get_job_query
 from ..db.consumers import delegate_job_chunk_to_consumer, find_available_consumers, find_busy_consumers, \
-    set_consumer_status, set_consumer_job_chunk_id, CONSUMER_STATUS_CHOICES
+    set_consumer_status, set_consumer_job_chunk_id, CONSUMER_STATUS_CHOICES, delegate_infernal_job_to_consumer
 from ..db.settings import get_postgres_credentials
 from .urls import setup_routes
 
@@ -54,6 +55,7 @@ async def on_startup(app):
 async def check_chunks_and_consumers(app):
     # if there are any pending jobs and free consumers, schedule their execution
     chunks = await find_highest_priority_job_chunks(app['engine'])
+    infernal_jobs = await find_highest_priority_infernal_job(app['engine'])
     available_consumers = await find_available_consumers(app['engine'])
 
     for consumer in available_consumers:
@@ -66,6 +68,16 @@ async def check_chunks_and_consumers(app):
                 consumer_port=consumer.port,
                 job_id=job_id,
                 database=database,
+                query=query
+            )
+        elif len(infernal_jobs) > 0:
+            (job_id,) = infernal_jobs.pop(0)
+            query = await get_job_query(app['engine'], job_id)
+            await delegate_infernal_job_to_consumer(
+                engine=app['engine'],
+                consumer_ip=consumer.ip,
+                consumer_port=consumer.port,
+                job_id=job_id,
                 query=query
             )
 
