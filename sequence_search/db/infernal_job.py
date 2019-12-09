@@ -107,6 +107,13 @@ async def set_infernal_job_status(engine, job_id, status):
 
 
 async def set_consumer_to_infernal_job(engine, job_id, consumer_ip):
+    """
+    Update the infernal_job table to register the consumer who will run the job
+    :param engine: params to connect to the db
+    :param job_id: id of the job
+    :param consumer_ip: ip address of the consumer
+    :return: id or none
+    """
     try:
         async with engine.acquire() as connection:
             try:
