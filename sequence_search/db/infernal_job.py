@@ -20,13 +20,20 @@ from .models import InfernalJob, JOB_CHUNK_STATUS_CHOICES
 
 
 async def save_infernal_job(engine, job_id):
+    """
+    Create infernal job
+    :param engine: params to connect to the db
+    :param job_id: id of the job
+    """
     try:
         async with engine.acquire() as connection:
             try:
-                infernal_job_id = await connection.scalar(
-                    InfernalJob.insert().values(job_id=job_id, status=JOB_CHUNK_STATUS_CHOICES.pending)
+                await connection.scalar(
+                    InfernalJob.insert().values(
+                        job_id=job_id,
+                        submitted=datetime.datetime.now(),
+                        status=JOB_CHUNK_STATUS_CHOICES.pending)
                 )
-                return infernal_job_id
             except Exception as e:
                 raise SQLError("Failed to save_infernal_job for job_id = %s" % job_id) from e
     except psycopg2.Error as e:
@@ -55,8 +62,9 @@ async def get_infernal_job(engine, job_id):
 
 async def set_infernal_job_status(engine, job_id, status):
     """
-    :param engine:
-    :param job_id:
+    Update the status of the infernal job
+    :param engine: params to connect to the db
+    :param job_id: id of the job
     :param status: an option from consumer.JOB_CHUNK_STATUS
     :return: None
     """
@@ -136,3 +144,31 @@ async def set_consumer_to_infernal_job(engine, job_id, consumer_ip):
     except psycopg2.Error as e:
         raise DatabaseConnectionError("Failed to open connection to the database in set_consumer_to_infernal_job, "
                                       "job_id = %s" % job_id) from e
+
+
+async def find_highest_priority_infernal_job(engine):
+    """
+    Find the next infernal job to be done by the consumer
+    :param engine: params to connect to the db
+    :return: list of infernal jobs to submit
+    """
+    try:
+        async with engine.acquire() as connection:
+            try:
+                query = (sa.select([InfernalJob.c.job_id])
+                         .select_from(InfernalJob)
+                         .where(InfernalJob.c.status == JOB_CHUNK_STATUS_CHOICES.pending)
+                         .order_by(InfernalJob.c.submitted)  # noqa
+                )
+
+                output = []
+                async for row in connection.execute(query):
+                    output.append((row.job_id,))
+
+                return output
+
+            except Exception as e:
+                raise SQLError("Failed to find highest priority infernal job") from e
+
+    except psycopg2.Error as e:
+        raise DatabaseConnectionError(str(e)) from e
