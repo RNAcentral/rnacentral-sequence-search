@@ -41,25 +41,6 @@ async def save_infernal_job(engine, job_id):
                                       "job_id = %s" % job_id) from e
 
 
-async def get_infernal_job(engine, job_id):
-    try:
-        async with engine.acquire() as connection:
-            query = (
-                sa.select([InfernalJob.c.id, InfernalJob.c.job_id])
-                .select_from(InfernalJob)
-                .where(sa.and_(InfernalJob.c.job_id == job_id))
-            )
-
-            async for row in await connection.execute(query):
-                return row.id
-
-            raise DoesNotExist("InfernalJob", "job_id = %s" % job_id)
-
-    except psycopg2.Error as e:
-        raise DatabaseConnectionError("Failed to open database connection in get_infernal_job for "
-                                      "job_id = %s" % job_id) from e
-
-
 async def set_infernal_job_status(engine, job_id, status):
     """
     Update the status of the infernal job
