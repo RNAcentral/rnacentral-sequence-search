@@ -88,9 +88,10 @@ async def save_job_chunk(engine, job_id, database):
 
 async def find_highest_priority_job_chunks(engine):
     """
-    Find the next job chunk to give consumers for processing.
+    Find job chunks to give consumers for processing.
 
-    Returns: [(job_id, job_chunk_id, database), (...), ...]
+    :param engine: params to connect to the db
+    :return: list of chunks to submit
     """
     # among the running jobs, find the one, submitted first
     try:
@@ -115,9 +116,8 @@ async def find_highest_priority_job_chunks(engine):
                          .order_by(Job.c.submitted))  # noqa
 
                 output = []
-                # if there are started jobs and job_chunks, pick one from the earliest submitted job
-                async for row in connection.execute(query):  # select a job chunk to submit
-                    output.append((row.id, row.job_chunk_id, row.database))
+                async for row in connection.execute(query):
+                    output.append((row.id, row.submitted, row.database))
 
                 return output
 
