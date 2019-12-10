@@ -143,7 +143,7 @@ async def find_highest_priority_infernal_job(engine):
     try:
         async with engine.acquire() as connection:
             try:
-                query = (sa.select([InfernalJob.c.job_id])
+                query = (sa.select([InfernalJob.c.job_id, InfernalJob.c.submitted])
                          .select_from(InfernalJob)
                          .where(InfernalJob.c.status == JOB_CHUNK_STATUS_CHOICES.pending)
                          .order_by(InfernalJob.c.submitted)  # noqa
@@ -151,7 +151,7 @@ async def find_highest_priority_infernal_job(engine):
 
                 output = []
                 async for row in connection.execute(query):
-                    output.append((row.job_id,))
+                    output.append((row.job_id, row.submitted))
 
                 return output
 
