@@ -110,6 +110,9 @@ async def submit_job(request):
     job_id = await sequence_exists(request.app['engine'], data['query'])
 
     if not job_id:
+        # check for unfinished jobs
+        unfinished_job = await find_highest_priority_jobs(request.app['engine'])
+
         # save metadata about this job to the database
         job_id = await save_job(request.app['engine'], data['query'], data['description'])
 
@@ -125,9 +128,7 @@ async def submit_job(request):
         # TODO: what if Job was saved and InfernalJob was not? Need transactions?
         await save_infernal_job(request.app['engine'], job_id)
 
-        # check for unfinished jobs
-        unfinished_job = await find_highest_priority_jobs(request.app['engine'])
-
+        # if there are unfinished jobs, change the status to pending; otherwise try starting the job
         if unfinished_job:
             for database in databases:
                 try:
