@@ -14,7 +14,7 @@ import datetime
 import sqlalchemy as sa
 import psycopg2
 
-from . import DatabaseConnectionError, DoesNotExist, SQLError
+from . import DatabaseConnectionError, SQLError
 
 from .models import InfernalJob, JOB_CHUNK_STATUS_CHOICES
 
@@ -132,31 +132,3 @@ async def set_consumer_to_infernal_job(engine, job_id, consumer_ip):
     except psycopg2.Error as e:
         raise DatabaseConnectionError("Failed to open connection to the database in set_consumer_to_infernal_job, "
                                       "job_id = %s" % job_id) from e
-
-
-async def find_highest_priority_infernal_job(engine):
-    """
-    Find the next infernal job to be done by the consumer
-    :param engine: params to connect to the db
-    :return: list of infernal jobs to submit
-    """
-    try:
-        async with engine.acquire() as connection:
-            try:
-                query = (sa.select([InfernalJob.c.job_id, InfernalJob.c.submitted])
-                         .select_from(InfernalJob)
-                         .where(InfernalJob.c.status == JOB_CHUNK_STATUS_CHOICES.pending)
-                         .order_by(InfernalJob.c.submitted)  # noqa
-                )
-
-                output = []
-                async for row in connection.execute(query):
-                    output.append((row.job_id, row.submitted))
-
-                return output
-
-            except Exception as e:
-                raise SQLError("Failed to find highest priority infernal job") from e
-
-    except psycopg2.Error as e:
-        raise DatabaseConnectionError(str(e)) from e

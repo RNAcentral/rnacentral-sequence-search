@@ -18,8 +18,8 @@ from aiojobs.aiohttp import atomic
 
 from sequence_search.db.models import JOB_CHUNK_STATUS_CHOICES
 from ...db.consumers import delegate_job_chunk_to_consumer, find_available_consumers
-from ...db.jobs import save_job, sequence_exists
-from ...db.job_chunks import save_job_chunk, set_job_chunk_status, find_highest_priority_job_chunks
+from ...db.jobs import find_highest_priority_jobs, save_job, sequence_exists
+from ...db.job_chunks import save_job_chunk, set_job_chunk_status
 from ...db.infernal_job import save_infernal_job
 from ...consumer.rnacentral_databases import producer_validator, producer_to_consumers_databases
 
@@ -126,7 +126,7 @@ async def submit_job(request):
         await save_infernal_job(request.app['engine'], job_id)
 
         # check for unfinished jobs
-        unfinished_job = await find_highest_priority_job_chunks(request.app['engine'])
+        unfinished_job = await find_highest_priority_jobs(request.app['engine'])
 
         if unfinished_job:
             for database in databases:

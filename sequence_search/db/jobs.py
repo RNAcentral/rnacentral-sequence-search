@@ -18,7 +18,7 @@ import sqlalchemy as sa
 import psycopg2
 
 from . import DatabaseConnectionError, SQLError
-from .models import Job, JobChunk, JobChunkResult, JOB_STATUS_CHOICES, JOB_CHUNK_STATUS_CHOICES
+from .models import Job, InfernalJob, JobChunk, JobChunkResult, JOB_STATUS_CHOICES, JOB_CHUNK_STATUS_CHOICES
 
 
 class JobNotFound(Exception):
@@ -422,6 +422,57 @@ async def get_job_results(engine, job_id, limit=3000):
                 results.reverse()
 
             return results
+
+    except psycopg2.Error as e:
+        raise DatabaseConnectionError(str(e)) from e
+
+
+async def find_highest_priority_jobs(engine):
+    """
+    Find unfinished jobs to give consumers for processing.
+
+    :param engine: params to connect to the db
+    :return: list of jobs to submit
+    """
+    # among the running jobs, find the one, submitted first
+    try:
+        async with engine.acquire() as connection:
+            try:
+                output = []
+                select_statement = sa.select(
+                    [
+                        Job.c.id.label('id'),
+                        Job.c.status.label('job_status'),
+                        Job.c.submitted.label('submitted'),
+                        JobChunk.c.job_id.label('job_id'),
+                        JobChunk.c.id.label('job_chunk_id'),
+                        JobChunk.c.database.label('database'),
+                        JobChunk.c.status.label('status')
+                    ],
+                    use_labels=True
+                )
+
+                query = (select_statement
+                         .select_from(sa.join(Job, JobChunk, Job.c.id == JobChunk.c.job_id))  # noqa
+                         .where(sa.and_(Job.c.status == JOB_STATUS_CHOICES.started, JobChunk.c.status == JOB_CHUNK_STATUS_CHOICES.pending))
+                         .order_by(Job.c.submitted))  # noqa
+
+                async for row in connection.execute(query):
+                    output.append((row.id, row.submitted, row.database))
+
+                query = (sa.select([InfernalJob.c.job_id, InfernalJob.c.submitted])
+                         .select_from(InfernalJob)
+                         .where(InfernalJob.c.status == JOB_CHUNK_STATUS_CHOICES.pending)
+                         .order_by(InfernalJob.c.submitted)  # noqa
+                         )
+
+                async for row in connection.execute(query):
+                    output.append((row.job_id, row.submitted))
+
+                return sorted(output, key=lambda item: item[1])  # sort by date
+
+            except Exception as e:
+                raise SQLError("Failed to find highest priority jobs") from e
 
     except psycopg2.Error as e:
         raise DatabaseConnectionError(str(e)) from e

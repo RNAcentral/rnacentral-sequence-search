@@ -14,7 +14,6 @@ limitations under the License.
 import argparse
 import logging
 import asyncio
-import operator
 
 import aiohttp_jinja2
 import jinja2
@@ -24,9 +23,8 @@ from aiohttp import web, web_middlewares
 
 from . import settings
 from ..db.models import close_pg, init_pg, migrate
-from ..db.job_chunks import find_highest_priority_job_chunks, get_job_chunk
-from ..db.infernal_job import find_highest_priority_infernal_job
-from ..db.jobs import get_job_query
+from ..db.job_chunks import get_job_chunk
+from ..db.jobs import get_job_query, find_highest_priority_jobs
 from ..db.consumers import delegate_job_chunk_to_consumer, find_available_consumers, find_busy_consumers, \
     set_consumer_status, set_consumer_job_chunk_id, CONSUMER_STATUS_CHOICES, delegate_infernal_job_to_consumer
 from ..db.settings import get_postgres_credentials
@@ -55,15 +53,12 @@ async def on_startup(app):
 
 async def check_chunks_and_consumers(app):
     # if there are any pending jobs and free consumers, schedule their execution
-    chunks = await find_highest_priority_job_chunks(app['engine'])
-    infernal_jobs = await find_highest_priority_infernal_job(app['engine'])
+    unfinished_job = await find_highest_priority_jobs(app['engine'])
     available_consumers = await find_available_consumers(app['engine'])
-    all_jobs = chunks + infernal_jobs
-    sorted_jobs = sorted(all_jobs, key=lambda item: item[1])  # sort by date
 
     for consumer in available_consumers:
-        if len(sorted_jobs) > 0:
-            job = sorted_jobs.pop(0)
+        if len(unfinished_job) > 0:
+            job = unfinished_job.pop(0)
             query = await get_job_query(app['engine'], job[0])
             if len(job) == 3:
                 await delegate_job_chunk_to_consumer(
