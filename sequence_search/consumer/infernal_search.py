@@ -48,7 +48,6 @@ async def infernal_search(sequence, job_id):
                '--nohmmonly '        # never run HMM-only mode, not even for models with 0 basepairs
                '--tblout {output} '  # save parseable table of hits to file
                '--acc '              # prefer accessions over names in output
-               '-o {output} '        # direct main output to a file
                '--cpu {cpu} '        # number of CPUs to use
                '{rfam_cm} '          # Rfam.cm file
                '{query} '            # query file
