@@ -14,6 +14,7 @@ limitations under the License.
 import argparse
 import logging
 import asyncio
+import operator
 
 import aiohttp_jinja2
 import jinja2
@@ -57,29 +58,30 @@ async def check_chunks_and_consumers(app):
     chunks = await find_highest_priority_job_chunks(app['engine'])
     infernal_jobs = await find_highest_priority_infernal_job(app['engine'])
     available_consumers = await find_available_consumers(app['engine'])
+    all_jobs = chunks + infernal_jobs
+    sorted_jobs = sorted(all_jobs, key=lambda item: item[1])  # sort by date
 
     for consumer in available_consumers:
-        if len(chunks) > 0:
-            (job_id, job_chunk_id, database) = chunks.pop(0)
-            query = await get_job_query(app['engine'], job_id)
-            await delegate_job_chunk_to_consumer(
-                engine=app['engine'],
-                consumer_ip=consumer.ip,
-                consumer_port=consumer.port,
-                job_id=job_id,
-                database=database,
-                query=query
-            )
-        elif len(infernal_jobs) > 0:
-            (job_id,) = infernal_jobs.pop(0)
-            query = await get_job_query(app['engine'], job_id)
-            await delegate_infernal_job_to_consumer(
-                engine=app['engine'],
-                consumer_ip=consumer.ip,
-                consumer_port=consumer.port,
-                job_id=job_id,
-                query=query
-            )
+        if len(sorted_jobs) > 0:
+            job = sorted_jobs.pop(0)
+            query = await get_job_query(app['engine'], job[0])
+            if len(job) == 3:
+                await delegate_job_chunk_to_consumer(
+                    engine=app['engine'],
+                    consumer_ip=consumer.ip,
+                    consumer_port=consumer.port,
+                    job_id=job[0],
+                    database=job[2],
+                    query=query
+                )
+            else:
+                await delegate_infernal_job_to_consumer(
+                    engine=app['engine'],
+                    consumer_ip=consumer.ip,
+                    consumer_port=consumer.port,
+                    job_id=job[0],
+                    query=query
+                )
 
     busy_consumers = await find_busy_consumers(app['engine'])
     for consumer in busy_consumers:
