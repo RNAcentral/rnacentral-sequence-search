@@ -126,7 +126,7 @@ async def submit_job(request):
         await save_infernal_job(request.app['engine'], job_id)
 
         # check for unfinished jobs
-        unfinished_job = find_highest_priority_job_chunks(request.app['engine'])
+        unfinished_job = await find_highest_priority_job_chunks(request.app['engine'])
 
         if unfinished_job:
             for database in databases:
