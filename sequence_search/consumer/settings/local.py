@@ -16,6 +16,9 @@ INFERNAL_QUERY_DIR = PROJECT_ROOT / 'infernal-queries'
 # full path to the rfam.cm
 RFAM_CM = PROJECT_ROOT / 'rfam' / 'Rfam.cm'
 
+# full path to the rfam.clanin
+CLANIN = PROJECT_ROOT / 'rfam' / 'Rfam.clanin'
+
 # producer server location
 PRODUCER_PROTOCOL = 'http'
 PRODUCER_HOST = 'localhost' # 'host.docker.internal'
