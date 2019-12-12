@@ -43,6 +43,9 @@ async def infernal(engine, job_id, sequence, consumer_ip):
     try:
         task = asyncio.ensure_future(process.communicate())
         await asyncio.wait_for(task, MAX_RUN_TIME)
+        logging.debug("Time - Cmscan searched for sequences for {} seconds".format(
+            (datetime.datetime.now() - t0).total_seconds())
+        )
         return_code = process.returncode
         if return_code != 0:
             raise InfernalError("Infernal process returned non-zero status code")
@@ -66,10 +69,6 @@ async def infernal(engine, job_id, sequence, consumer_ip):
 
         # update consumer status
         await set_consumer_status(engine, consumer_ip, CONSUMER_STATUS_CHOICES.available)
-
-        logging.debug("Time - Cmscan searched for sequences for {} seconds".format(
-            (datetime.datetime.now() - t0).total_seconds())
-        )
 
 
 async def submit_infernal_job(request):
