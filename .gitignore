@@ -28,5 +28,7 @@ sequence_search/consumer/hmmer-3.2.1/
 sequence_search/consumer/results
 sequence_search/consumer/queries
 sequence_search/consumer/databases
+sequence_search/consumer/infernal*
+sequence_search/consumer/rfam
 sequence_search/monitor/.conf-file
 sequence_search/monitor/test*
