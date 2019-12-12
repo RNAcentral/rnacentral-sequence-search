@@ -48,6 +48,12 @@ async def on_startup(app):
     for name in os.listdir(settings.QUERY_DIR):
         os.remove(settings.QUERY_DIR / name)
 
+    for name in os.listdir(settings.INFERNAL_RESULTS_DIR):
+        os.remove(settings.INFERNAL_RESULTS_DIR / name)
+
+    for name in os.listdir(settings.INFERNAL_QUERY_DIR):
+        os.remove(settings.INFERNAL_QUERY_DIR / name)
+
 
 def create_app():
     logging.basicConfig(level=logging.DEBUG)
