@@ -10,8 +10,9 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
 """
-import logging
 import asyncio
+import datetime
+import logging
 
 from aiohttp import web
 from aiojobs.aiohttp import spawn
@@ -36,6 +37,7 @@ class InfernalError(Exception):
 
 async def infernal(engine, job_id, sequence, consumer_ip):
     logger.info('Infernal search started for: job_id = %s' % job_id)
+    t0 = datetime.datetime.now()
     process, filename = await infernal_search(sequence=sequence, job_id=job_id)
 
     try:
@@ -64,6 +66,10 @@ async def infernal(engine, job_id, sequence, consumer_ip):
 
         # update consumer status
         await set_consumer_status(engine, consumer_ip, CONSUMER_STATUS_CHOICES.available)
+
+        logging.debug("Time - Cmscan searched for sequences for {} seconds".format(
+            (datetime.datetime.now() - t0).total_seconds())
+        )
 
 
 async def submit_infernal_job(request):
