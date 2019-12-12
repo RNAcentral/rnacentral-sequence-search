@@ -92,3 +92,5 @@ async def submit_infernal_job(request):
         # spawn cmscan job in the background and return 201
         await spawn(request, infernal(engine, job_id, sequence, consumer_ip))
         return web.HTTPCreated()
+    else:
+        raise web.HTTPBadRequest(text='Invalid data. Engine, job_id and sequence not found.')
