@@ -17,12 +17,14 @@ import logging
 from aiohttp import web
 from aiojobs.aiohttp import spawn
 
+from ..infernal_parse import infernal_parse
 from ..infernal_search import infernal_search
 from ..settings import MAX_RUN_TIME
 from ...db import DatabaseConnectionError, SQLError
 from ...db.consumers import set_consumer_status, get_ip
 from ...db.models import CONSUMER_STATUS_CHOICES, JOB_CHUNK_STATUS_CHOICES
 from ...db.infernal_job import set_infernal_job_status, set_consumer_to_infernal_job
+from ...db.infernal_results import set_infernal_job_results
 
 logger = logging.Logger('aiohttp.web')
 
@@ -62,7 +64,8 @@ async def infernal(engine, job_id, sequence, consumer_ip):
         logger.info('Infernal search success for: job_id = %s' % job_id)
 
         # save results of the infernal job to the database
-        # ...
+        results = infernal_parse(filename)
+        await set_infernal_job_results(engine, job_id, results)
 
         # update infernal status
         await set_infernal_job_status(engine, job_id, status=JOB_CHUNK_STATUS_CHOICES.success)
