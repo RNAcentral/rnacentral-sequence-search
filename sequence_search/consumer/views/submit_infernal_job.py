@@ -65,7 +65,8 @@ async def infernal(engine, job_id, sequence, consumer_ip):
 
         # save results of the infernal job to the database
         results = infernal_parse(filename)
-        await set_infernal_job_results(engine, job_id, results)
+        if results:
+            await set_infernal_job_results(engine, job_id, results)
 
         # update infernal status
         await set_infernal_job_status(engine, job_id, status=JOB_CHUNK_STATUS_CHOICES.success)
