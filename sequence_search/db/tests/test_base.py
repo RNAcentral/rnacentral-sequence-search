@@ -16,12 +16,16 @@ import logging
 from aiohttp import web, web_middlewares
 from aiohttp.test_utils import AioHTTPTestCase
 
-from .models import init_pg
-from .settings import get_postgres_credentials
+from sequence_search.db.models import init_pg
+from sequence_search.db.settings import get_postgres_credentials
 
 
 class DBTestCase(AioHTTPTestCase):
-    """Base unit-test for all the tests in db"""
+    """
+    Base unit-test for all the tests in db. Run all tests with the following command:
+
+    ENVIRONMENT=TEST python -m unittest sequence_search.db.tests
+    """
     async def get_application(self):
         logging.basicConfig(level=logging.ERROR)  # subdue messages like 'DEBUG:asyncio:Using selector: KqueueSelector'
         app = web.Application(middlewares=[web_middlewares.normalize_path_middleware(append_slash=True)])

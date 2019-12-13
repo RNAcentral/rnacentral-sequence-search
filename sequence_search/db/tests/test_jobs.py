@@ -16,16 +16,17 @@ import uuid
 
 from aiohttp.test_utils import unittest_run_loop
 
-from .test_base import DBTestCase
-from .models import Job
-from .jobs import get_job, save_job, set_job_status, get_job_query, JOB_STATUS_CHOICES
+from sequence_search.db.tests.test_base import DBTestCase
+from sequence_search.db.models import Job
+from sequence_search.db.jobs import get_job, save_job, set_job_status, sequence_exists, get_job_query,\
+    JOB_STATUS_CHOICES
 
 
 class GetJobTestCase(DBTestCase):
     """
     Run this test with the following command:
 
-    ENVIRONMENT=TEST python -m unittest sequence_search.db.test_jobs.GetJobTestCase
+    ENVIRONMENT=TEST python -m unittest sequence_search.db.tests.test_jobs.GetJobTestCase
     """
     job_id = str(uuid.uuid4())
 
@@ -122,3 +123,32 @@ class GetJobQueryTestCase(DBTestCase):
     async def test_set_job_status_error(self):
         query = await get_job_query(self.app['engine'], self.job_id)
         assert query == 'AACAGCATGAGTGCGCTGGATGCTG'
+
+
+class SequenceExistsTestCase(DBTestCase):
+    """
+    Run this test with the following command:
+
+    ENVIRONMENT=TEST python -m unittest sequence_search.db.test_jobs.SequenceExistsTestCase
+    """
+    job_id = str(uuid.uuid4())
+
+    async def setUpAsync(self):
+        await super().setUpAsync()
+
+        async with self.app['engine'].acquire() as connection:
+            await connection.execute(
+                Job.insert().values(
+                    id=self.job_id,
+                    query='AACAGCATGAGTGCGCTGGATGCTG',
+                    description='CATE_ECOLI',
+                    submitted=datetime.datetime.now(),
+                    result_in_db=True,
+                    status=JOB_STATUS_CHOICES.success
+                )
+            )
+
+    @unittest_run_loop
+    async def test_sequence_exists(self):
+        job = await sequence_exists(self.app['engine'], 'AACAGCATGAGTGCGCTGGATGCTG')
+        assert job == self.job_id

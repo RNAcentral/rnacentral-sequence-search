@@ -16,19 +16,20 @@ import uuid
 
 from aiohttp.test_utils import unittest_run_loop
 
-from .test_base import DBTestCase
-from . import DoesNotExist
-from .models import Job, JobChunk, Consumer, JOB_STATUS_CHOICES, JOB_CHUNK_STATUS_CHOICES, CONSUMER_STATUS_CHOICES
-from .jobs import find_highest_priority_jobs
-from .job_chunks import save_job_chunk, get_consumer_ip_from_job_chunk, \
-    set_job_chunk_status, get_job_chunk_from_job_and_database
+from sequence_search.db.tests.test_base import DBTestCase
+from sequence_search.db import DoesNotExist
+from sequence_search.db.models import Job, JobChunk, Consumer, JOB_STATUS_CHOICES, JOB_CHUNK_STATUS_CHOICES, \
+    CONSUMER_STATUS_CHOICES
+from sequence_search.db.jobs import find_highest_priority_jobs
+from sequence_search.db.job_chunks import save_job_chunk, get_consumer_ip_from_job_chunk, set_job_chunk_status, \
+    get_job_chunk_from_job_and_database
 
 
 class GetJobChunkFromJobAndDatabase(DBTestCase):
     """
     Run this test with the following command:
 
-    ENVIRONMENT=TEST python -m unittest sequence_search.db.test_job_chunks.GetJobChunkFromJobAndDatabase
+    ENVIRONMENT=TEST python -m unittest sequence_search.db.tests.test_job_chunks.GetJobChunkFromJobAndDatabase
     """
     async def setUpAsync(self):
         await super().setUpAsync()
@@ -79,7 +80,7 @@ class SaveJobChunkTestCase(DBTestCase):
     """
     Run this test with the following command:
 
-    ENVIRONMENT=TEST python -m unittest sequence_search.db.test_job_chunks.SaveJobChunkTestCase
+    ENVIRONMENT=TEST python -m unittest sequence_search.db.tests.test_job_chunks.SaveJobChunkTestCase
     """
     async def setUpAsync(self):
         await super().setUpAsync()
@@ -106,7 +107,7 @@ class FindHighestPriorityJobChunkTestCase(DBTestCase):
     """
     Run this test with the following command:
 
-    ENVIRONMENT=TEST python -m unittest sequence_search.db.test_job_chunks.FindHighestPriorityJobChunkTestCase
+    ENVIRONMENT=TEST python -m unittest sequence_search.db.tests.test_job_chunks.FindHighestPriorityJobChunkTestCase
     """
     async def setUpAsync(self):
         await super().setUpAsync()
@@ -154,13 +155,11 @@ class FindHighestPriorityJobChunkTestCase(DBTestCase):
     @unittest_run_loop
     async def test_find_highest_priority_job_chunks(self):
         chunks = await find_highest_priority_jobs(self.app['engine'])
-
         assert len(chunks) == 2
 
-        job_id, job_chunk_id, database = chunks[0]
+        job_id, submitted, database = chunks[0]
 
         assert job_id == self.job_id
-        assert job_chunk_id == self.job_chunk_id1
         assert database == 'mirbase'
 
 
@@ -168,7 +167,7 @@ class GetConsumerIpFromJobChunkTestCase(DBTestCase):
     """
     Run this test with the following command:
 
-    ENVIRONMENT=TEST python -m unittest sequence_search.db.test_job_chunks.GetConsumerIpFromJobChunkTestCase
+    ENVIRONMENT=TEST python -m unittest sequence_search.db.tests.test_job_chunks.GetConsumerIpFromJobChunkTestCase
     """
     async def setUpAsync(self):
         await super().setUpAsync()
@@ -202,7 +201,6 @@ class GetConsumerIpFromJobChunkTestCase(DBTestCase):
     @unittest_run_loop
     async def test_get_consumer_ip_from_job_chunk(self):
         consumer_ip = await get_consumer_ip_from_job_chunk(self.app['engine'], self.job_chunk_id)
-        print(consumer_ip)
         assert consumer_ip == '192.168.0.2'
 
 
@@ -210,7 +208,7 @@ class SetJobChunkStatusTestCase(DBTestCase):
     """
     Run this test with the following command:
 
-    ENVIRONMENT=TEST python -m unittest sequence_search.db.test_job_chunks.SetJobChunkStatusTestCase
+    ENVIRONMENT=TEST python -m unittest sequence_search.db.tests.test_job_chunks.SetJobChunkStatusTestCase
     """
     async def setUpAsync(self):
         await super().setUpAsync()

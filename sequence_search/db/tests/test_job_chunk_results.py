@@ -17,16 +17,16 @@ import uuid
 from aiohttp.test_utils import unittest_run_loop
 import sqlalchemy as sa
 
-from .models import Job, JobChunk, JOB_STATUS_CHOICES, JOB_CHUNK_STATUS_CHOICES
-from .job_chunk_results import set_job_chunk_results
-from .test_base import DBTestCase
+from sequence_search.db.models import Job, JobChunk, JOB_STATUS_CHOICES, JOB_CHUNK_STATUS_CHOICES
+from sequence_search.db.job_chunk_results import set_job_chunk_results
+from sequence_search.db.tests.test_base import DBTestCase
 
 
 class SetJobChunkResultsTestCase(DBTestCase):
     """
     Run this test with the following command:
 
-    ENVIRONMENT=TEST python3 -m unittest sequence_search.db.test_job_chunk_results.SetJobChunkResultsTestCase
+    ENVIRONMENT=TEST python3 -m unittest sequence_search.db.tests.test_job_chunk_results.SetJobChunkResultsTestCase
     """
     async def setUpAsync(self):
         await super().setUpAsync()
