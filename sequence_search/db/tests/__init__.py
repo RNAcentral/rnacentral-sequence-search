@@ -18,3 +18,4 @@ from .test_job_chunk_results import SetJobChunkResultsTestCase
 from .test_job_chunks import GetConsumerIpFromJobChunkTestCase, GetJobChunkFromJobAndDatabase, SaveJobChunkTestCase, \
     SetJobChunkStatusTestCase, FindHighestPriorityJobChunkTestCase
 from .test_jobs import GetJobTestCase, GetJobQueryTestCase
+from .test_infernal_jobs import InfernalTestCase
