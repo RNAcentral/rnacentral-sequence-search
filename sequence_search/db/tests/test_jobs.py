@@ -18,7 +18,7 @@ from aiohttp.test_utils import unittest_run_loop
 
 from sequence_search.db.tests.test_base import DBTestCase
 from sequence_search.db.models import Job
-from sequence_search.db.jobs import get_job, save_job, set_job_status, sequence_exists, get_job_query,\
+from sequence_search.db.jobs import get_job, save_job, set_job_status, sequence_exists, job_exists, get_job_query,\
     JOB_STATUS_CHOICES
 
 
@@ -125,11 +125,11 @@ class GetJobQueryTestCase(DBTestCase):
         assert query == 'AACAGCATGAGTGCGCTGGATGCTG'
 
 
-class SequenceExistsTestCase(DBTestCase):
+class JobAndSequenceExistsTestCase(DBTestCase):
     """
     Run this test with the following command:
 
-    ENVIRONMENT=TEST python -m unittest sequence_search.db.test_jobs.SequenceExistsTestCase
+    ENVIRONMENT=TEST python -m unittest sequence_search.db.test_jobs.JobAndSequenceExistsTestCase
     """
     job_id = str(uuid.uuid4())
 
@@ -147,6 +147,11 @@ class SequenceExistsTestCase(DBTestCase):
                     status=JOB_STATUS_CHOICES.success
                 )
             )
+
+    @unittest_run_loop
+    async def test_job_exists(self):
+        job = await job_exists(self.app['engine'], self.job_id)
+        assert job is True
 
     @unittest_run_loop
     async def test_sequence_exists(self):
