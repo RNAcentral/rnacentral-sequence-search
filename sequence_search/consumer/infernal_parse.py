@@ -36,7 +36,7 @@ def infernal_parse(filename):
             "seq_to": item[10],
             "strand": item[11],
             "trunc": item[12],
-            "pass": item[13],
+            "pipeline_pass": item[13],
             "gc": item[14],
             "bias": item[15],
             "score": item[16],
