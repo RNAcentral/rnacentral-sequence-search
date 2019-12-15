@@ -69,7 +69,7 @@ class InfernalResultTestCase(DBTestCase):
                 'seq_to': 2417,
                 'strand': '+',
                 'trunc': "3'",
-                'pass': 3,
+                'pipeline_pass': 3,
                 'gc': 0.56,
                 'bias': 0.0,
                 'score': 559.2,
