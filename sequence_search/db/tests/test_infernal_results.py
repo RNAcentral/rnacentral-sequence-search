@@ -19,7 +19,7 @@ from aiohttp.test_utils import unittest_run_loop
 
 from sequence_search.db.tests.test_base import DBTestCase
 from sequence_search.db.models import Job, InfernalJob
-from sequence_search.db.jobs import JOB_STATUS_CHOICES, JOB_CHUNK_STATUS_CHOICES
+from sequence_search.db.jobs import get_infernal_job_results, JOB_STATUS_CHOICES, JOB_CHUNK_STATUS_CHOICES
 from sequence_search.db.infernal_results import set_infernal_job_results
 
 
@@ -53,9 +53,7 @@ class InfernalResultTestCase(DBTestCase):
             )
         )
 
-    @unittest_run_loop
-    async def test_set_infernal_job_results(self):
-        results = [
+        self.results = [
             {
                 'target_name': 'SSU_rRNA_eukarya',
                 'accession_rfam': 'RF01960',
@@ -86,7 +84,9 @@ class InfernalResultTestCase(DBTestCase):
             }
         ]
 
-        await set_infernal_job_results(self.app['engine'], self.job_id, results=results)
+    @unittest_run_loop
+    async def test_set_infernal_job_results(self):
+        await set_infernal_job_results(self.app['engine'], self.job_id, results=self.results)
 
         async with self.app['engine'].acquire() as connection:
             query = sa.text('''
@@ -109,3 +109,39 @@ class InfernalResultTestCase(DBTestCase):
             async for row in await connection.execute(query, infernal_job_id=infernal_job_id):
                 assert row.target_name == 'SSU_rRNA_eukarya'
                 break
+
+    @unittest_run_loop
+    async def test_get_infernal_job_results(self):
+        await set_infernal_job_results(self.app['engine'], self.job_id, results=self.results)
+        result = await get_infernal_job_results(self.app['engine'], self.job_id)
+
+        assert result == [
+            {
+                'target_name': 'SSU_rRNA_eukarya',
+                'accession_rfam': 'RF01960',
+                'query_name': 'query',
+                'accession_seq': '-',
+                'clan_name': 'CL00111',
+                'mdl': 'cm',
+                'mdl_from': 1,
+                'mdl_to': 609,
+                'seq_from': 1764,
+                'seq_to': 2417,
+                'strand': '+',
+                'trunc': "3'",
+                'pipeline_pass': 3,
+                'gc': 0.56,
+                'bias': 0.0,
+                'score': 559.2,
+                'e_value': 4.6e-167,
+                'inc': '!',
+                'olp': '^',
+                'anyidx': '-',
+                'afrct1': '-',
+                'afrct2': '-',
+                'winidx': '-',
+                'wfrct1': '-',
+                'wfrct2': '-',
+                'description': 'Eukaryotic small subunit ribosomal RNA',
+            }
+        ]
