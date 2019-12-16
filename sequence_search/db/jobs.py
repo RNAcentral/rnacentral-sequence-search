@@ -18,7 +18,8 @@ import sqlalchemy as sa
 import psycopg2
 
 from . import DatabaseConnectionError, SQLError
-from .models import Job, InfernalJob, JobChunk, JobChunkResult, JOB_STATUS_CHOICES, JOB_CHUNK_STATUS_CHOICES
+from .models import Job, InfernalJob, InfernalResult, JobChunk, JobChunkResult, JOB_STATUS_CHOICES, \
+    JOB_CHUNK_STATUS_CHOICES
 
 
 class JobNotFound(Exception):
@@ -217,10 +218,7 @@ async def get_job_chunks_status(engine, job_id):
                         'finished': row.finished
                     })
 
-                if output == []:
-                    raise JobNotFound(job_id)
-                else:
-                    return output
+                return output if output else JobNotFound(job_id)
 
             except JobNotFound as e:
                 raise e
@@ -473,6 +471,84 @@ async def find_highest_priority_jobs(engine):
 
             except Exception as e:
                 raise SQLError("Failed to find highest priority jobs") from e
+
+    except psycopg2.Error as e:
+        raise DatabaseConnectionError(str(e)) from e
+
+
+async def get_infernal_job_results(engine, job_id):
+    """
+    Function to get cmscan command results
+    :param engine: params to connect to the db
+    :param job_id: id of the job
+    :return: list of dicts with cmscan command results
+    """
+    try:
+        async with engine.acquire() as connection:
+            sql = (sa.select([
+                    InfernalJob.c.job_id,
+                    InfernalResult.c.target_name,
+                    InfernalResult.c.accession_rfam,
+                    InfernalResult.c.query_name,
+                    InfernalResult.c.accession_seq,
+                    InfernalResult.c.clan_name,
+                    InfernalResult.c.mdl,
+                    InfernalResult.c.mdl_from,
+                    InfernalResult.c.mdl_to,
+                    InfernalResult.c.seq_from,
+                    InfernalResult.c.seq_to,
+                    InfernalResult.c.strand,
+                    InfernalResult.c.trunc,
+                    InfernalResult.c.pipeline_pass,
+                    InfernalResult.c.gc,
+                    InfernalResult.c.bias,
+                    InfernalResult.c.score,
+                    InfernalResult.c.e_value,
+                    InfernalResult.c.inc,
+                    InfernalResult.c.olp,
+                    InfernalResult.c.anyidx,
+                    InfernalResult.c.afrct1,
+                    InfernalResult.c.afrct2,
+                    InfernalResult.c.winidx,
+                    InfernalResult.c.wfrct1,
+                    InfernalResult.c.wfrct2,
+                    InfernalResult.c.description,
+                ])
+                .select_from(sa.join(InfernalJob, InfernalResult, InfernalJob.c.id == InfernalResult.c.infernal_job_id))  # noqa
+                .where(InfernalJob.c.job_id == job_id))  # noqa
+
+            results = []
+            async for row in connection.execute(sql):
+                results.append({
+                    'target_name': row[1],
+                    'accession_rfam': row[2],
+                    'query_name': row[3],
+                    'accession_seq': row[4],
+                    'clan_name': row[5],
+                    'mdl': row[6],
+                    'mdl_from': row[7],
+                    'mdl_to': row[8],
+                    'seq_from': row[9],
+                    'seq_to': row[10],
+                    'strand': row[11],
+                    'trunc': row[12],
+                    'pipeline_pass': row[13],
+                    'gc': row[14],
+                    'bias': row[15],
+                    'score': row[16],
+                    'e_value': row[17],
+                    'inc': row[18],
+                    'olp': row[19],
+                    'anyidx': row[20],
+                    'afrct1': row[21],
+                    'afrct2': row[22],
+                    'winidx': row[23],
+                    'wfrct1': row[24],
+                    'wfrct2': row[25],
+                    'description': row[26]
+                })
+
+            return results
 
     except psycopg2.Error as e:
         raise DatabaseConnectionError(str(e)) from e
