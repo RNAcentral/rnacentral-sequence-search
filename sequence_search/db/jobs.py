@@ -552,3 +552,42 @@ async def get_infernal_job_results(engine, job_id):
 
     except psycopg2.Error as e:
         raise DatabaseConnectionError(str(e)) from e
+
+
+async def get_infernal_job_status(engine, job_id):
+    """
+    Function to get the status of the infernal job
+    :param engine: params to connect to the db
+    :param job_id: id of the job
+    :return: data about infernal job as a namedtuple
+    """
+    try:
+        async with engine.acquire() as connection:
+            try:
+                select_statement = sa.select(
+                    [
+                        InfernalJob.c.job_id,
+                        InfernalJob.c.submitted,
+                        InfernalJob.c.finished,
+                        InfernalJob.c.status,
+                    ],
+                )
+
+                query = (select_statement.select_from(InfernalJob).where(InfernalJob.c.job_id == job_id))  # noqa
+
+                async for row in connection.execute(query):
+                    result = ({
+                        'job_id': row.job_id,
+                        'submitted': row.submitted,
+                        'finished': row.finished,
+                        'status': row.status,
+                    })
+
+                return result if result else JobNotFound(job_id)
+
+            except JobNotFound as e:
+                raise e
+            except Exception as e:
+                raise SQLError("Failed to get job_chunk status, job_id = %s" % job_id) from e
+    except psycopg2.Error as e:
+        raise DatabaseConnectionError(str(e)) from e
