@@ -114,34 +114,4 @@ class InfernalResultTestCase(DBTestCase):
     async def test_get_infernal_job_results(self):
         await set_infernal_job_results(self.app['engine'], self.job_id, results=self.results)
         result = await get_infernal_job_results(self.app['engine'], self.job_id)
-
-        assert result == [
-            {
-                'target_name': 'SSU_rRNA_eukarya',
-                'accession_rfam': 'RF01960',
-                'query_name': 'query',
-                'accession_seq': '-',
-                'clan_name': 'CL00111',
-                'mdl': 'cm',
-                'mdl_from': 1,
-                'mdl_to': 609,
-                'seq_from': 1764,
-                'seq_to': 2417,
-                'strand': '+',
-                'trunc': "3'",
-                'pipeline_pass': 3,
-                'gc': 0.56,
-                'bias': 0.0,
-                'score': 559.2,
-                'e_value': 4.6e-167,
-                'inc': '!',
-                'olp': '^',
-                'anyidx': '-',
-                'afrct1': '-',
-                'afrct2': '-',
-                'winidx': '-',
-                'wfrct1': '-',
-                'wfrct2': '-',
-                'description': 'Eukaryotic small subunit ribosomal RNA',
-            }
-        ]
+        assert result == [{key: value for key, value in d.items() if key != 'infernal_job_id'} for d in self.results]
