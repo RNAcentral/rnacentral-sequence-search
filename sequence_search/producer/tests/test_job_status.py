@@ -17,8 +17,8 @@ import uuid
 
 from aiohttp.test_utils import unittest_run_loop
 
-from ..__main__ import create_app
-from ...db.models import Job, JobChunk, JOB_STATUS_CHOICES, JOB_CHUNK_STATUS_CHOICES
+from sequence_search.producer.__main__ import create_app
+from sequence_search.db.models import Job, JobChunk, JOB_STATUS_CHOICES, JOB_CHUNK_STATUS_CHOICES
 from aiohttp.test_utils import AioHTTPTestCase
 
 
