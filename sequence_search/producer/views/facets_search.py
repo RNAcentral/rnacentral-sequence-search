@@ -18,6 +18,7 @@ from aiohttp import web
 from aiojobs.aiohttp import atomic
 from ast import literal_eval
 from pymemcache.client import base
+from pymemcache import serde
 
 from ...db.jobs import get_job_results, get_job, job_exists, set_job_ordering
 from ..text_search_client import get_text_search_results, ProxyConnectionError, EBITextSearchConnectionError, \
@@ -305,10 +306,10 @@ async def facets_search(request):
         ENVIRONMENT = request.app['settings'].ENVIRONMENT
 
         # we want to cache the EBI Search result
-        if ENVIRONMENT == 'PRODUCTION':
-            client = base.Client(('192.168.0.8', 11211))
-        else:
-            client = base.Client(('localhost', 11211))
+        ip_address = '192.168.0.8' if ENVIRONMENT == 'PRODUCTION' else 'localhost'
+        client = base.Client((ip_address, 11211),
+                             serializer=serde.get_python_memcache_serializer(pickle_version=2),
+                             deserializer=serde.python_memcache_deserializer)
 
         # create a hash with query parameters
         text_search_key = hashlib.md5(
