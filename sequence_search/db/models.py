@@ -281,3 +281,6 @@ async def migrate(ENVIRONMENT):
                   wfrct2 VARCHAR(255),
                   description VARCHAR(255))
             ''')
+
+            await connection.execute('''CREATE INDEX on job_chunks (job_id)''')
+            await connection.execute('''CREATE INDEX on job_chunk_results (job_chunk_id)''')
