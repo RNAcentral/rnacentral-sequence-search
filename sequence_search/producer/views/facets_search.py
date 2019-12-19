@@ -320,7 +320,7 @@ async def facets_search(request):
         cached_result = client.get(text_search_key)
 
         if cached_result:
-            text_search_data = literal_eval(cached_result.decode('utf8'))
+            text_search_data = cached_result
             logging.debug("Using cache. This is the key used: {}".format(text_search_key))
         else:
             text_search_data = await get_text_search_results(
