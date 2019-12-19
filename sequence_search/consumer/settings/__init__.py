@@ -32,7 +32,7 @@ PROJECT_ROOT = pathlib.Path(__file__).parent.parent
 MIN_LENGTH = 10
 
 # maximum query sequence length
-MAX_LENGTH = 10000
+MAX_LENGTH = 7000
 
 # results expiration time
 EXPIRATION = 60 * 60 * 24 * 7  # seconds
