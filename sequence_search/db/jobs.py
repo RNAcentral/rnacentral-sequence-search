@@ -512,24 +512,24 @@ async def get_infernal_job_results(engine, job_id):
             results = []
             async for row in connection.execute(sql):
                 results.append({
-                    'target_name': row[0],
-                    'accession_rfam': row[1],
-                    'query_name': row[2],
-                    'accession_seq': row[3],
-                    'mdl': row[4],
-                    'mdl_from': row[5],
-                    'mdl_to': row[6],
-                    'seq_from': row[7],
-                    'seq_to': row[8],
-                    'strand': row[9],
-                    'trunc': row[10],
-                    'pipeline_pass': row[11],
-                    'gc': row[12],
-                    'bias': row[13],
-                    'score': row[14],
-                    'e_value': row[15],
-                    'inc': row[16],
-                    'description': row[17]
+                    'target_name': row[1],
+                    'accession_rfam': row[2],
+                    'query_name': row[3],
+                    'accession_seq': row[4],
+                    'mdl': row[5],
+                    'mdl_from': row[6],
+                    'mdl_to': row[7],
+                    'seq_from': row[8],
+                    'seq_to': row[9],
+                    'strand': row[10],
+                    'trunc': row[11],
+                    'pipeline_pass': row[12],
+                    'gc': row[13],
+                    'bias': row[14],
+                    'score': row[15],
+                    'e_value': row[16],
+                    'inc': row[17],
+                    'description': row[18]
                 })
 
             return results
