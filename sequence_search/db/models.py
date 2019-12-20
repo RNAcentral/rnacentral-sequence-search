@@ -138,7 +138,6 @@ InfernalResult = sa.Table('infernal_result', metadata,
                           sa.Column('accession_rfam', sa.String(255)),
                           sa.Column('query_name', sa.String(255)),
                           sa.Column('accession_seq', sa.String(255)),
-                          sa.Column('clan_name', sa.String(255)),
                           sa.Column('mdl', sa.String(255)),
                           sa.Column('mdl_from', sa.Integer),
                           sa.Column('mdl_to', sa.Integer),
@@ -152,13 +151,6 @@ InfernalResult = sa.Table('infernal_result', metadata,
                           sa.Column('score', sa.Float),
                           sa.Column('e_value', sa.Float),
                           sa.Column('inc', sa.String(255)),
-                          sa.Column('olp', sa.String(255)),
-                          sa.Column('anyidx', sa.String(255)),
-                          sa.Column('afrct1', sa.String(255)),
-                          sa.Column('afrct2', sa.String(255)),
-                          sa.Column('winidx', sa.String(255)),
-                          sa.Column('wfrct1', sa.String(255)),
-                          sa.Column('wfrct2', sa.String(255)),
                           sa.Column('description', sa.String(255)))
 
 
@@ -258,7 +250,6 @@ async def migrate(ENVIRONMENT):
                   accession_rfam VARCHAR(255),
                   query_name VARCHAR(255),
                   accession_seq VARCHAR(255),
-                  clan_name VARCHAR(255),
                   mdl VARCHAR(255),
                   mdl_from INTEGER NOT NULL,
                   mdl_to INTEGER NOT NULL,
@@ -272,15 +263,9 @@ async def migrate(ENVIRONMENT):
                   score FLOAT NOT NULL,
                   e_value FLOAT NOT NULL,
                   inc VARCHAR(255),
-                  olp VARCHAR(255),
-                  anyidx VARCHAR(255),
-                  afrct1 VARCHAR(255),
-                  afrct2 VARCHAR(255),
-                  winidx VARCHAR(255),
-                  wfrct1 VARCHAR(255),
-                  wfrct2 VARCHAR(255),
                   description VARCHAR(255))
             ''')
 
             await connection.execute('''CREATE INDEX on job_chunks (job_id)''')
             await connection.execute('''CREATE INDEX on job_chunk_results (job_chunk_id)''')
+            await connection.execute('''CREATE INDEX on infernal_result (infernal_job_id)''')

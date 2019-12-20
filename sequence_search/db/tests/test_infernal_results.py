@@ -59,7 +59,6 @@ class InfernalResultTestCase(DBTestCase):
                 'accession_rfam': 'RF01960',
                 'query_name': 'query',
                 'accession_seq': '-',
-                'clan_name': 'CL00111',
                 'mdl': 'cm',
                 'mdl_from': 1,
                 'mdl_to': 609,
@@ -73,13 +72,6 @@ class InfernalResultTestCase(DBTestCase):
                 'score': 559.2,
                 'e_value': 4.6e-167,
                 'inc': '!',
-                'olp': '^',
-                'anyidx': '-',
-                'afrct1': '-',
-                'afrct2': '-',
-                'winidx': '-',
-                'wfrct1': '-',
-                'wfrct2': '-',
                 'description': 'Eukaryotic small subunit ribosomal RNA',
             }
         ]
