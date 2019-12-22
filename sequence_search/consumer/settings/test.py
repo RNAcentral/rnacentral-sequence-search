@@ -19,6 +19,9 @@ INFERNAL_QUERY_DIR = PROJECT_ROOT / '.tmp' / 'infernal-queries'
 # full path to the rfam.cm
 RFAM_CM = PROJECT_ROOT / 'rfam' / 'Rfam.cm'
 
+# full path to the cmsearch-deoverlap.pl
+DEOVERLAP = PROJECT_ROOT / 'cmsearch_tblout_deoverlap-master' / 'cmsearch-deoverlap.pl'
+
 # producer server location
 PRODUCER_PROTOCOL = 'http'
 PRODUCER_HOST = 'localhost'

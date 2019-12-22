@@ -19,6 +19,7 @@ from aiojobs.aiohttp import spawn
 
 from ..infernal_parse import infernal_parse
 from ..infernal_search import infernal_search
+from ..infernal_deoverlap import infernal_deoverlap
 from ..settings import MAX_RUN_TIME
 from ...db import DatabaseConnectionError, SQLError
 from ...db.consumers import set_consumer_status, get_ip
@@ -63,8 +64,26 @@ async def infernal(engine, job_id, sequence, consumer_ip):
     else:
         logger.info('Infernal search success for: job_id = %s' % job_id)
 
+    process_deoverlap, file_deoverlap = await infernal_deoverlap(job_id=job_id)
+
+    try:
+        task_deoverlap = asyncio.ensure_future(process_deoverlap.communicate())
+        await asyncio.wait_for(task_deoverlap, MAX_RUN_TIME)
+        return_code = process_deoverlap.returncode
+        if return_code != 0:
+            raise InfernalError("Deoverlap process returned non-zero status code")
+    except asyncio.TimeoutError:
+        logging.debug('Deoverlap timeout for: job_id = %s' % job_id)
+        process_deoverlap.kill()
+        await set_infernal_job_status(engine, job_id, status=JOB_CHUNK_STATUS_CHOICES.timeout)
+    except Exception:
+        logging.debug('Deoverlap error for: job_id = %s' % job_id)
+        await set_infernal_job_status(engine, job_id, status=JOB_CHUNK_STATUS_CHOICES.error)
+    else:
+        logging.debug('Deoverlap success for: job_id = %s' % job_id)
+
         # save results of the infernal job to the database
-        results = infernal_parse(filename)
+        results = infernal_parse(file_deoverlap)
         if results:
             await set_infernal_job_results(engine, job_id, results)
 

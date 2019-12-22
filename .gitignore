@@ -30,5 +30,6 @@ sequence_search/consumer/queries
 sequence_search/consumer/databases
 sequence_search/consumer/infernal*
 sequence_search/consumer/rfam
+sequence_search/consumer/cmsearch_tblout_deoverlap-master
 sequence_search/monitor/.conf-file
 sequence_search/monitor/test*
