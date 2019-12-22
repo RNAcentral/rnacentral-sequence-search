@@ -18,7 +18,7 @@ def infernal_parse(filename):
     with open(filename, 'r') as file:
         for line in file.readlines():
             if not line.startswith('#'):
-                line = re.sub(" +", " ", line)
+                line = re.sub(" +", " ", line).strip()
                 lines.append(line.split(" "))
 
     results = []
