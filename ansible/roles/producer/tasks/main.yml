@@ -48,6 +48,10 @@
         - "--exclude=/sequence_search/consumer/databases"
         - "--exclude=/sequence_search/consumer/queries/*.fasta"
         - "--exclude=/sequence_search/consumer/results/*.fasta"
+        - "--exclude=/sequence_search/consumer/infernal-queries"
+        - "--exclude=/sequence_search/consumer/infernal-results"
+        - "--exclude=/sequence_search/consumer/cmsearch_tblout_deoverlap"
+        - "--exclude=/sequence_search/consumer/rfam"
         - "--exclude=/sequence_search/producer/static/node_modules"
         - "--exclude=/sequence_search/producer/static/package-lock.json"
     tags: [ rsync, quick ]
