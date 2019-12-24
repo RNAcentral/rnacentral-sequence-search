@@ -87,6 +87,13 @@
     shell: /usr/local/bin/cmpress /srv/sequence_search/consumer/rfam/Rfam.cm
     tags: [ rfam ]
 
+  - name: Delete cmsearch_tblout_deoverlap directory
+    file:
+      path: /srv/sequence_search/consumer/cmsearch_tblout_deoverlap
+      state: absent
+    ignore_errors: yes
+    tags: [ deoverlap ]
+
   - name: Install cmsearch_tblout_deoverlap
     shell:
       chdir: /srv/sequence_search/consumer
