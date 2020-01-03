@@ -572,6 +572,6 @@ async def get_infernal_job_status(engine, job_id):
             except JobNotFound as e:
                 raise e
             except Exception as e:
-                raise SQLError("Failed to get job_chunk status, job_id = %s" % job_id) from e
+                raise SQLError("Failed to get infernal_job status, job_id = %s" % job_id) from e
     except psycopg2.Error as e:
         raise DatabaseConnectionError(str(e)) from e
