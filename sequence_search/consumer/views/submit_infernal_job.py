@@ -22,7 +22,7 @@ from ..infernal_search import infernal_search
 from ..infernal_deoverlap import infernal_deoverlap
 from ..settings import MAX_RUN_TIME
 from ...db import DatabaseConnectionError, SQLError
-from ...db.consumers import set_consumer_status, get_ip
+from ...db.consumers import get_ip, set_consumer_fields
 from ...db.models import CONSUMER_STATUS_CHOICES, JOB_CHUNK_STATUS_CHOICES
 from ...db.infernal_job import set_infernal_job_status, set_consumer_to_infernal_job
 from ...db.infernal_results import set_infernal_job_results
@@ -90,8 +90,8 @@ async def infernal(engine, job_id, sequence, consumer_ip):
         # update infernal status
         await set_infernal_job_status(engine, job_id, status=JOB_CHUNK_STATUS_CHOICES.success)
 
-        # update consumer status
-        await set_consumer_status(engine, consumer_ip, CONSUMER_STATUS_CHOICES.available)
+        # update consumer fields
+        await set_consumer_fields(engine, consumer_ip, CONSUMER_STATUS_CHOICES.available, job_chunk_id=None)
 
 
 async def submit_infernal_job(request):
@@ -110,7 +110,7 @@ async def submit_infernal_job(request):
     # if request was successful, save the consumer state and infernal_job state to the database
     if engine and job_id and sequence:
         try:
-            await set_consumer_status(engine, consumer_ip, CONSUMER_STATUS_CHOICES.busy)
+            await set_consumer_fields(engine, consumer_ip, CONSUMER_STATUS_CHOICES.busy, job_chunk_id='infernal-job')
             await set_infernal_job_status(engine, job_id, status=JOB_CHUNK_STATUS_CHOICES.started)
             await set_consumer_to_infernal_job(engine, job_id, consumer_ip)
         except (DatabaseConnectionError, SQLError) as e:

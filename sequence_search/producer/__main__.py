@@ -82,7 +82,7 @@ async def check_chunks_and_consumers(app):
     for consumer in busy_consumers:
         if consumer.job_chunk_id is None:
             await set_consumer_status(app['engine'], consumer.ip, CONSUMER_STATUS_CHOICES.available)
-        else:
+        elif consumer.job_chunk_id != 'infernal-job':
             job_chunk = await get_job_chunk(app['engine'], consumer.job_chunk_id)
             if job_chunk.finished is not None:
                 await set_consumer_job_chunk_id(app['engine'], consumer.ip, None)

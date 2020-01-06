@@ -17,7 +17,7 @@ from aiohttp import web
 from aiojobs.aiohttp import atomic
 
 from sequence_search.db.models import JOB_CHUNK_STATUS_CHOICES
-from ...db.consumers import delegate_job_chunk_to_consumer, find_available_consumers
+from ...db.consumers import delegate_job_chunk_to_consumer, find_available_consumers, delegate_infernal_job_to_consumer
 from ...db.jobs import find_highest_priority_jobs, save_job, sequence_exists
 from ...db.job_chunks import save_job_chunk, set_job_chunk_status
 from ...db.infernal_job import save_infernal_job
@@ -128,7 +128,8 @@ async def submit_job(request):
         # TODO: what if Job was saved and InfernalJob was not? Need transactions?
         await save_infernal_job(request.app['engine'], job_id)
 
-        # if there are unfinished jobs, change the status to pending; otherwise try starting the job
+        # if there are unfinished jobs, change the status of each new job_chunk to pending;
+        # otherwise try starting the job
         if unfinished_job:
             for database in databases:
                 try:
@@ -141,8 +142,25 @@ async def submit_job(request):
                 except Exception as e:
                     return web.HTTPBadGateway(text=str(e))
         else:
-            # check for available consumers to delegate job_chunk
+            # check for available consumers
             consumers = await find_available_consumers(request.app['engine'])
+
+            # if consumers are available, delegate to infernal_job first
+            if consumers:
+                consumer = consumers.pop(0)
+
+                try:
+                    await delegate_infernal_job_to_consumer(
+                        engine=request.app['engine'],
+                        consumer_ip=consumer.ip,
+                        consumer_port=consumer.port,
+                        job_id=job_id,
+                        query=data['query']
+                    )
+                except Exception as e:
+                    return web.HTTPBadGateway(text=str(e))
+
+            # after infernal_job, delegate consumers to job_chunks
             for index in range(min(len(consumers), len(databases))):
                 try:
                     await delegate_job_chunk_to_consumer(
@@ -156,7 +174,7 @@ async def submit_job(request):
                 except Exception as e:
                     return web.HTTPBadGateway(text=str(e))
 
-            # if there is job_chunks to run but no consumer is available, change the status to pending
+            # if no consumer is available, change the status of the remaining job_chunks to pending
             for index in range(len(consumers), len(databases)):
                 try:
                     await set_job_chunk_status(

@@ -234,3 +234,19 @@ async def register_consumer_in_the_database(app):
         pass  # this is usually a duplicate key error - which is acceptable
     except psycopg2.Error as e:
         raise DatabaseConnectionError(str(e)) from e
+
+
+async def set_consumer_fields(engine, consumer_ip, status, job_chunk_id):
+    """Write consumer status and job_chunk_id as infernal-job in the database."""
+    try:
+        async with engine.acquire() as connection:
+            query = sa.text('''
+                UPDATE consumer
+                SET status = :status, job_chunk_id = :job_chunk_id
+                WHERE ip=:consumer_ip
+                RETURNING consumer.*;
+            ''')
+            await connection.execute(query, consumer_ip=consumer_ip, status=status, job_chunk_id=job_chunk_id)
+
+    except psycopg2.Error as e:
+        raise DatabaseConnectionError(str(e)) from e
