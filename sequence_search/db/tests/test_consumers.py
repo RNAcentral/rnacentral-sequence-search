@@ -19,7 +19,7 @@ from aiohttp.test_utils import unittest_run_loop
 from sequence_search.db.models import Job, JobChunk, Consumer, CONSUMER_STATUS_CHOICES, JOB_STATUS_CHOICES, \
     JOB_CHUNK_STATUS_CHOICES
 from sequence_search.db.consumers import get_consumer_status, set_consumer_status, find_available_consumers, \
-    delegate_job_chunk_to_consumer, register_consumer_in_the_database, get_ip
+    delegate_job_chunk_to_consumer, register_consumer_in_the_database, get_ip, set_consumer_fields
 from sequence_search.db.tests.test_base import DBTestCase
 
 
@@ -103,33 +103,13 @@ class SetConsumerStatusTestCase(DBTestCase):
             await connection.execute(
                 Consumer.insert().values(
                     ip=self.consumer_ip,
-                    status=CONSUMER_STATUS_CHOICES.busy
-                )
-            )
-
-            self.job_id = str(uuid.uuid4())
-            await connection.execute(
-                Job.insert().values(
-                    id=self.job_id,
-                    query='AACAGCATGAGTGCGCTGGATGCTG',
-                    submitted=datetime.datetime.now(),
-                    status=JOB_STATUS_CHOICES.started
-                )
-            )
-
-            self.job_chunk_id = await connection.scalar(
-                JobChunk.insert().values(
-                    job_id=self.job_id,
-                    database='mirbase',
-                    submitted=datetime.datetime.now(),
-                    status=JOB_CHUNK_STATUS_CHOICES.started,
-                    consumer=self.consumer_ip
+                    status=CONSUMER_STATUS_CHOICES.available
                 )
             )
 
     @unittest_run_loop
     async def test_set_consumer_status(self):
-        await set_consumer_status(self.app['engine'], '192.168.0.2', CONSUMER_STATUS_CHOICES.available)
+        await set_consumer_status(self.app['engine'], self.consumer_ip, CONSUMER_STATUS_CHOICES.busy)
 
         async with self.app['engine'].acquire() as connection:
             consumer_status = await get_consumer_status(self.app['engine'], self.consumer_ip)
@@ -208,3 +188,35 @@ class RegisterConsumerInTheDatabaseTestCase(DBTestCase):
 
         consumer = await get_consumer_status(self.app['engine'], consumer_ip)
         assert consumer == CONSUMER_STATUS_CHOICES.available
+
+
+class SetConsumerFieldsTestCase(DBTestCase):
+    """
+    Run this test with the following command:
+
+    ENVIRONMENT=TEST python -m unittest sequence_search.db.tests.test_consumers.SetConsumerFieldsTestCase
+    """
+    async def setUpAsync(self):
+        await super().setUpAsync()
+
+        async with self.app['engine'].acquire() as connection:
+            self.consumer_ip = '192.168.1.1'
+            await connection.execute(
+                Consumer.insert().values(
+                    ip=self.consumer_ip,
+                    status=CONSUMER_STATUS_CHOICES.available
+                )
+            )
+
+    @unittest_run_loop
+    async def test_set_consumer_fields(self):
+        await set_consumer_fields(
+            self.app['engine'],
+            self.consumer_ip,
+            CONSUMER_STATUS_CHOICES.busy,
+            'infernal-job'
+        )
+
+        async with self.app['engine'].acquire() as connection:
+            consumer_fields = await get_consumer_status(self.app['engine'], self.consumer_ip)
+            assert consumer_fields == CONSUMER_STATUS_CHOICES.busy
