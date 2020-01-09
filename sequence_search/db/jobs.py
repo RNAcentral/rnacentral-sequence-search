@@ -16,6 +16,7 @@ import uuid
 
 import sqlalchemy as sa
 import psycopg2
+from operator import itemgetter
 
 from . import DatabaseConnectionError, SQLError
 from .models import Job, InfernalJob, InfernalResult, JobChunk, JobChunkResult, JOB_STATUS_CHOICES, \
@@ -322,7 +323,7 @@ async def set_job_ordering(engine, job_id, ordering):
                                       "set_job_ordering() for job with job_id = %s" % job_id) from e
 
 
-async def get_job_results(engine, job_id, limit=3000):
+async def get_job_results(engine, job_id, limit=1000):
     """
     Aggregates results from multiple job_chunks and returns them.
 
@@ -355,25 +356,33 @@ async def get_job_results(engine, job_id, limit=3000):
                     JobChunkResult.c.result_id
                 ])
                 .select_from(sa.join(JobChunk, JobChunkResult, JobChunk.c.id == JobChunkResult.c.job_chunk_id))  # noqa
+                .order_by(JobChunkResult.c.score.desc())
                 .limit(limit)
                 .where(JobChunk.c.job_id == job_id))  # noqa
 
-            # sql = sa.text('''
-            #     SELECT job_id, database, rnacentral_id, description, score, bias,
-            #     e_value, target_length, alignment, alignment_length,
-            #     gap_count, match_count, nts_count1, nts_count2, "identity",
-            #     query_coverage, target_coverage, gaps, query_length, result_id
-            #     FROM job_chunks, job_chunk_results
-            #     WHERE job_id = :job_id
-            #     GROUP BY rnacentral_id
-            #     LIMIT :limit
-            # ''')
-            #
-            # async for row in connection.execute(query, job_id=job_id, limit=limit):
-            #     id = row.id
+            # popular species: zebrafish, arabidopsis thaliana, caenorhabditis elegans, drosophila melanogaster,
+            # saccharomyces cerevisiae S288c, schizosaccharomyces pombe, escherichia coli str. K-12 substr. MG1655
+            # and bacillus subtilis subsp. subtilis str. 168, respectively.
+            popular_species = {7955, 3702, 6239, 7227, 559292, 4896, 511145, 224308}
 
             results = []
             async for row in connection.execute(sql):
+                # check specie priority.
+                # priority order = human (9606), mouse (10090), popular species, others
+                try:
+                    taxid = row[0].split('_')[1]
+                    if taxid == '9606':
+                        specie_priority = 'a'  # Very high priority
+                    elif taxid == '10090':
+                        specie_priority = 'b'  # High priority
+                    elif int(taxid) in popular_species:
+                        specie_priority = 'c'  # Medium priority
+                    else:
+                        specie_priority = 'd'  # Low priority
+                except Exception:
+                    pass
+
+                # add result
                 results.append({
                     'rnacentral_id': row[0],
                     'description': row[3],
@@ -392,32 +401,33 @@ async def get_job_results(engine, job_id, limit=3000):
                     'target_coverage': row[16],
                     'gaps': row[17],
                     'query_length': row[18],
-                    'result_id': row[19]
+                    'result_id': row[19],
+                    'specie_priority': specie_priority if specie_priority else 'd'
                 })
 
             # sort results by ordering, ordering is stored in the database
             ordering = await get_job_ordering(engine, job_id)
 
             if ordering == 'e_value':
-                results.sort(key=lambda result: result['e_value'])
+                results.sort(key=itemgetter('e_value', 'specie_priority'))
             elif ordering == '-e_value':
-                results.sort(key=lambda result: result['e_value'])
-                results.reverse()
+                results.sort(key=itemgetter('e_value'), reverse=True)
+                results.sort(key=itemgetter('specie_priority'))
             elif ordering == 'identity':
-                results.sort(key=lambda result: result['identity'])
+                results.sort(key=itemgetter('identity', 'specie_priority'))
             elif ordering == '-identity':
-                results.sort(key=lambda result: result['identity'])
-                results.reverse()
+                results.sort(key=itemgetter('identity'), reverse=True)
+                results.sort(key=itemgetter('specie_priority'))
             elif ordering == 'query_coverage':
-                results.sort(key=lambda result: result['query_coverage'])
+                results.sort(key=itemgetter('query_coverage', 'specie_priority'))
             elif ordering == '-query_coverage':
-                results.sort(key=lambda result: result['query_coverage'])
-                results.reverse()
+                results.sort(key=itemgetter('query_coverage'), reverse=True)
+                results.sort(key=itemgetter('specie_priority'))
             elif ordering == 'target_coverage':
-                results.sort(key=lambda result: result['target_coverage'])
+                results.sort(key=itemgetter('target_coverage', 'specie_priority'))
             elif ordering == '-target_coverage':
-                results.sort(key=lambda result: result['target_coverage'])
-                results.reverse()
+                results.sort(key=itemgetter('target_coverage'), reverse=True)
+                results.sort(key=itemgetter('specie_priority'))
 
             return results
 
