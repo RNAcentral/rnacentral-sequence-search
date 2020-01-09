@@ -16,7 +16,6 @@ import hashlib
 
 from aiohttp import web
 from aiojobs.aiohttp import atomic
-from ast import literal_eval
 from pymemcache.client import base
 from pymemcache import serde
 
@@ -326,31 +325,32 @@ async def facets_search(request):
             text_search_data = await get_text_search_results(
                 results, job_id, query, start, size, facetcount, ENVIRONMENT
             )
+
+            # if this worked, inject text search results into facets json
+            for entry in text_search_data['entries']:
+                for result in results:
+                    if result['rnacentral_id'] == entry['id']:
+                        result['description'] = entry['fields']['description'][0]
+                        entry.update(result)
+                        break
+
+            # sort facets in the same order as in text_search_client
+            text_search_data['facets'].sort(key=lambda el: facetfields.index(el['id']))
+
+            # merge the contents of the 'popular_species' facet into the 'TAXONOMY' facet
+            merge_popular_species_into_taxonomy_facet(text_search_data)
+
+            # add the query sequence to display on the page
+            text_search_data['sequence'] = sequence
+
+            # add status of sequence search to display warnings, if need arises
+            text_search_data['sequenceSearchStatus'] = status
+
+            # text search worked successfully, unset text search error flag
+            text_search_data['textSearchError'] = False
+
             # cache the result
             client.set(text_search_key, text_search_data)
-
-        # if this worked, inject text search results into facets json
-        for entry in text_search_data['entries']:
-            for result in results:
-                if result['rnacentral_id'] == entry['id']:
-                    result['description'] = entry['fields']['description'][0]
-                    entry.update(result)
-                    break
-
-        # sort facets in the same order as in text_search_client
-        text_search_data['facets'].sort(key=lambda el: facetfields.index(el['id']))
-
-        # merge the contents of the 'popular_species' facet into the 'TAXONOMY' facet
-        merge_popular_species_into_taxonomy_facet(text_search_data)
-
-        # add the query sequence to display on the page
-        text_search_data['sequence'] = sequence
-
-        # add status of sequence search to display warnings, if need arises
-        text_search_data['sequenceSearchStatus'] = status
-
-        # text search worked successfully, unset text search error flag
-        text_search_data['textSearchError'] = False
 
     except (ProxyConnectionError, EBITextSearchConnectionError) as e:
         # text search is not available, pad output with facets stub, indicate that we have a text search error
