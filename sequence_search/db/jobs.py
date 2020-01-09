@@ -367,18 +367,18 @@ async def get_job_results(engine, job_id, limit=1000):
 
             results = []
             async for row in connection.execute(sql):
-                # check specie priority.
+                # check species priority.
                 # priority order = human (9606), mouse (10090), popular species, others
                 try:
                     taxid = row[0].split('_')[1]
                     if taxid == '9606':
-                        specie_priority = 'a'  # Very high priority
+                        species_priority = 'a'  # Very high priority
                     elif taxid == '10090':
-                        specie_priority = 'b'  # High priority
+                        species_priority = 'b'  # High priority
                     elif int(taxid) in popular_species:
-                        specie_priority = 'c'  # Medium priority
+                        species_priority = 'c'  # Medium priority
                     else:
-                        specie_priority = 'd'  # Low priority
+                        species_priority = 'd'  # Low priority
                 except Exception:
                     pass
 
@@ -402,32 +402,32 @@ async def get_job_results(engine, job_id, limit=1000):
                     'gaps': row[17],
                     'query_length': row[18],
                     'result_id': row[19],
-                    'specie_priority': specie_priority if specie_priority else 'd'
+                    'species_priority': species_priority if species_priority else 'd'
                 })
 
             # sort results by ordering, ordering is stored in the database
             ordering = await get_job_ordering(engine, job_id)
 
             if ordering == 'e_value':
-                results.sort(key=itemgetter('e_value', 'specie_priority'))
+                results.sort(key=itemgetter('e_value', 'species_priority'))
             elif ordering == '-e_value':
                 results.sort(key=itemgetter('e_value'), reverse=True)
-                results.sort(key=itemgetter('specie_priority'))
+                results.sort(key=itemgetter('species_priority'))
             elif ordering == 'identity':
-                results.sort(key=itemgetter('identity', 'specie_priority'))
+                results.sort(key=itemgetter('identity', 'species_priority'))
             elif ordering == '-identity':
                 results.sort(key=itemgetter('identity'), reverse=True)
-                results.sort(key=itemgetter('specie_priority'))
+                results.sort(key=itemgetter('species_priority'))
             elif ordering == 'query_coverage':
-                results.sort(key=itemgetter('query_coverage', 'specie_priority'))
+                results.sort(key=itemgetter('query_coverage', 'species_priority'))
             elif ordering == '-query_coverage':
                 results.sort(key=itemgetter('query_coverage'), reverse=True)
-                results.sort(key=itemgetter('specie_priority'))
+                results.sort(key=itemgetter('species_priority'))
             elif ordering == 'target_coverage':
-                results.sort(key=itemgetter('target_coverage', 'specie_priority'))
+                results.sort(key=itemgetter('target_coverage', 'species_priority'))
             elif ordering == '-target_coverage':
                 results.sort(key=itemgetter('target_coverage'), reverse=True)
-                results.sort(key=itemgetter('specie_priority'))
+                results.sort(key=itemgetter('species_priority'))
 
             return results
 
