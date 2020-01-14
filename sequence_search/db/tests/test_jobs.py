@@ -156,4 +156,4 @@ class JobAndSequenceExistsTestCase(DBTestCase):
     @unittest_run_loop
     async def test_sequence_exists(self):
         job = await sequence_exists(self.app['engine'], 'AACAGCATGAGTGCGCTGGATGCTG')
-        assert job == self.job_id
+        assert self.job_id in job
