@@ -72,7 +72,7 @@ class SubmitJobTestCase(AioHTTPTestCase):
             await connection.scalar(
                 JobChunkResult.insert().values(
                     job_chunk_id=self.job_chunk_id1,
-                    rnacentral_id='URS000075D2D2',
+                    rnacentral_id='URS000075D2D2_10090',
                     description='Mus musculus miR - 1195 stem - loop',
                     score=6.5,
                     bias=0.7,
@@ -108,10 +108,8 @@ class SubmitJobTestCase(AioHTTPTestCase):
             assert response.status == 200
             data = await response.json()
 
-            print(data[0])
-
             assert data[0] == {
-                "rnacentral_id": 'URS000075D2D2',
+                "rnacentral_id": 'URS000075D2D2_10090',
                 "description": 'Mus musculus miR - 1195 stem - loop',
                 "score": 6.5,
                 "bias": 0.7,
@@ -128,5 +126,6 @@ class SubmitJobTestCase(AioHTTPTestCase):
                 "target_coverage": 0.0,
                 "gaps": 0.0,
                 "query_length": 30,
-                "result_id": 1
+                "result_id": 1,
+                'species_priority': 'b'
             }
