@@ -16,6 +16,7 @@ import uuid
 
 import sqlalchemy as sa
 import psycopg2
+from collections import Counter
 from operator import itemgetter
 
 from . import DatabaseConnectionError, SQLError
@@ -36,7 +37,7 @@ async def sequence_exists(engine, query):
     Check if this query has already been searched
     :param engine: params to connect to the db
     :param query: the sequence that the user wants to search
-    :return: job_id if this query is in the db, otherwise returns none
+    :return: list of job_ids
     """
     try:
         async with engine.acquire() as connection:
@@ -44,13 +45,39 @@ async def sequence_exists(engine, query):
                 sql_query = sa.select([Job.c.id]).select_from(Job).where(
                     (Job.c.query == query) & Job.c.result_in_db
                 )
+                job_list = []
                 async for row in connection.execute(sql_query):
-                    return row[0] if row else None
+                    job_list.append(row[0])
+                return job_list
             except Exception as e:
                 raise SQLError("Failed to check if query exists for query = %s" % query) from e
     except psycopg2.Error as e:
         raise DatabaseConnectionError("Failed to open connection to the database in sequence_exists() for "
                                       "sequence with query = %s" % query) from e
+
+
+async def database_used_in_search(engine, job_id, databases):
+    """
+    Check the database used. If the database used in "job_id" is the same as in "databases",
+    we don't want to search again.
+    :param engine: params to connect to the db
+    :param job_id: id of the job
+    :param databases: database that the user wants to use to perform the search
+    :return: "true" if the database used in "job_id" is the same as in "databases", otherwise "false".
+    """
+    try:
+        async with engine.acquire() as connection:
+            try:
+                sql_query = sa.select([JobChunk.c.database]).select_from(JobChunk).where(JobChunk.c.job_id == job_id)
+                result = []
+                async for row in connection.execute(sql_query):
+                    result.append(row[0])
+                return True if Counter(result) == Counter(databases) else False
+            except Exception as e:
+                raise SQLError("Failed to check the database used for job_id = %s" % job_id) from e
+    except psycopg2.Error as e:
+        raise DatabaseConnectionError("Failed to open connection to the database in database_used_in_search() for "
+                                      "job_id = %s" % job_id) from e
 
 
 async def get_job(engine, job_id):

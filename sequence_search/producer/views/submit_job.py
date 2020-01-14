@@ -18,7 +18,7 @@ from aiojobs.aiohttp import atomic
 
 from sequence_search.db.models import JOB_CHUNK_STATUS_CHOICES
 from ...db.consumers import delegate_job_chunk_to_consumer, find_available_consumers, delegate_infernal_job_to_consumer
-from ...db.jobs import find_highest_priority_jobs, save_job, sequence_exists
+from ...db.jobs import find_highest_priority_jobs, save_job, sequence_exists, database_used_in_search
 from ...db.job_chunks import save_job_chunk, set_job_chunk_status
 from ...db.infernal_job import save_infernal_job
 from ...consumer.rnacentral_databases import producer_validator, producer_to_consumers_databases
@@ -106,9 +106,22 @@ async def submit_job(request):
     except (KeyError, TypeError, ValueError) as e:
         raise web.HTTPBadRequest(text=str(e)) from e
 
-    # perform the search or get the data from the database?
-    job_id = await sequence_exists(request.app['engine'], data['query'])
+    # database that the user wants to use to perform the search
+    databases = producer_to_consumers_databases(data['databases'])
 
+    # check if this query has already been searched
+    job_list = await sequence_exists(request.app['engine'], data['query'])
+
+    job_id = None
+    if job_list:
+        # check the database used in each job_id.
+        # set job_id if the database used is the same as in "databases"
+        for job in job_list:
+            if await database_used_in_search(request.app['engine'], job, databases):
+                job_id = job
+                break
+
+    # do the search if the data is not in the database
     if not job_id:
         # check for unfinished jobs
         unfinished_job = await find_highest_priority_jobs(request.app['engine'])
@@ -118,7 +131,6 @@ async def submit_job(request):
 
         # save metadata about job_chunks to the database
         # TODO: what if Job was saved and JobChunk was not? Need transactions?
-        databases = producer_to_consumers_databases(data['databases'])
         for database in databases:
             # save job_chunk with "created" status. This prevents the check_chunks_and_consumers function,
             # which runs every 5 seconds, from executing the same job_chunk again.
