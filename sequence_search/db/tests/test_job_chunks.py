@@ -20,7 +20,7 @@ from sequence_search.db.tests.test_base import DBTestCase
 from sequence_search.db import DoesNotExist
 from sequence_search.db.models import Job, JobChunk, Consumer, JOB_STATUS_CHOICES, JOB_CHUNK_STATUS_CHOICES, \
     CONSUMER_STATUS_CHOICES
-from sequence_search.db.jobs import find_highest_priority_jobs
+from sequence_search.db.jobs import find_highest_priority_jobs, database_used_in_search
 from sequence_search.db.job_chunks import save_job_chunk, get_consumer_ip_from_job_chunk, set_job_chunk_status, \
     get_job_chunk_from_job_and_database
 
@@ -236,8 +236,58 @@ class SetJobChunkStatusTestCase(DBTestCase):
 
     @unittest_run_loop
     async def test_job_chunk_started(self):
-        await set_job_chunk_status(self.app['engine'], self.job_id, 'mirbase', JOB_CHUNK_STATUS_CHOICES.started)
+        job_chunk_id = await set_job_chunk_status(
+            self.app['engine'], self.job_id, 'mirbase', JOB_CHUNK_STATUS_CHOICES.started
+        )
+        assert job_chunk_id == self.job_chunk_id
 
     @unittest_run_loop
     async def test_except_error_in_job_chunk(self):
-        await set_job_chunk_status(self.app['engine'], self.job_id, 'mirbase', JOB_CHUNK_STATUS_CHOICES.error)
+        job_chunk_id = await set_job_chunk_status(
+            self.app['engine'], self.job_id, 'mirbase', JOB_CHUNK_STATUS_CHOICES.error
+        )
+        assert job_chunk_id == self.job_chunk_id
+
+
+class DatabaseUsedInSearch(DBTestCase):
+    """
+    Run this test with the following command:
+
+    ENVIRONMENT=TEST python -m unittest sequence_search.db.tests.test_job_chunks.DatabaseUsedInSearch
+    """
+    async def setUpAsync(self):
+        await super().setUpAsync()
+
+        self.job_id = str(uuid.uuid4())
+        self.databases = 'mirbase-0.fasta'
+
+        async with self.app['engine'].acquire() as connection:
+            await connection.execute(
+                Job.insert().values(
+                    id=self.job_id,
+                    query='AACAGCATGAGTGCGCTGGATGCTG',
+                    submitted=datetime.datetime.now(),
+                    status=JOB_STATUS_CHOICES.started
+                )
+            )
+
+            self.job_chunk_id = await connection.scalar(
+                JobChunk.insert().values(
+                    job_id=self.job_id,
+                    database=self.databases,
+                    submitted=datetime.datetime.now(),
+                    status=JOB_CHUNK_STATUS_CHOICES.pending
+                )
+            )
+
+    @unittest_run_loop
+    async def test_database_used_in_search(self):
+        databases = ['mirbase-0.fasta']
+        result = await database_used_in_search(self.app['engine'], self.job_id, databases)
+        assert result
+
+    @unittest_run_loop
+    async def test_wrong_database_used_in_search(self):
+        databases = ['pdbe-0.fasta']
+        result = await database_used_in_search(self.app['engine'], self.job_id, databases)
+        assert not result
