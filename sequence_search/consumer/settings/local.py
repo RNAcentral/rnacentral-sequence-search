@@ -30,3 +30,6 @@ NHMMER_EXECUTABLE = 'nhmmer'
 
 # full path to cmscan executable
 CMSCAN_EXECUTABLE = 'cmscan'
+
+# total number of entries to analyse from nhmmer result file
+NHMMER_LIMIT = 1000

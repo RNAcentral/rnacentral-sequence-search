@@ -30,3 +30,6 @@ NHMMER_EXECUTABLE = '/usr/local/bin/nhmmer'
 
 # full path to cmscan executable
 CMSCAN_EXECUTABLE = '/usr/local/bin/cmscan'
+
+# total number of entries to analyse from nhmmer result file
+NHMMER_LIMIT = 1000

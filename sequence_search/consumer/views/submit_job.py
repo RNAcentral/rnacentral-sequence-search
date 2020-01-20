@@ -18,11 +18,12 @@ import datetime
 
 from aiohttp import web
 from aiojobs.aiohttp import spawn
+from itertools import islice
 
 from ..nhmmer_parse import nhmmer_parse
 from ..nhmmer_search import nhmmer_search
 from ..rnacentral_databases import query_file_path, result_file_path, consumer_validator
-from ..settings import MAX_RUN_TIME
+from ..settings import MAX_RUN_TIME, NHMMER_LIMIT
 from ...db import DatabaseConnectionError, SQLError
 from ...db.models import CONSUMER_STATUS_CHOICES, JOB_CHUNK_STATUS_CHOICES
 from ...db.job_chunk_results import set_job_chunk_results
@@ -85,8 +86,10 @@ async def nhmmer(engine, job_id, sequence, database):
         logger.info('Nhmmer search success for: job_id = %s, database = %s' % (job_id, database))
 
         try:
+            # parse nhmmer results to python (up to the limit set in NHMMER_LIMIT)
+            results = list(islice((record for record in nhmmer_parse(filename=filename)), NHMMER_LIMIT))
+
             # save results of the job_chunk to the database
-            results = [record for record in nhmmer_parse(filename=filename)]  # parse nhmmer results to python
             if results:
                 t0 = datetime.datetime.now()
                 await set_job_chunk_results(engine, job_id, database, results)
