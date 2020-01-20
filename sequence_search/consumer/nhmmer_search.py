@@ -26,27 +26,13 @@ class NhmmerError(Exception):
 async def nhmmer_search(sequence, job_id, database):
     sequence = sequence.replace('T', 'U').upper()
 
-    # Set e-values dynamically depending on the query sequence length.
-    # The values were computed by searching the full dataset using random short
-    # sequences as queries with an extremely high e-value and recording the
-    # e-values of the best hit.
-    if len(sequence) <= 30:
-        e_value = pow(10, 5)
-    elif 30 < len(sequence) <= 40:
-        e_value = pow(10, 2)
-    elif 40 < len(sequence) <= 50:
-        e_value = pow(10, -1)
-    else:
-        e_value = pow(10, -2)
-
     params = {
         'query': query_file_path(job_id, database),
         'output': result_file_path(job_id, database),
         'nhmmer': settings.NHMMER_EXECUTABLE,
         'db': database_file_path(database),
         'cpu': 4,
-        'incE': e_value,
-        'E': e_value
+        'f3': '--F3 0.02' if len(sequence) < 50 else ''
     }
 
     # write out query in fasta format
@@ -59,8 +45,8 @@ async def nhmmer_search(sequence, job_id, database):
                '--qfasta '         # query format
                '--tformat fasta '  # target format
                '-o {output} '      # direct main output to a file
-               '--incE {incE} '    # use an E-value of <= X as the inclusion threshold
-               '-E {E} '           # report target sequences with an E-value of <= X
+               '-T 0 '             # report sequences >= this score threshold in output
+               '{f3} '             # stage 3 (Fwd) threshold: promote hits w/ P <= F3
                '--rna '            # explicitly specify database alphabet
                '--watson '         # search only top strand
                '--cpu {cpu} '      # number of CPUs to use
