@@ -18,45 +18,45 @@ from sequence_search.consumer.settings import QUERY_DIR, RESULTS_DIR
 from .settings import PROJECT_ROOT
 
 
-RnacentralDatabases = namedtuple("rnacentral_databases", ["id", "label"])
+RnacentralDatabases = namedtuple("rnacentral_databases", ["id", "label", "e_value"])
 
-# TODO: get the bds from elsewhere and not leave them hard coded
+# TODO: get the bds and e-value from elsewhere and not leave them hard coded
 rnacentral_databases = [
-    RnacentralDatabases("dictybase", "dictyBase"),
-    RnacentralDatabases("ena", "ENA"),
-    RnacentralDatabases("ensembl", "Ensembl"),
-    RnacentralDatabases("ensembl_fungi", "Ensembl Fungi"),
-    RnacentralDatabases("ensembl_metazoa", "Ensembl Metazoa"),
-    RnacentralDatabases("ensembl_plants", "Ensembl Plants"),
-    RnacentralDatabases("ensembl_protists", "Ensembl Protists"),
-    RnacentralDatabases("flybase", "FlyBase"),
-    RnacentralDatabases("gencode", "GENCODE"),
-    RnacentralDatabases("greengenes", "GreenGenes"),
-    RnacentralDatabases("gtrnadb", "GtRNAdb"),
-    RnacentralDatabases("hgnc", "HGNC"),
-    RnacentralDatabases("lncbase", "LncBase"),
-    RnacentralDatabases("lncbook", "LncBook"),
-    RnacentralDatabases("lncipedia", "LNCipedia"),
-    RnacentralDatabases("lncrnadb", "lncRNAdb"),
-    RnacentralDatabases("mgi", "MGI"),
-    RnacentralDatabases("mirbase", "miRBase"),
-    RnacentralDatabases("modomics", "Modomics"),
-    RnacentralDatabases("noncode", "NONCODE"),
-    RnacentralDatabases("pdbe", "PDBe"),
-    RnacentralDatabases("pombase", "PomBase"),
-    RnacentralDatabases("rdp", "RDP"),
-    RnacentralDatabases("refseq", "RefSeq"),
-    RnacentralDatabases("rfam", "Rfam"),
-    RnacentralDatabases("rgd", "RGD"),
-    RnacentralDatabases("sgd", "SGD"),
-    RnacentralDatabases("silva", "SILVA"),
-    RnacentralDatabases("snopy", "snOPY"),
-    RnacentralDatabases("srpdb", "SRPDB"),
-    RnacentralDatabases("tair", "TAIR"),
-    RnacentralDatabases("tarbase", "TarBase"),
-    RnacentralDatabases("tmrna_web", "tmRNA Website"),
-    RnacentralDatabases("wormbase", "WormBase"),
-    RnacentralDatabases("zwd", "ZWD")
+    RnacentralDatabases("dictybase", "dictyBase", 0.014499),
+    RnacentralDatabases("ena", "ENA", 6781.500248),
+    RnacentralDatabases("ensembl", "Ensembl", 982.98274),
+    RnacentralDatabases("ensembl_fungi", "Ensembl Fungi", 0.016331),
+    RnacentralDatabases("ensembl_metazoa", "Ensembl Metazoa", 12.02661),
+    RnacentralDatabases("ensembl_plants", "Ensembl Plants", 18.607815),
+    RnacentralDatabases("ensembl_protists", "Ensembl Protists", 1.845517),
+    RnacentralDatabases("flybase", "FlyBase", 9.201378),
+    RnacentralDatabases("gencode", "GENCODE", 44.917561),
+    RnacentralDatabases("greengenes", "GreenGenes", 1423.553627),
+    RnacentralDatabases("gtrnadb", "GtRNAdb", 5.853569),
+    RnacentralDatabases("hgnc", "HGNC", 7.082387),
+    RnacentralDatabases("lncbase", "LncBase", 0.029263),
+    RnacentralDatabases("lncbook", "LncBook", 405.319356),
+    RnacentralDatabases("lncipedia", "LNCipedia", 194.814831),
+    RnacentralDatabases("lncrnadb", "lncRNAdb", 0.191325),
+    RnacentralDatabases("mgi", "MGI", 14.605057),
+    RnacentralDatabases("mirbase", "miRBase", 4.657073),
+    RnacentralDatabases("modomics", "Modomics", 0.050331),
+    RnacentralDatabases("noncode", "NONCODE", 265.434743),
+    RnacentralDatabases("pdbe", "PDBe", 1.031273),
+    RnacentralDatabases("pombase", "PomBase", 1.946172),
+    RnacentralDatabases("rdp", "RDP", 9.366837),
+    RnacentralDatabases("refseq", "RefSeq", 62.990434),
+    RnacentralDatabases("rfam", "Rfam", 291.41434),
+    RnacentralDatabases("rgd", "RGD", 26.121729),
+    RnacentralDatabases("sgd", "SGD", 0.0594),
+    RnacentralDatabases("silva", "SILVA", 3560.052088),
+    RnacentralDatabases("snopy", "snOPY", 0.295894),
+    RnacentralDatabases("srpdb", "SRPDB", 0.133472),
+    RnacentralDatabases("tair", "TAIR", 1.865084),
+    RnacentralDatabases("tarbase", "TarBase", 0.032912),
+    RnacentralDatabases("tmrna_web", "tmRNA Website", 4.017364),
+    RnacentralDatabases("wormbase", "WormBase", 2.788755),
+    RnacentralDatabases("zwd", "ZWD", 3.870504)
 ]
 
 
@@ -68,7 +68,7 @@ def get_database_files():
 
 
 def producer_validator(databases):
-    database_keys = [ db.id for db in rnacentral_databases ]
+    database_keys = [db.id for db in rnacentral_databases]
 
     for db in databases:
         if db not in database_keys:
@@ -128,3 +128,13 @@ def database_file_path(database):
     (e.g. ena1.fasta or all-except-rrna1.fasta).
     """
     return PROJECT_ROOT / 'databases' / database
+
+
+def get_e_value(database):
+    """Return the e-value for a specific database"""
+    e_value = None
+    for item in rnacentral_databases:
+        if item.id.startswith(database):
+            e_value = item.e_value
+            break
+    return e_value

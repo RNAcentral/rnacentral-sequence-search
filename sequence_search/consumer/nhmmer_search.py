@@ -15,7 +15,8 @@ import shlex
 import asyncio.subprocess
 
 from . import settings
-from sequence_search.consumer.rnacentral_databases import query_file_path, result_file_path, database_file_path
+from sequence_search.consumer.rnacentral_databases import query_file_path, result_file_path, database_file_path, \
+    get_e_value
 
 
 class NhmmerError(Exception):
@@ -26,11 +27,22 @@ class NhmmerError(Exception):
 async def nhmmer_search(sequence, job_id, database):
     sequence = sequence.replace('T', 'U').upper()
 
+    try:
+        if database.startswith('all-except-rrna') or database.startswith('whitelist-rrna'):
+            db_name = None
+        else:
+            db_name = database.split('-')[0]
+    except ValueError:
+        db_name = None
+
+    e_value = get_e_value(db_name) if db_name else 2767.610997
+
     params = {
         'query': query_file_path(job_id, database),
         'output': result_file_path(job_id, database),
         'nhmmer': settings.NHMMER_EXECUTABLE,
         'db': database_file_path(database),
+        'e_value': e_value,
         'cpu': 4,
         'f3': '--F3 0.02' if len(sequence) < 50 else ''
     }
@@ -50,7 +62,7 @@ async def nhmmer_search(sequence, job_id, database):
                '--rna '            # explicitly specify database alphabet
                '--watson '         # search only top strand
                '--cpu {cpu} '      # number of CPUs to use
-               '-Z 2767 '          # set database size (Megabases) for E-value calculations
+               '-Z {e_value} '     # set database size (Megabases) for E-value calculations
                '{query} '          # query file
                '{db}').format(**params)
 
