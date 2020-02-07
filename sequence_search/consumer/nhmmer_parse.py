@@ -13,6 +13,7 @@ limitations under the License.
 
 from __future__ import print_function
 import re
+import os
 
 
 def record_generator(f, delimiter='\n', bufsize=4096):
@@ -202,6 +203,12 @@ def nhmmer_parse(filename="", stats_text='Internal pipeline statistics summary')
             data = parse_record(record, query_length)
             data['result_id'] = i
             yield data
+
+
+def parse_number_of_hits(filename):
+    command = "tail -n 10 %s | grep Total" % filename
+    total = os.popen(command).read()
+    return total if total else None
 
 
 if __name__ == "__main__":

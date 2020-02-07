@@ -15,12 +15,13 @@ import os
 import logging
 import asyncio
 import datetime
+import re
 
 from aiohttp import web
 from aiojobs.aiohttp import spawn
 from itertools import islice
 
-from ..nhmmer_parse import nhmmer_parse
+from ..nhmmer_parse import nhmmer_parse, parse_number_of_hits
 from ..nhmmer_search import nhmmer_search
 from ..rnacentral_databases import query_file_path, result_file_path, consumer_validator
 from ..settings import MAX_RUN_TIME, NHMMER_LIMIT
@@ -85,6 +86,14 @@ async def nhmmer(engine, job_id, sequence, database):
     else:
         logger.info('Nhmmer search success for: job_id = %s, database = %s' % (job_id, database))
 
+        # check the total number of hits
+        hits = 0
+        try:
+            line = parse_number_of_hits(filename)
+            hits = re.split("[: ]+", line)[4]
+        except ValueError:
+            pass
+
         try:
             # parse nhmmer results to python (up to the limit set in NHMMER_LIMIT)
             results = list(islice((record for record in nhmmer_parse(filename=filename)), NHMMER_LIMIT))
@@ -97,7 +106,7 @@ async def nhmmer(engine, job_id, sequence, database):
                     len(results), (datetime.datetime.now() - t0).total_seconds())
                 )
             # set status of the job_chunk to the database
-            await set_job_chunk_status(engine, job_id, database, status=JOB_CHUNK_STATUS_CHOICES.success)
+            await set_job_chunk_status(engine, job_id, database, status=JOB_CHUNK_STATUS_CHOICES.success, hits=hits)
         except (DatabaseConnectionError, SQLError) as e:
             # TODO: what do we do in case we lost the database connection here?
             # TODO: probably, clean the nhmmer query and result files?

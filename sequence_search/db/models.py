@@ -88,6 +88,7 @@ Job = sa.Table('jobs', metadata,
                sa.Column('submitted', sa.DateTime),
                sa.Column('finished', sa.DateTime, nullable=True),
                sa.Column('result_in_db', sa.Boolean),
+               sa.Column('hits', sa.Integer, nullable=True),
                sa.Column('status', sa.String(255)))  # choices=JOB_STATUS_CHOICES
 
 """Part of the search job, run against a specific database and assigned to a specific consumer"""
@@ -98,6 +99,7 @@ JobChunk = sa.Table('job_chunks', metadata,
                     sa.Column('submitted', sa.DateTime, nullable=True),
                     sa.Column('finished', sa.DateTime, nullable=True),
                     sa.Column('consumer', sa.ForeignKey('consumer.ip'), nullable=True),
+                    sa.Column('hits', sa.Integer, nullable=True),
                     sa.Column('status', sa.String(255)))  # choices=JOB_CHUNK_STATUS_CHOICES, default='started'
 
 """Result of a specific JobChunk"""
@@ -194,6 +196,7 @@ async def migrate(ENVIRONMENT):
                   submitted TIMESTAMP,
                   finished TIMESTAMP,
                   result_in_db BOOLEAN,
+                  hits INTEGER,
                   status VARCHAR(255))
             ''')
 
@@ -205,6 +208,7 @@ async def migrate(ENVIRONMENT):
                   submitted TIMESTAMP,
                   finished TIMESTAMP,
                   consumer VARCHAR(20) references consumer(ip),
+                  hits INTEGER,
                   status VARCHAR(255))
             ''')
 

@@ -101,10 +101,11 @@ async def get_consumer_ip_from_job_chunk(engine, job_chunk_id):
         raise DatabaseConnectionError(str(e)) from e
 
 
-async def set_job_chunk_status(engine, job_id, database, status):
+async def set_job_chunk_status(engine, job_id, database, status, hits=None):
     """
-    :param engine:
-    :param job_id:
+    :param hits: total number of hits
+    :param engine: params to connect to the db
+    :param job_id: id of the job
     :param database: Consumer-side database (actual file name stored in the database)
     :param status: an option from consumer.JOB_CHUNK_STATUS
     :return: None
@@ -131,19 +132,21 @@ async def set_job_chunk_status(engine, job_id, database, status):
                     ''')
 
                     id = None  # if connection didn't return any rows, return None
-                    async for row in connection.execute(query, job_id=job_id, database=database, status=status, submitted=submitted):
+                    async for row in connection.execute(query, job_id=job_id, database=database, status=status,
+                                                        submitted=submitted):
                         id = row.id
                     return id
                 elif finished:
                     query = sa.text('''
                         UPDATE job_chunks
-                        SET status = :status, finished = :finished
+                        SET status = :status, finished = :finished, hits = :hits
                         WHERE job_id = :job_id AND database = :database
                         RETURNING *;
                     ''')
 
                     id = None  # if connection didn't return any rows, return None
-                    async for row in connection.execute(query, job_id=job_id, database=database, status=status, finished=finished):
+                    async for row in connection.execute(query, job_id=job_id, database=database, status=status,
+                                                        finished=finished, hits=hits):
                         id = row.id
                     return id
                 else:
