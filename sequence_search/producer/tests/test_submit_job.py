@@ -13,12 +13,13 @@ limitations under the License.
 
 import json
 import logging
+import random
 
 from aiohttp.test_utils import unittest_run_loop
-
-from sequence_search.producer.__main__ import create_app
 from aiohttp.test_utils import AioHTTPTestCase
 
+from sequence_search.producer.__main__ import create_app
+from sequence_search.producer.settings import MIN_QUERY_LENGTH, MAX_QUERY_LENGTH
 
 """
 Run these tests with:
@@ -41,7 +42,7 @@ class SubmitJobTestCase(AioHTTPTestCase):
             assert response.status == 400
             text = await response.text()
             assert text == "Input query is not a valid nucleotide sequence: " \
-                           "'THIS_IS_NOT_A_PROPER_NUCLEOTIDE_SEQUENCE'"
+                           "'THIS_IS_NOT_A_PROPER_NUCLEOTIDE_SEQUENCE'\n"
 
     @unittest_run_loop
     async def test_submit_job_post_fail_databases(self):
@@ -50,3 +51,20 @@ class SubmitJobTestCase(AioHTTPTestCase):
             assert response.status == 400
             text = await response.text()
             assert text == "Database foobase is not a valid RNAcentral database"
+
+    @unittest_run_loop
+    async def test_submit_job_post_short_sequence(self):
+        data = json.dumps({"query": "CU", "databases": ["mirbase"]})
+        async with self.client.post(path=self.url, data=data) as response:
+            assert response.status == 400
+            text = await response.text()
+            assert text == "The sequence cannot be shorter than %s nucleotides.\n" % MIN_QUERY_LENGTH
+
+    @unittest_run_loop
+    async def test_submit_job_post_long_sequence(self):
+        sequence = ''.join(random.choices('ACUG', k=MAX_QUERY_LENGTH+1))
+        data = json.dumps({"query": sequence, "databases": ["mirbase"]})
+        async with self.client.post(path=self.url, data=data) as response:
+            assert response.status == 400
+            text = await response.text()
+            assert text == "The sequence cannot be longer than %s nucleotides.\n" % MAX_QUERY_LENGTH

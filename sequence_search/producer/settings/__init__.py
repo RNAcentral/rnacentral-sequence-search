@@ -30,8 +30,10 @@ Or, passing the custom setting as a keyword argument when initialising settings 
 PROJECT_ROOT = pathlib.Path(__file__).parent.parent
 
 CONSUMER_SUBMIT_JOB_URL = 'submit-job'
-
 CONSUMER_SUBMIT_INFERNAL_JOB_URL = 'submit-infernal-job'
+
+MIN_QUERY_LENGTH = 10
+MAX_QUERY_LENGTH = 7000
 
 ENVIRONMENT = os.getenv('ENVIRONMENT', 'LOCAL')
 

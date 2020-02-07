@@ -17,6 +17,7 @@ from aiohttp import web
 from aiojobs.aiohttp import atomic
 
 from sequence_search.db.models import JOB_CHUNK_STATUS_CHOICES
+from sequence_search.producer.settings import MIN_QUERY_LENGTH, MAX_QUERY_LENGTH
 from ...db.consumers import delegate_job_chunk_to_consumer, find_available_consumers, delegate_infernal_job_to_consumer
 from ...db.jobs import find_highest_priority_jobs, save_job, sequence_exists, database_used_in_search
 from ...db.job_chunks import save_job_chunk, set_job_chunk_status
@@ -39,7 +40,7 @@ def serialize(request, data):
     # make sure query contains only reasonable nucleotide codes
     match = re.search('^(>.+?[\n\r])*?[acgtunwsmkrybdhvx\s]+$', data['query'], re.IGNORECASE)
     if not match:
-        raise ValueError("Input query is not a valid nucleotide sequence: '%s'" % data['query'])
+        raise ValueError("Input query is not a valid nucleotide sequence: '%s'\n" % data['query'])
 
     # possibly split query into query and description
     match = re.search('(^>(.+)[\n\r])?([\s\S]+)', data['query'])
@@ -48,6 +49,12 @@ def serialize(request, data):
         data['description'] = match.group(2)
     else:
         data['description'] = ''
+
+    # check the sequence length
+    if len(data['query']) < MIN_QUERY_LENGTH:
+        raise ValueError("The sequence cannot be shorter than %s nucleotides.\n" % MIN_QUERY_LENGTH)
+    elif len(data['query']) > MAX_QUERY_LENGTH:
+        raise ValueError("The sequence cannot be longer than %s nucleotides.\n" % MAX_QUERY_LENGTH)
 
     # normalize query: convert nucleotides to RNA
     data['query'] = data['query'].replace('T', 'U')
@@ -97,7 +104,7 @@ async def submit_job(request):
     """
     data = await request.json()
 
-    # leave databases name in lowercase.
+    # converts all uppercase characters to lowercase.
     if data['databases']:
         data['databases'] = [db.lower() for db in data['databases']]
 
