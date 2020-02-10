@@ -136,7 +136,7 @@ async def save_job(engine, query, description):
                                       "job_id = %s" % job_id) from e
 
 
-async def set_job_status(engine, job_id, status):
+async def set_job_status(engine, job_id, status, hits=None):
     if status == JOB_CHUNK_STATUS_CHOICES.success or \
        status == JOB_CHUNK_STATUS_CHOICES.error or \
        status == JOB_CHUNK_STATUS_CHOICES.timeout:
@@ -147,9 +147,10 @@ async def set_job_status(engine, job_id, status):
     try:
         async with engine.acquire() as connection:
             try:
-                query = sa.text('''UPDATE jobs SET status = :status, finished = :finished, 
+                query = sa.text('''UPDATE jobs SET status = :status, finished = :finished, hits = :hits, 
                 result_in_db = :result_in_db WHERE id = :job_id''')
-                await connection.execute(query, job_id=job_id, status=status, finished=finished, result_in_db=True)
+                await connection.execute(query, job_id=job_id, status=status, finished=finished, hits=hits,
+                                         result_in_db=True)
             except Exception as e:
                 raise SQLError("Failed to save job to the database about failed job, job_id = %s, "
                                "status = %s" % (job_id, status)) from e
@@ -261,23 +262,25 @@ async def update_job_status_from_job_chunks_status(engine, job_id):
     try:
         async with engine.acquire() as connection:
             try:
-                query = (sa.select([Job.c.id, JobChunk.c.job_id, JobChunk.c.status])
+                query = (sa.select([Job.c.id, JobChunk.c.job_id, JobChunk.c.status, JobChunk.c.hits])
                          .select_from(sa.join(Job, JobChunk, Job.c.id == JobChunk.c.job_id))  # noqa
                          .where(Job.c.id == job_id))  # noqa
 
                 unfinished_chunks_found = False
                 errors_found = False
+                hits = 0
                 async for row in connection.execute(query):
                     if row.status == JOB_CHUNK_STATUS_CHOICES.pending or row.status == JOB_CHUNK_STATUS_CHOICES.started:
                         unfinished_chunks_found = True
                         break
                     elif row.status == JOB_CHUNK_STATUS_CHOICES.error or row.status == JOB_CHUNK_STATUS_CHOICES.timeout:
                         errors_found = True
+                    hits += row.hits
 
                 if unfinished_chunks_found is False and errors_found is False:
-                    await set_job_status(engine, job_id, status=JOB_STATUS_CHOICES.success)
+                    await set_job_status(engine, job_id, status=JOB_STATUS_CHOICES.success, hits=hits)
                 elif unfinished_chunks_found is False and errors_found is True:
-                    await set_job_status(engine, job_id, status=JOB_STATUS_CHOICES.partial_success)
+                    await set_job_status(engine, job_id, status=JOB_STATUS_CHOICES.partial_success, hits=hits)
 
             except Exception as e:
                 raise SQLError("Failed to check job_chunk status, job_id = %s" % job_id) from e
