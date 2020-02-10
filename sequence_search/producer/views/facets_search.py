@@ -118,7 +118,7 @@ async def facets_search(request):
                 hitCount:
                   type: integer
                   description: >-
-                    Total number of entries found by this query. Note that entries array is paginated and
+                    Total number of entries analysed by this query. Note that entries array is paginated and
                     thus number of hits in it is less than or equal to hitCount.
                 entries:
                   type: array
@@ -133,6 +133,10 @@ async def facets_search(request):
                   type: string
                   description: >-
                     The query sequence to be displayed.
+                hits:
+                  type: integer
+                  description: >-
+                    Total number of entries found by this query.
                 textSearchError:
                   type: boolean
                   description: >-
@@ -292,10 +296,11 @@ async def facets_search(request):
     # set ordering, so that EBI text search returns entries in correct order
     await set_job_ordering(request.app['engine'], job_id, ordering)
 
-    # get sequence search query sequence and status
+    # get sequence search query sequence, status and number of hits
     job = await get_job(request.app['engine'], job_id)
     sequence = job['query']
     status = job['status']
+    hits = job['hits']
 
     # get sequence search results from the database, sort/aggregate?
     results = await get_job_results(request.app['engine'], job_id)
@@ -342,6 +347,9 @@ async def facets_search(request):
 
             # add the query sequence to display on the page
             text_search_data['sequence'] = sequence
+
+            # add the total number of hits
+            text_search_data['hits'] = hits
 
             # add status of sequence search to display warnings, if need arises
             text_search_data['sequenceSearchStatus'] = status

@@ -91,6 +91,7 @@ async def get_job(engine, job_id):
                     Job.c.ordering,
                     Job.c.submitted,
                     Job.c.finished,
+                    Job.c.hits,
                     Job.c.status
                 ]).select_from(Job).where(Job.c.id == job_id)
                 async for row in connection.execute(sql_query):
@@ -101,6 +102,7 @@ async def get_job(engine, job_id):
                         'ordering': row.ordering,
                         'submitted': row.submitted,
                         'finished': row.finished,
+                        'hits': row.hits,
                         'status': row.status
                     }
             except Exception as e:
