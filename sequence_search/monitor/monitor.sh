@@ -48,7 +48,7 @@ if curl -s --head  --request GET $HOST | grep "200 OK" > /dev/null; then
     SEARCH_ERROR=$(echo ${FACETS_SEARCH} |  jq '.[1]')
 
     # Send message in case of unexpected result
-    if [ "$STATUS" != "success" ] || [ "$HIT_COUNT" -gt 0 ] && [ "$SEARCH_ERROR" != "false" ] || [ "$HIT_COUNT" == 0 ] && [ "$SEARCH_ERROR" != "true" ]
+    if [ "$STATUS" != "success" ] || [ "$HIT_COUNT" -gt 0 ] && [ "$SEARCH_ERROR" != "false" ]
     then
         text="Ops! There is something wrong with the RNAcentral sequence search. Please check the links below: \n
         \n
