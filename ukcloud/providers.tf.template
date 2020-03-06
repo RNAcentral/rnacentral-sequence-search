@@ -1,0 +1,7 @@
+# Configure the OpenStack Provider
+provider "openstack" {
+  tenant_name = ""
+  auth_url = ""
+  region = ""
+  token = ""
+}
