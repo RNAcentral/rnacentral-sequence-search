@@ -8,4 +8,4 @@ echo "Removing old files"
 find /backup -name "producer_${REMOVE}*" -type f -exec rm -f {} \;
 
 echo "Backup the database"
-pg_dump -Fc producer_tmp -U docker > /backup/producer_${TODAY}_${TIME}.dump
+pg_dump -Fc producer -U docker > /backup/producer_${TODAY}_${TIME}.dump
