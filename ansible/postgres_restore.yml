@@ -9,5 +9,7 @@
   tasks: 
   - copy: src=producer_latest.dump dest=/tmp/producer_latest.dump mode=0777
   - shell: pg_restore -U docker -c -n public -n pg_catalog -d producer /tmp/producer_latest.dump
+  - shell: psql -U docker producer -c 'update job_chunks set consumer = NULL;'
+  - shell: psql -U docker producer -c 'update infernal_job set consumer = NULL;'
 
 - import_playbook: consumers.yml
