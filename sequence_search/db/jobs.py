@@ -547,6 +547,7 @@ async def get_infernal_job_results(engine, job_id):
                     InfernalResult.c.e_value,
                     InfernalResult.c.inc,
                     InfernalResult.c.description,
+                    InfernalResult.c.alignment,
                 ])
                 .select_from(sa.join(InfernalJob, InfernalResult, InfernalJob.c.id == InfernalResult.c.infernal_job_id))  # noqa
                 .where(InfernalJob.c.job_id == job_id))  # noqa
@@ -571,7 +572,8 @@ async def get_infernal_job_results(engine, job_id):
                     'score': row[15],
                     'e_value': row[16],
                     'inc': row[17],
-                    'description': row[18]
+                    'description': row[18],
+                    'alignment': row[19]
                 })
 
             return results
