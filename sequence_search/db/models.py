@@ -153,7 +153,8 @@ InfernalResult = sa.Table('infernal_result', metadata,
                           sa.Column('score', sa.Float),
                           sa.Column('e_value', sa.Float),
                           sa.Column('inc', sa.String(255)),
-                          sa.Column('description', sa.String(255)))
+                          sa.Column('description', sa.String(255)),
+                          sa.Column('alignment', sa.Text))
 
 
 # Migrations
@@ -267,7 +268,8 @@ async def migrate(ENVIRONMENT):
                   score FLOAT NOT NULL,
                   e_value FLOAT NOT NULL,
                   inc VARCHAR(255),
-                  description VARCHAR(255))
+                  description VARCHAR(255),
+                  alignment TEXT)
             ''')
 
             await connection.execute('''CREATE INDEX on job_chunks (job_id)''')
