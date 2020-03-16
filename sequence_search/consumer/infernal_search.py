@@ -30,6 +30,7 @@ async def infernal_search(sequence, job_id):
     params = {
         'query': os.path.join(INFERNAL_QUERY_DIR, '%s' % job_id),
         'output': os.path.join(INFERNAL_RESULTS_DIR, '%s' % job_id),
+        'tblout': os.path.join(INFERNAL_RESULTS_DIR, '%s.tblout' % job_id),
         'rfam_cm': settings.RFAM_CM,
         'cmscan': settings.CMSCAN_EXECUTABLE,
         'cpu': 4,
@@ -46,7 +47,8 @@ async def infernal_search(sequence, job_id):
                '--cut_ga '           # use CM's GA gathering cutoffs as reporting thresholds
                '--rfam '             # set heuristic filters at Rfam-level (fast)
                '--nohmmonly '        # never run HMM-only mode, not even for models with 0 basepairs
-               '--tblout {output} '  # save parseable table of hits to file
+               '-o {output} '        # direct output to file
+               '--tblout {tblout} '  # save parseable table of hits to file
                '--acc '              # prefer accessions over names in output
                '--cpu {cpu} '        # number of CPUs to use
                '{rfam_cm} '          # Rfam.cm file
