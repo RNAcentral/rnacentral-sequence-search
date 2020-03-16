@@ -20,8 +20,8 @@ from sequence_search.consumer.settings import INFERNAL_RESULTS_DIR
 
 async def infernal_deoverlap(job_id):
     params = {
-        'file': os.path.join(INFERNAL_RESULTS_DIR, '%s' % job_id),
-        'output': os.path.join(INFERNAL_RESULTS_DIR, '%s.deoverlapped' % job_id),
+        'file': os.path.join(INFERNAL_RESULTS_DIR, '%s.tblout' % job_id),
+        'output': os.path.join(INFERNAL_RESULTS_DIR, '%s.tblout.deoverlapped' % job_id),
         'cmsearch-deoverlap': settings.DEOVERLAP,
     }
 

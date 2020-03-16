@@ -11,9 +11,15 @@ See the License for the specific language governing permissions and
 limitations under the License.
 """
 import re
+from itertools import islice
 
 
 def infernal_parse(filename):
+    """
+    Get data from the deoverlapped file
+    :param filename: file to parse, named with job_id
+    :return: data to save in the database
+    """
     lines = []
     with open(filename, 'r') as file:
         for line in file.readlines():
@@ -46,3 +52,34 @@ def infernal_parse(filename):
         results.append(result)
 
     return results
+
+
+def alignment(filename):
+    """
+    Get the alignment from the output file
+    :param filename: file to parse, named with job_id
+    :return: alignment to save in the database. Values are used to find the infernal result
+    """
+    output = []
+    with open(filename, 'r') as file:
+        for line in file:
+            if line.startswith('>>'):
+                get_accession = line.split(' ')
+                values = ''.join(islice(file, 2, 3))
+                values = list(filter(None, values.split(' ')))
+                alignment = ''.join(islice(file, 7))
+
+                output_result = {
+                    "accession_rfam": get_accession[1],
+                    "mdl_from": values[6],
+                    "mdl_to": values[7],
+                    "seq_from": values[9],
+                    "seq_to": values[10],
+                    "gc": values[15],
+                    "score": values[3],
+                    "e_value": values[2],
+                    "alignment": alignment
+                }
+                output.append(output_result)
+
+    return output
