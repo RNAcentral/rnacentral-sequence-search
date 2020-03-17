@@ -19,6 +19,13 @@ from .models import InfernalResult
 
 
 async def set_infernal_job_results(engine, job_id, results):
+    """
+    Save infernal results
+    :param engine: params to connect to the db
+    :param job_id: id of the job
+    :param results: data from the deoverlapped file
+    :return: id of the infernal_job. It will be used to get the result and save the alignment
+    """
     try:
         async with engine.acquire() as connection:
             try:
