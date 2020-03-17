@@ -59,8 +59,12 @@ class SubmitInfernalTestCase(AioHTTPTestCase):
 
     async def tearDownAsync(self):
         async with self.app['engine'].acquire() as connection:
+            await connection.execute('DELETE FROM job_chunk_results')
+            await connection.execute('DELETE FROM job_chunks')
+            await connection.execute('DELETE FROM infernal_result')
             await connection.execute('DELETE FROM infernal_job')
             await connection.execute('DELETE FROM jobs')
+            await connection.execute('DELETE FROM consumer')
         await super().tearDownAsync()
 
     @unittest_run_loop
