@@ -20,7 +20,7 @@ from aiohttp.test_utils import unittest_run_loop
 from sequence_search.db.tests.test_base import DBTestCase
 from sequence_search.db.models import Job, InfernalJob
 from sequence_search.db.jobs import get_infernal_job_results, JOB_STATUS_CHOICES, JOB_CHUNK_STATUS_CHOICES
-from sequence_search.db.infernal_results import set_infernal_job_results
+from sequence_search.db.infernal_results import set_infernal_job_results, get_infernal_result_id, save_alignment
 
 
 class InfernalResultTestCase(DBTestCase):
@@ -73,6 +73,7 @@ class InfernalResultTestCase(DBTestCase):
                 'e_value': 4.6e-167,
                 'inc': '!',
                 'description': 'Eukaryotic small subunit ribosomal RNA',
+                'alignment': ''
             }
         ]
 
@@ -107,3 +108,52 @@ class InfernalResultTestCase(DBTestCase):
         await set_infernal_job_results(self.app['engine'], self.job_id, results=self.results)
         result = await get_infernal_job_results(self.app['engine'], self.job_id)
         assert result == [{key: value for key, value in d.items() if key != 'infernal_job_id'} for d in self.results]
+
+    @unittest_run_loop
+    async def test_get_infernal_result_id(self):
+        save_infernal_result = await set_infernal_job_results(self.app['engine'], self.job_id, results=self.results)
+        item = {
+            "accession_rfam": 'RF01960',
+            "mdl_from": 1,
+            "mdl_to": 609,
+            "seq_from": 1764,
+            "seq_to": 2417,
+            "gc": 0.56,
+            "score": 559.2,
+            "e_value": 4.6e-167,
+        }
+        get_infernal_result = await get_infernal_result_id(self.app['engine'], save_infernal_result, item)
+        assert get_infernal_result is not None
+
+    @unittest_run_loop
+    async def test_save_alignment(self):
+        save_infernal_result = await set_infernal_job_results(self.app['engine'], self.job_id, results=self.results)
+        item = {
+            "accession_rfam": 'RF01960',
+            "mdl_from": 1,
+            "mdl_to": 609,
+            "seq_from": 1764,
+            "seq_to": 2417,
+            "gc": 0.56,
+            "score": 559.2,
+            "e_value": 4.6e-167,
+        }
+        infernal_result_id = await get_infernal_result_id(self.app['engine'], save_infernal_result, item)
+        alignment = '                                                  NC' \
+                    '            ::<<<<____>>>>--<<<____>>>::::::::::: CS' \
+                    'RF02162   1 UUGCCCAUCGGGGCCuCGGAUACCUGCUUUUAUUUUU 37' \
+                    '            UUGCCCAUCGGGGC +CGGAUACCUG UUUUAUU UU   ' \
+                    '  query 369 UUGCCCAUCGGGGCUGCGGAUACCUGGUUUUAUUAUU 405' \
+                    '             ************************************* PP'
+        await save_alignment(self.app['engine'], infernal_result_id, alignment)
+
+        async with self.app['engine'].acquire() as connection:
+            query = sa.text('''
+                SELECT alignment
+                FROM infernal_result
+                WHERE id=:id
+            ''')
+
+            async for row in await connection.execute(query, id=infernal_result_id):
+                assert row.alignment == alignment
+                break
