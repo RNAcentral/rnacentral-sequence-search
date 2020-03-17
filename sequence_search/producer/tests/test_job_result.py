@@ -108,7 +108,7 @@ class SubmitJobTestCase(AioHTTPTestCase):
             assert response.status == 200
             data = await response.json()
 
-            assert data[0] == {
+            results = {
                 "rnacentral_id": 'URS000075D2D2_10090',
                 "description": 'Mus musculus miR - 1195 stem - loop',
                 "score": 6.5,
@@ -121,11 +121,13 @@ class SubmitJobTestCase(AioHTTPTestCase):
                 "match_count": 18,
                 "nts_count1": 22,
                 "nts_count2": 0,
-                "identity": 81.8181818181818,  # conversion to float in DB trims some digits
-                "query_coverage": 73.3333333333333,  # converstion to float in DB trims some digits
+                "identity": 81.81818181818183,
+                "query_coverage": 73.33333333333333,
                 "target_coverage": 0.0,
                 "gaps": 0.0,
                 "query_length": 30,
                 "result_id": 1,
                 'species_priority': 'b'
             }
+
+            assert data[0] == results
