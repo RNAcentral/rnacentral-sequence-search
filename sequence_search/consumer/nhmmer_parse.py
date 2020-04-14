@@ -45,10 +45,10 @@ score  bias    Evalue   hmmfrom    hmm to     alifrom    ali to      envfrom    
     """
     def parse_first_line(line):
         """Get URS id and description."""
-        match = re.search(r'URS[0-9A-Fa-f]{10}(_\d+)?', line)
+        match = line.split(' ')
         return {
-            'rnacentral_id': match.group(),
-            'description': line.replace(match.group(), '').replace(';', '').strip(),
+            'rnacentral_id': match[1],
+            'description': ' '.join(match[2:])
         }
 
     def parse_fourth_line(line):
@@ -114,7 +114,12 @@ URS0000000013 137 AAGAGGGGGACCUUCGGGCCUCUCGCGUCAAGAU 170
             matches += line.count('|')
             alignment.append(line)
         elif i % 5 == 2:  # target
-            line = re.sub('\s+URS[0-9A-Fa-f]{10}(_\d+)?;?', 'Sbjct', line.upper())
+            if line.lstrip().startswith('URS'):
+                line = re.sub('\s+URS[0-9A-Fa-f]{10}(_\d+)?;?', 'Sbjct', line.upper())
+            else:
+                split_line = line.split(' ')
+                line = 'Sbjct ' + ' '.join(split_line[3:])
+
             match = re.match(r'^Sbjct\s+\d+ (.+) \d+', line)
             if match:
                 block_length = len(match.group(1))
