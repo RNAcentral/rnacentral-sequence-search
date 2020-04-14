@@ -412,7 +412,7 @@ async def get_job_results(engine, job_id, limit=1000):
                     else:
                         species_priority = 'd'  # Low priority
                 except Exception:
-                    pass
+                    species_priority = 'd'  # Low priority
 
                 # add result
                 results.append({
