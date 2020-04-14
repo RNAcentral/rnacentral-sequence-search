@@ -23,19 +23,11 @@ variable "external_network_id" {
 }
 
 variable "default_floating_ip" {
-  default = "193.62.55.44"
+  default = "193.62.55.40"
 }
 
 variable "test_floating_ip" {
   default = "193.62.55.123"
-}
-
-variable "default_postgres_floating_ip" {
-  default = "193.62.55.116"
-}
-
-variable "test_postgres_floating_ip" {
-  default = "193.62.55.122"
 }
 
 variable "default_instances" {
