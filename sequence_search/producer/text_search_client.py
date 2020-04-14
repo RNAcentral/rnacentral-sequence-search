@@ -68,7 +68,10 @@ facetfields = [
     'has_go_annotations',
     'has_conserved_structure',
     'has_genomic_coordinates',
-    'popular_species'
+    'popular_species',
+    'country',
+    'sequencing_method',
+    'host'
 ]
 
 
@@ -95,10 +98,15 @@ async def get_text_search_results(results, job_id, query, start, size, facetcoun
     # get the hostname of the machine to use the correct URL
     hostname = socket.gethostname()
 
-    if hostname == 'default-producer':
+    rnacentral_ids = [result['rnacentral_id'] for result in results]
+    rnacentral_urs = [item for item in rnacentral_ids if item.startswith('URS')]
+
+    if rnacentral_urs and hostname == 'default-producer':
         ebi_search_url = 'https://www.ebi.ac.uk/ebisearch/ws/rest/rnacentral/seqtoolresults/'
-    else:
+    elif rnacentral_urs:
         ebi_search_url = 'https://wwwdev.ebi.ac.uk/ebisearch/ws/rest/rnacentral/seqtoolresults/'
+    else:
+        ebi_search_url = 'https://wwwdev.ebi.ac.uk/ebisearch/ws/rest/rnacentral-covid/seqtoolresults/'
 
     # request facets from ebi text search (dev or prod)
     url = "{ebi_search_url}" \
