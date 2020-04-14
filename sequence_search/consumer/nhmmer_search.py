@@ -44,7 +44,8 @@ async def nhmmer_search(sequence, job_id, database):
         'db': database_file_path(database),
         'e_value': e_value,
         'cpu': 4,
-        'f3': '--F3 0.02' if len(sequence) < 50 else ''
+        'f3': '--F3 0.02' if len(sequence) < 50 else '',
+        'watson': '' if database.startswith('betacoronavirus') else '--watson'
     }
 
     # write out query in fasta format
@@ -60,7 +61,7 @@ async def nhmmer_search(sequence, job_id, database):
                '-T 0 '             # report sequences >= this score threshold in output
                '{f3} '             # stage 3 (Fwd) threshold: promote hits w/ P <= F3
                '--rna '            # explicitly specify database alphabet
-               '--watson '         # search only top strand
+               '{watson} '         # search only top strand
                '--cpu {cpu} '      # number of CPUs to use
                '-Z {e_value} '     # set database size (Megabases) for E-value calculations
                '{query} '          # query file
