@@ -8,10 +8,6 @@ with open('current_state') as json_file:
     data = json.load(json_file)
     file = open('../ansible/hosts', 'w')
 
-    file.write('[associate_postgres_floating_ip]\n')
-    file.write([obj for obj in data['values']['root_module']['resources'] if obj['address'] == 'openstack_compute_floatingip_associate_v2.nfs_server_floating_ip'][0]['values']['floating_ip'] + '\n')
-    file.write('\n')
-
     file.write('[nfs_server]\n')
     file.write([obj for obj in data['values']['root_module']['resources'] if
                 obj['address'] == 'openstack_compute_instance_v2.nfs_server'][0]['values']['access_ip_v4'] + '\n')
