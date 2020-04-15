@@ -27,7 +27,7 @@ variable "default_floating_ip" {
 }
 
 variable "test_floating_ip" {
-  default = "193.62.55.123"
+  default = "193.62.55.100"
 }
 
 variable "default_instances" {
