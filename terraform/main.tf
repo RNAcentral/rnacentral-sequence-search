@@ -1,7 +1,7 @@
 locals {
-  count = "${terraform.workspace == "default" ? var.default_instances : var.test_instances}"
-  floating_ip = "${terraform.workspace == "default" ? var.default_floating_ip : var.test_floating_ip }"
-  tfstate_file = "${terraform.workspace == "default" ? var.default_tfstate : var.test_tfstate }"
+  count = "${terraform.workspace == "default" ? var.default_instances : terraform.workspace == "test" ? var.test_instances : var.covid_instances }"
+  floating_ip = "${terraform.workspace == "default" ? var.default_floating_ip : terraform.workspace == "test" ? var.test_floating_ip : var.covid_floating_ip }"
+  tfstate_file = "${terraform.workspace == "default" ? var.default_tfstate : terraform.workspace == "test" ? var.test_tfstate : var.covid_tfstate }"
 }
 
 output "floating_ip" {
