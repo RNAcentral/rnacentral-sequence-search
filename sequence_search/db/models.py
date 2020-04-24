@@ -89,7 +89,8 @@ Job = sa.Table('jobs', metadata,
                sa.Column('finished', sa.DateTime, nullable=True),
                sa.Column('result_in_db', sa.Boolean),
                sa.Column('hits', sa.Integer, nullable=True),
-               sa.Column('status', sa.String(255)))  # choices=JOB_STATUS_CHOICES
+               sa.Column('status', sa.String(255)),  # choices=JOB_STATUS_CHOICES
+               sa.Column('uri', sa.String(255)))
 
 """Part of the search job, run against a specific database and assigned to a specific consumer"""
 JobChunk = sa.Table('job_chunks', metadata,
@@ -198,7 +199,8 @@ async def migrate(ENVIRONMENT):
                   finished TIMESTAMP,
                   result_in_db BOOLEAN,
                   hits INTEGER,
-                  status VARCHAR(255))
+                  status VARCHAR(255),
+                  uri VARCHAR(255))
             ''')
 
             await connection.execute('''
