@@ -133,14 +133,14 @@ async def submit_job(request):
         # check for unfinished jobs
         unfinished_job = await find_highest_priority_jobs(request.app['engine'])
 
-        # get URI authority
+        # get URL - for statistical purposes
         try:
-            uri = request.url.host
+            url = data['url']
         except KeyError:
-            uri = None
+            url = None
 
         # save metadata about this job to the database
-        job_id = await save_job(request.app['engine'], data['query'], data['description'], uri)
+        job_id = await save_job(request.app['engine'], data['query'], data['description'], url)
 
         # save metadata about job_chunks to the database
         # TODO: what if Job was saved and JobChunk was not? Need transactions?

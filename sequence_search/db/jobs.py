@@ -112,7 +112,7 @@ async def get_job(engine, job_id):
                                       "get_job() for job with job_id = %s" % job_id) from e
 
 
-async def save_job(engine, query, description, uri):
+async def save_job(engine, query, description, url):
     try:
         async with engine.acquire() as connection:
             try:
@@ -126,7 +126,7 @@ async def save_job(engine, query, description, uri):
                         ordering='e_value',
                         submitted=datetime.datetime.now(),
                         status=JOB_STATUS_CHOICES.started,
-                        uri=uri
+                        url=url
                     )
                 )
 
