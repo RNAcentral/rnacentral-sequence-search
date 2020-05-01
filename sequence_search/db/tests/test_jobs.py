@@ -66,7 +66,7 @@ class SaveJobTestCase(DBTestCase):
 
     @unittest_run_loop
     async def test_save_job(self):
-        job_id = await save_job(self.app['engine'], query="AACAGCATGAGTGCGCTGGATGCTG", description="")
+        job_id = await save_job(self.app['engine'], query="AACAGCATGAGTGCGCTGGATGCTG", description="", url='localhost')
         assert job_id is not None
 
 
