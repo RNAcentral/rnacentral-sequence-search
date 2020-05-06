@@ -278,7 +278,8 @@ async def update_job_status_from_job_chunks_status(engine, job_id):
                         break
                     elif row.status == JOB_CHUNK_STATUS_CHOICES.error or row.status == JOB_CHUNK_STATUS_CHOICES.timeout:
                         errors_found = True
-                    hits += row.hits
+                    if row.hits:
+                        hits += row.hits
 
                 if unfinished_chunks_found is False and errors_found is False:
                     await set_job_status(engine, job_id, status=JOB_STATUS_CHOICES.success, hits=hits)
