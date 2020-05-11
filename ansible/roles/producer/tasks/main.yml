@@ -117,24 +117,17 @@
       state: link
 
 
-  - name: Install node_modules
+  - name: Install RNAcentral sequence search embed
     shell:
       chdir: /srv/sequence_search/producer/static
-      cmd: "npm install"
-    become: false
+      cmd: git clone https://github.com/RNAcentral/rnacentral-sequence-search-embed.git
     tags: [ frontend ]
 
-  - name: Clean dist directory
+  - name: Change the branch of the RNAcentral sequence search embed
     shell:
-     chdir: /srv/sequence_search/producer/static
-     cmd: "npm run clean"
-    tags: [ frontend, quick ]
-
-  - name: Build frontend code bundle in dist
-    shell:
-      chdir: /srv/sequence_search/producer/static
-      cmd: "npm run build"
-    tags: [ frontend, quick ]
+      chdir: /srv/sequence_search/producer/static/rnacentral-sequence-search-embed
+      cmd: git checkout dev
+    tags: [ frontend ]
 
 
   - name: Drop the database and re-create it
