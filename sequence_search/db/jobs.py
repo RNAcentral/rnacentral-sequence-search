@@ -163,26 +163,33 @@ async def set_job_status(engine, job_id, status, hits=None):
 
 
 async def get_jobs_statuses(engine):
-    """Returns the dict of jobs with statuses of their job_chunks"""
+    """Returns all jobs from the last 15 days with job_chunks status"""
     try:
         async with engine.acquire() as connection:
             try:
                 # ambiguity in column names forces us to manually assign column labels
-                query = (sa.select([
+                select_statement = sa.select([
                     Job.c.id.label('id'),
+                    Job.c.query.label('query'),
                     Job.c.status.label('job_status'),
                     Job.c.submitted.label('submitted'),
                     JobChunk.c.job_id.label('job_id'),
                     JobChunk.c.database.label('database'),
                     JobChunk.c.status.label('status'),
                     JobChunk.c.consumer.label('consumer')
-                ], use_labels=True).select_from(sa.join(Job, JobChunk, Job.c.id == JobChunk.c.job_id)))  # noqa
+                ], use_labels=True)
+
+                query = (
+                    select_statement.select_from(sa.join(Job, JobChunk, Job.c.id == JobChunk.c.job_id))
+                    .where(Job.c.submitted > datetime.datetime.now() - datetime.timedelta(days=15))  # noqa
+                )
 
                 jobs_dict = {}
                 async for row in connection.execute(query):
                     if row.job_id not in jobs_dict:
                         jobs_dict[row.job_id] = {
                             'id': row.job_id,
+                            'query': row.query,
                             'status': row.job_status,
                             'submitted': str(row.submitted),
                             'chunks': [
@@ -197,8 +204,7 @@ async def get_jobs_statuses(engine):
                         })
 
                 jobs = list(jobs_dict.values())
-                jobs.sort(key=lambda job: job['submitted'])
-                jobs.reverse()
+                jobs.sort(key=itemgetter('submitted'), reverse=True)
                 return jobs
 
             except Exception as e:
