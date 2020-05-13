@@ -21,7 +21,7 @@ from aiohttp import web, web_middlewares
 
 from . import settings
 from ..db.models import close_pg, init_pg
-from ..db.consumers import register_consumer_in_the_database
+from ..db.consumers import register_consumer_in_the_database, get_ip
 from ..db.settings import get_postgres_credentials
 from .urls import setup_routes
 
@@ -35,8 +35,11 @@ python3 -m sequence_search.consumer
 
 
 async def on_startup(app):
+    # get IP
+    consumer_ip = get_ip(app)
+
     # initialize database connection
-    await init_pg(app)
+    app['engine_' + consumer_ip] = await init_pg(app)
 
     # register self in the database
     await register_consumer_in_the_database(app)

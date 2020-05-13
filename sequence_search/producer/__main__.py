@@ -41,7 +41,7 @@ python3 -m sequence_search.producer
 
 async def on_startup(app):
     # initialize database connection
-    await init_pg(app)
+    app['engine'] = await init_pg(app)
 
     if hasattr(app['settings'], "MIGRATE") and app['settings'].MIGRATE:
         # create initial migrations in the database

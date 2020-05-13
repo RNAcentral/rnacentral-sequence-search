@@ -28,7 +28,7 @@ async def init_pg(app):
     logger.debug("POSTGRES_HOST = %s" % app['settings'].POSTGRES_HOST)
     logger.debug("POSTGRES_PASSWORD = %s" % app['settings'].POSTGRES_PASSWORD)
 
-    app['engine'] = await create_engine(
+    return await create_engine(
         user=app['settings'].POSTGRES_USER,
         database=app['settings'].POSTGRES_DATABASE,
         host=app['settings'].POSTGRES_HOST,
@@ -36,12 +36,25 @@ async def init_pg(app):
     )
 
 
+# Get engine
+# -----------------
+
+async def get_engine(app):
+    engine = None
+    for item in app:
+        if item.startswith('engine'):
+            engine = app[item]
+            break
+    return engine
+
+
 # Graceful shutdown
 # -----------------
 
 async def close_pg(app):
-    app['engine'].close()
-    await app['engine'].wait_closed()
+    engine = await get_engine(app)
+    engine.close()
+    await engine.wait_closed()
 
 
 # Models schema

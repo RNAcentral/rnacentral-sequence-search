@@ -26,7 +26,7 @@ from ..nhmmer_search import nhmmer_search
 from ..rnacentral_databases import query_file_path, result_file_path, consumer_validator
 from ..settings import MAX_RUN_TIME, NHMMER_LIMIT
 from ...db import DatabaseConnectionError, SQLError
-from ...db.models import CONSUMER_STATUS_CHOICES, JOB_CHUNK_STATUS_CHOICES
+from ...db.models import CONSUMER_STATUS_CHOICES, JOB_CHUNK_STATUS_CHOICES, get_engine
 from ...db.job_chunk_results import set_job_chunk_results
 from ...db.job_chunks import get_consumer_ip_from_job_chunk, get_job_chunk_from_job_and_database, \
     set_job_chunk_status, set_job_chunk_consumer
@@ -160,7 +160,7 @@ async def submit_job(request):
         raise web.HTTPBadRequest(text=str(e)) from e
 
     # cache variables for brevity
-    engine = request.app['engine']
+    engine = await get_engine(request.app)
     job_id = data['job_id']
     sequence = data['sequence']
     database = data['database']

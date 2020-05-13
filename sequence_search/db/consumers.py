@@ -22,7 +22,7 @@ from . import DatabaseConnectionError
 from .job_chunks import get_job_chunk_from_job_and_database
 from ..consumer.settings import PORT
 from ..producer.consumer_client import ConsumerClient
-from .models import CONSUMER_STATUS_CHOICES
+from .models import CONSUMER_STATUS_CHOICES, get_engine
 
 
 class ConsumerConnectionError(Exception):
@@ -218,15 +218,16 @@ def get_ip(app):
 
 async def register_consumer_in_the_database(app):
     """Utility for consumer to register itself in the database."""
+    engine = await get_engine(app)
     try:
-        async with app['engine'].acquire() as connection:
+        async with engine.acquire() as connection:
             sql_query = sa.text('''
                 INSERT INTO consumer(ip, status, port)
                 VALUES (:consumer_ip, :status, :port)
             ''')
             await connection.execute(
                 sql_query,
-                consumer_ip=get_ip(app), # 'host.docker.internal',
+                consumer_ip=get_ip(app),  # 'host.docker.internal',
                 status=CONSUMER_STATUS_CHOICES.available,
                 port=PORT
             )

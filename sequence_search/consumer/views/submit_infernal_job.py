@@ -23,7 +23,7 @@ from ..infernal_deoverlap import infernal_deoverlap
 from ..settings import MAX_RUN_TIME
 from ...db import DatabaseConnectionError, SQLError
 from ...db.consumers import get_ip, set_consumer_fields
-from ...db.models import CONSUMER_STATUS_CHOICES, JOB_CHUNK_STATUS_CHOICES
+from ...db.models import CONSUMER_STATUS_CHOICES, JOB_CHUNK_STATUS_CHOICES, get_engine
 from ...db.infernal_job import set_infernal_job_status, set_consumer_to_infernal_job
 from ...db.infernal_results import set_infernal_job_results, get_infernal_result_id, save_alignment
 
@@ -107,7 +107,7 @@ async def submit_infernal_job(request):
     # validate the data
     data = await request.json()
     try:
-        engine = request.app['engine']
+        engine = await get_engine(request.app)
         job_id = data['job_id']
         sequence = data['sequence']
     except (KeyError, TypeError, ValueError) as e:
