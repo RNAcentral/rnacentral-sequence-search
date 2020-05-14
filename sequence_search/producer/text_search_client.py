@@ -80,7 +80,10 @@ async def get_text_search_results(results, job_id, query, start, size, facetcoun
     For local development local server has to POST list of RNAcentral ids
     to the EMBASSY cloud machine and retrieve results from there.
     """
-    if ENVIRONMENT != "PRODUCTION":
+    # get the hostname of the machine
+    hostname = socket.gethostname()
+
+    if ENVIRONMENT != "PRODUCTION" or hostname == 'covid-producer':
         # send the list of rnacentral_ids to the proxy, fallback to
         # returning the plain results, if text search unavailable
         rnacentral_ids = "\n".join([result['rnacentral_id'] for result in results])
@@ -94,9 +97,6 @@ async def get_text_search_results(results, job_id, query, start, size, facetcoun
                         raise ProxyConnectionError()
         except Exception as e:
             raise ProxyConnectionError() from e
-
-    # get the hostname of the machine to use the correct URL
-    hostname = socket.gethostname()
 
     rnacentral_ids = [result['rnacentral_id'] for result in results]
     rnacentral_urs = [item for item in rnacentral_ids if item.startswith('URS')]
