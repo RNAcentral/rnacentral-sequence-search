@@ -18,6 +18,7 @@ from aiojobs.aiohttp import atomic
 
 from sequence_search.db.models import JOB_CHUNK_STATUS_CHOICES
 from sequence_search.producer.settings import MIN_QUERY_LENGTH, MAX_QUERY_LENGTH
+from .periodic import create_consumer_scheduler
 from ...db.consumers import delegate_job_chunk_to_consumer, find_available_consumers, delegate_infernal_job_to_consumer
 from ...db.jobs import find_highest_priority_jobs, save_job, sequence_exists, database_used_in_search
 from ...db.job_chunks import save_job_chunk, set_job_chunk_status
@@ -210,5 +211,8 @@ async def submit_job(request):
                     )
                 except Exception as e:
                     return web.HTTPBadGateway(text=str(e))
+
+            # call the function that searches for available consumers and pending jobs
+            await create_consumer_scheduler(request.app)
 
     return web.json_response({"job_id": job_id}, status=201)
