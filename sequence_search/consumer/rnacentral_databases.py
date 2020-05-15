@@ -22,7 +22,7 @@ RnacentralDatabases = namedtuple("rnacentral_databases", ["id", "label", "e_valu
 
 # TODO: get the bds and e-value from elsewhere and not leave them hard coded
 rnacentral_databases = [
-    RnacentralDatabases("betacoronavirus", "Betacoronavirus", 81.375785),
+    RnacentralDatabases("betacoronavirus", "Betacoronavirus", 156.617103),
     RnacentralDatabases("dictybase", "dictyBase", 0.014499),
     RnacentralDatabases("ena", "ENA", 6781.500248),
     RnacentralDatabases("ensembl", "Ensembl", 982.98274),
