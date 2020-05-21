@@ -10,6 +10,7 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
 """
+import os
 
 from aiohttp_swagger import setup_swagger
 from .views import index, submit_job, job_status, job_result, rnacentral_databases, job_results_urs_list, \
@@ -19,6 +20,7 @@ from . import settings
 
 
 def setup_routes(app):
+    app.router.add_get('/', index, name='index')
     app.router.add_post('/api/submit-job', submit_job, name='submit-job')
     app.router.add_get('/api/job-status/{job_id:[A-Za-z0-9_-]+}', job_status, name='job-status')
     app.router.add_get('/api/jobs-statuses', jobs_statuses, name='jobs-statuses')
@@ -38,13 +40,16 @@ def setup_routes(app):
     # setup swagger documentation
     setup_swagger(app, swagger_url="api/doc")
 
-    # cover-all index url goes last, even after swagger
-    app.router.add_get('/{tail:.*}', index, name='index')
-
 
 def setup_static_routes(app):
-    app.router.add_static(
-        '/rnacentral-sequence-search-embed/',
-        path=settings.PROJECT_ROOT / 'static' / 'rnacentral-sequence-search-embed',
-        name='static'
-    )
+    try:
+        path = os.path.exists(settings.PROJECT_ROOT / 'static' / 'rnacentral-sequence-search-embed')
+    except FileNotFoundError:
+        path = None
+
+    if path:
+        app.router.add_static(
+            '/rnacentral-sequence-search-embed/',
+            path=settings.PROJECT_ROOT / 'static' / 'rnacentral-sequence-search-embed',
+            name='static'
+        )

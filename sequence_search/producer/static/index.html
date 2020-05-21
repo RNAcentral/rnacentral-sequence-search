@@ -16,6 +16,10 @@
             hideFacet='["has_conserved_structure", "has_genomic_coordinates", "has_go_annotations", "expert_db", "qc_warning_found"]'
             admin="true"
     />
-    <script type="text/javascript" src="rnacentral-sequence-search-embed/dist/RNAcentral-sequence-search.js"></script>
+    {% if path %}
+      <script type="text/javascript" src="rnacentral-sequence-search-embed/dist/RNAcentral-sequence-search.js"></script>
+    {% else %}
+      <script type="text/javascript" src="https://rnacentral.github.io/rnacentral-sequence-search-embed/dist/RNAcentral-sequence-search.js"></script>
+    {% endif %}
   </body>
 </html>
