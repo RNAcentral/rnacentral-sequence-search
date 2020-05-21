@@ -42,7 +42,7 @@
       curl -OL https://www.python.org/ftp/python/3.7.7/Python-3.7.7.tgz
       tar -xzf Python-3.7.7.tgz
       cd Python-3.7.7
-      ./configuodre --enable-optimizations
+      ./configure --enable-optimizations
       make altinstall
     args:
       creates: /usr/local/bin/python3.7
