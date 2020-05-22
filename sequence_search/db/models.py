@@ -88,7 +88,9 @@ Job = sa.Table('jobs', metadata,
                sa.Column('submitted', sa.DateTime),
                sa.Column('finished', sa.DateTime, nullable=True),
                sa.Column('result_in_db', sa.Boolean),
-               sa.Column('status', sa.String(255)))  # choices=JOB_STATUS_CHOICES
+               sa.Column('hits', sa.Integer, nullable=True),
+               sa.Column('status', sa.String(255)),  # choices=JOB_STATUS_CHOICES
+               sa.Column('url', sa.String(255)))
 
 """Part of the search job, run against a specific database and assigned to a specific consumer"""
 JobChunk = sa.Table('job_chunks', metadata,
@@ -98,6 +100,7 @@ JobChunk = sa.Table('job_chunks', metadata,
                     sa.Column('submitted', sa.DateTime, nullable=True),
                     sa.Column('finished', sa.DateTime, nullable=True),
                     sa.Column('consumer', sa.ForeignKey('consumer.ip'), nullable=True),
+                    sa.Column('hits', sa.Integer, nullable=True),
                     sa.Column('status', sa.String(255)))  # choices=JOB_CHUNK_STATUS_CHOICES, default='started'
 
 """Result of a specific JobChunk"""
@@ -123,6 +126,37 @@ JobChunkResult = sa.Table('job_chunk_results', metadata,
                           sa.Column('query_length', sa.Integer),
                           sa.Column('result_id', sa.Integer))
 
+InfernalJob = sa.Table('infernal_job', metadata,
+                       sa.Column('id', sa.Integer, primary_key=True),
+                       sa.Column('job_id', sa.String(36), sa.ForeignKey('jobs.id')),
+                       sa.Column('consumer', sa.ForeignKey('consumer.ip'), nullable=True),
+                       sa.Column('submitted', sa.DateTime, nullable=True),
+                       sa.Column('finished', sa.DateTime, nullable=True),
+                       sa.Column('status', sa.String(255)))  # choices=JOB_CHUNK_STATUS_CHOICES
+
+InfernalResult = sa.Table('infernal_result', metadata,
+                          sa.Column('id', sa.Integer, primary_key=True),
+                          sa.Column('infernal_job_id', None, sa.ForeignKey('infernal_job.id')),
+                          sa.Column('target_name', sa.String(255)),
+                          sa.Column('accession_rfam', sa.String(255)),
+                          sa.Column('query_name', sa.String(255)),
+                          sa.Column('accession_seq', sa.String(255)),
+                          sa.Column('mdl', sa.String(255)),
+                          sa.Column('mdl_from', sa.Integer),
+                          sa.Column('mdl_to', sa.Integer),
+                          sa.Column('seq_from', sa.Integer),
+                          sa.Column('seq_to', sa.Integer),
+                          sa.Column('strand', sa.String(255)),
+                          sa.Column('trunc', sa.String(255)),
+                          sa.Column('pipeline_pass', sa.Integer),
+                          sa.Column('gc', sa.Float),
+                          sa.Column('bias', sa.Float),
+                          sa.Column('score', sa.Float),
+                          sa.Column('e_value', sa.Float),
+                          sa.Column('inc', sa.String(255)),
+                          sa.Column('description', sa.String(255)),
+                          sa.Column('alignment', sa.Text))
+
 
 # Migrations
 # ----------
@@ -142,6 +176,8 @@ async def migrate(ENVIRONMENT):
         async with engine.acquire() as connection:
             await connection.execute('DROP TABLE IF EXISTS job_chunk_results')
             await connection.execute('DROP TABLE IF EXISTS job_chunks')
+            await connection.execute('DROP TABLE IF EXISTS infernal_result')
+            await connection.execute('DROP TABLE IF EXISTS infernal_job')
             await connection.execute('DROP TABLE IF EXISTS jobs')
             await connection.execute('DROP TABLE IF EXISTS consumer')
 
@@ -162,7 +198,9 @@ async def migrate(ENVIRONMENT):
                   submitted TIMESTAMP,
                   finished TIMESTAMP,
                   result_in_db BOOLEAN,
-                  status VARCHAR(255))
+                  hits INTEGER,
+                  status VARCHAR(255),
+                  url VARCHAR(255))
             ''')
 
             await connection.execute('''
@@ -173,6 +211,7 @@ async def migrate(ENVIRONMENT):
                   submitted TIMESTAMP,
                   finished TIMESTAMP,
                   consumer VARCHAR(20) references consumer(ip),
+                  hits INTEGER,
                   status VARCHAR(255))
             ''')
 
@@ -199,3 +238,42 @@ async def migrate(ENVIRONMENT):
                   query_length INTEGER NOT NULL,
                   result_id INTEGER NOT NULL)
             ''')
+
+            await connection.execute('''
+                CREATE TABLE infernal_job (
+                  id serial PRIMARY KEY,
+                  job_id VARCHAR(36) references jobs(id),
+                  consumer VARCHAR(20) references consumer(ip),
+                  submitted TIMESTAMP,
+                  finished TIMESTAMP,
+                  status VARCHAR(255))
+            ''')
+
+            await connection.execute('''
+                CREATE TABLE infernal_result (
+                  id serial PRIMARY KEY,
+                  infernal_job_id INT references infernal_job(id),
+                  target_name VARCHAR(255),
+                  accession_rfam VARCHAR(255),
+                  query_name VARCHAR(255),
+                  accession_seq VARCHAR(255),
+                  mdl VARCHAR(255),
+                  mdl_from INTEGER NOT NULL,
+                  mdl_to INTEGER NOT NULL,
+                  seq_from INTEGER NOT NULL,
+                  seq_to INTEGER NOT NULL,
+                  strand VARCHAR(255),
+                  trunc VARCHAR(255),
+                  pipeline_pass INTEGER NOT NULL,
+                  gc FLOAT NOT NULL,
+                  bias FLOAT NOT NULL,
+                  score FLOAT NOT NULL,
+                  e_value FLOAT NOT NULL,
+                  inc VARCHAR(255),
+                  description VARCHAR(255),
+                  alignment TEXT)
+            ''')
+
+            await connection.execute('''CREATE INDEX on job_chunks (job_id)''')
+            await connection.execute('''CREATE INDEX on job_chunk_results (job_chunk_id)''')
+            await connection.execute('''CREATE INDEX on infernal_result (infernal_job_id)''')

@@ -14,3 +14,4 @@ limitations under the License.
 from .index import index
 from .result import result
 from .submit_job import submit_job
+from .submit_infernal_job import submit_infernal_job

@@ -12,8 +12,15 @@ limitations under the License.
 """
 
 import aiohttp_jinja2
+import os
+
+from .. import settings
 
 
 @aiohttp_jinja2.template('index.html')
 async def index(request):
-    return {}
+    try:
+        path = os.path.exists(settings.PROJECT_ROOT / 'static' / 'rnacentral-sequence-search-embed')
+    except FileNotFoundError:
+        path = None
+    return {'path': path}

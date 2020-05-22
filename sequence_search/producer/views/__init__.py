@@ -25,3 +25,5 @@ from .list_rnacentral_ids import list_rnacentral_ids
 from .post_rnacentral_ids import post_rnacentral_ids
 from .consumers_statuses import consumers_statuses
 from .show_searches import show_searches
+from .infernal_job_result import infernal_job_result
+from .infernal_status import infernal_status

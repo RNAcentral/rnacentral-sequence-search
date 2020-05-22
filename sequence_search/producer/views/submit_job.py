@@ -17,9 +17,11 @@ from aiohttp import web
 from aiojobs.aiohttp import atomic
 
 from sequence_search.db.models import JOB_CHUNK_STATUS_CHOICES
-from ...db.consumers import delegate_job_chunk_to_consumer, find_available_consumers
-from ...db.jobs import save_job, sequence_exists
+from sequence_search.producer.settings import MIN_QUERY_LENGTH, MAX_QUERY_LENGTH
+from ...db.consumers import delegate_job_chunk_to_consumer, find_available_consumers, delegate_infernal_job_to_consumer
+from ...db.jobs import find_highest_priority_jobs, save_job, sequence_exists, database_used_in_search
 from ...db.job_chunks import save_job_chunk, set_job_chunk_status
+from ...db.infernal_job import save_infernal_job
 from ...consumer.rnacentral_databases import producer_validator, producer_to_consumers_databases
 
 
@@ -38,7 +40,7 @@ def serialize(request, data):
     # make sure query contains only reasonable nucleotide codes
     match = re.search('^(>.+?[\n\r])*?[acgtunwsmkrybdhvx\s]+$', data['query'], re.IGNORECASE)
     if not match:
-        raise ValueError("Input query is not a valid nucleotide sequence: '%s'" % data['query'])
+        raise ValueError("Input query is not a valid nucleotide sequence: '%s'\n" % data['query'])
 
     # possibly split query into query and description
     match = re.search('(^>(.+)[\n\r])?([\s\S]+)', data['query'])
@@ -47,6 +49,12 @@ def serialize(request, data):
         data['description'] = match.group(2)
     else:
         data['description'] = ''
+
+    # check the sequence length
+    if len(data['query']) < MIN_QUERY_LENGTH:
+        raise ValueError("The sequence cannot be shorter than %s nucleotides.\n" % MIN_QUERY_LENGTH)
+    elif len(data['query']) > MAX_QUERY_LENGTH:
+        raise ValueError("The sequence cannot be longer than %s nucleotides.\n" % MAX_QUERY_LENGTH)
 
     # normalize query: convert nucleotides to RNA
     data['query'] = data['query'].replace('T', 'U')
@@ -96,7 +104,7 @@ async def submit_job(request):
     """
     data = await request.json()
 
-    # leave databases name in lowercase.
+    # converts all uppercase characters to lowercase.
     if data['databases']:
         data['databases'] = [db.lower() for db in data['databases']]
 
@@ -105,49 +113,102 @@ async def submit_job(request):
     except (KeyError, TypeError, ValueError) as e:
         raise web.HTTPBadRequest(text=str(e)) from e
 
-    # perform the search or get the data from the database?
-    job_id = await sequence_exists(request.app['engine'], data['query'])
+    # database that the user wants to use to perform the search
+    databases = producer_to_consumers_databases(data['databases'])
 
-    if job_id:
-        return web.json_response({"job_id": job_id}, status=201)
-    else:
-        # save metadata about this job and job_chunks to the database
-        job_id = await save_job(request.app['engine'], data['query'], data['description'])
+    # check if this query has already been searched
+    job_list = await sequence_exists(request.app['engine'], data['query'])
 
-        databases = producer_to_consumers_databases(data['databases'])
+    job_id = None
+    if job_list:
+        # check the database used in each job_id.
+        # set job_id if the database used is the same as in "databases"
+        for job in job_list:
+            if await database_used_in_search(request.app['engine'], job, databases):
+                job_id = job
+                break
+
+    # do the search if the data is not in the database
+    if not job_id:
+        # check for unfinished jobs
+        unfinished_job = await find_highest_priority_jobs(request.app['engine'])
+
+        # get URL - for statistical purposes
+        try:
+            url = data['url']
+        except KeyError:
+            url = None
+
+        # save metadata about this job to the database
+        job_id = await save_job(request.app['engine'], data['query'], data['description'], url)
+
+        # save metadata about job_chunks to the database
+        # TODO: what if Job was saved and JobChunk was not? Need transactions?
         for database in databases:
             # save job_chunk with "created" status. This prevents the check_chunks_and_consumers function,
             # which runs every 5 seconds, from executing the same job_chunk again.
             await save_job_chunk(request.app['engine'], job_id, database)
 
-        # TODO: what if Job was saved and JobChunk was not? Need transactions?
+        # save metadata about infernal_job to the database
+        # TODO: what if Job was saved and InfernalJob was not? Need transactions?
+        await save_infernal_job(request.app['engine'], job_id)
 
-        consumers = await find_available_consumers(request.app['engine'])
+        # if there are unfinished jobs, change the status of each new job_chunk to pending;
+        # otherwise try starting the job
+        if unfinished_job:
+            for database in databases:
+                try:
+                    await set_job_chunk_status(
+                        request.app['engine'],
+                        job_id,
+                        database,
+                        status=JOB_CHUNK_STATUS_CHOICES.pending
+                    )
+                except Exception as e:
+                    return web.HTTPBadGateway(text=str(e))
+        else:
+            # check for available consumers
+            consumers = await find_available_consumers(request.app['engine'])
 
-        # if there are consumers available, delegate job_chunk to consumer
-        for index in range(min(len(consumers), len(databases))):
-            try:
-                await delegate_job_chunk_to_consumer(
-                    engine=request.app['engine'],
-                    consumer_ip=consumers[index].ip,
-                    consumer_port=consumers[index].port,
-                    job_id=job_id,
-                    database=databases[index],
-                    query=data['query']
-                )
-            except Exception as e:
-                return web.HTTPBadGateway(text=str(e))
+            # if consumers are available, delegate to infernal_job first
+            if consumers:
+                consumer = consumers.pop(0)
 
-        # change job_chunk status to pending if no consumer is available
-        for index in range(len(consumers), len(databases)):
-            try:
-                await set_job_chunk_status(
-                    request.app['engine'],
-                    job_id,
-                    databases[index],
-                    status=JOB_CHUNK_STATUS_CHOICES.pending
-                )
-            except Exception as e:
-                return web.HTTPBadGateway(text=str(e))
+                try:
+                    await delegate_infernal_job_to_consumer(
+                        engine=request.app['engine'],
+                        consumer_ip=consumer.ip,
+                        consumer_port=consumer.port,
+                        job_id=job_id,
+                        query=data['query']
+                    )
+                except Exception as e:
+                    return web.HTTPBadGateway(text=str(e))
 
-        return web.json_response({"job_id": job_id}, status=201)
+            # after infernal_job, delegate consumers to job_chunks
+            for index in range(min(len(consumers), len(databases))):
+                try:
+                    await delegate_job_chunk_to_consumer(
+                        engine=request.app['engine'],
+                        consumer_ip=consumers[index].ip,
+                        consumer_port=consumers[index].port,
+                        job_id=job_id,
+                        database=databases[index],
+                        query=data['query']
+                    )
+                except Exception as e:
+                    return web.HTTPBadGateway(text=str(e))
+
+            # if no consumer is available, change the status of the remaining job_chunks to pending
+            for index in range(len(consumers), len(databases)):
+                try:
+                    await set_job_chunk_status(
+                        request.app['engine'],
+                        job_id,
+                        databases[index],
+                        status=JOB_CHUNK_STATUS_CHOICES.pending
+                    )
+                except Exception as e:
+                    return web.HTTPBadGateway(text=str(e))
+
+    return web.json_response({"job_id": job_id}, status=201)

@@ -19,5 +19,5 @@ variable "external_network_id" {
 }
 
 variable "floating_ip" {
-  default = "193.62.55.45"
+  default = "193.62.55.93"
 }

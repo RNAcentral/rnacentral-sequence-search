@@ -30,6 +30,10 @@ Or, passing the custom setting as a keyword argument when initialising settings 
 PROJECT_ROOT = pathlib.Path(__file__).parent.parent
 
 CONSUMER_SUBMIT_JOB_URL = 'submit-job'
+CONSUMER_SUBMIT_INFERNAL_JOB_URL = 'submit-infernal-job'
+
+MIN_QUERY_LENGTH = 10
+MAX_QUERY_LENGTH = 7000
 
 ENVIRONMENT = os.getenv('ENVIRONMENT', 'LOCAL')
 
@@ -43,7 +47,7 @@ elif ENVIRONMENT == "DOCKER-COMPOSE":
 elif ENVIRONMENT == "PRODUCTION":
     from .production import *
 
-EBI_SEARCH_PROXY_URL = 'http://193.62.55.44:8002/api/post-rnacentral-ids'
+EBI_SEARCH_PROXY_URL = 'https://search.rnacentral.org/api/post-rnacentral-ids'
 
 
 def substitute_environment_variables():

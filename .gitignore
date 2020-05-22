@@ -14,6 +14,20 @@ terraform_load_balancer/load_balancer_rsa
 terraform_load_balancer/load_balancer_rsa.pub
 terraform_load_balancer/.terraform
 
+ukcloud/providers.tf
+ukcloud/terraform.tfstate.backup
+ukcloud/terraform.tfstate.d/test/*.backup
+ukcloud/sequence_search_rsa
+ukcloud/sequence_search_rsa.pub
+ukcloud/.terraform
+ukcloud/current_state
+
+ukcloud/load_balancer/providers.tf
+ukcloud/load_balancer/terraform.tfstate.backup
+ukcloud/load_balancer/load_balancer_rsa
+ukcloud/load_balancer/load_balancer_rsa.pub
+ukcloud/load_balancer/.terraform
+
 __pycache__/
 .idea/
 *.pyc
@@ -28,5 +42,9 @@ sequence_search/consumer/hmmer-3.2.1/
 sequence_search/consumer/results
 sequence_search/consumer/queries
 sequence_search/consumer/databases
+sequence_search/consumer/infernal-*
+sequence_search/consumer/rfam
+sequence_search/consumer/tests/output
+sequence_search/consumer/cmsearch_tblout_deoverlap
 sequence_search/monitor/.conf-file
 sequence_search/monitor/test*

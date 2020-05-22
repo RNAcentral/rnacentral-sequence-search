@@ -17,8 +17,8 @@ import uuid
 
 from aiohttp.test_utils import unittest_run_loop
 
-from ..__main__ import create_app
-from ...db.models import Job, JobChunk, JobChunkResult, JOB_STATUS_CHOICES, JOB_CHUNK_STATUS_CHOICES
+from sequence_search.producer.__main__ import create_app
+from sequence_search.db.models import Job, JobChunk, JobChunkResult, JOB_STATUS_CHOICES, JOB_CHUNK_STATUS_CHOICES
 from aiohttp.test_utils import AioHTTPTestCase
 
 
@@ -72,7 +72,7 @@ class SubmitJobTestCase(AioHTTPTestCase):
             await connection.scalar(
                 JobChunkResult.insert().values(
                     job_chunk_id=self.job_chunk_id1,
-                    rnacentral_id='URS000075D2D2',
+                    rnacentral_id='URS000075D2D2_10090',
                     description='Mus musculus miR - 1195 stem - loop',
                     score=6.5,
                     bias=0.7,
@@ -108,10 +108,8 @@ class SubmitJobTestCase(AioHTTPTestCase):
             assert response.status == 200
             data = await response.json()
 
-            print(data[0])
-
-            assert data[0] == {
-                "rnacentral_id": 'URS000075D2D2',
+            results = {
+                "rnacentral_id": 'URS000075D2D2_10090',
                 "description": 'Mus musculus miR - 1195 stem - loop',
                 "score": 6.5,
                 "bias": 0.7,
@@ -123,10 +121,13 @@ class SubmitJobTestCase(AioHTTPTestCase):
                 "match_count": 18,
                 "nts_count1": 22,
                 "nts_count2": 0,
-                "identity": 81.8181818181818,  # conversion to float in DB trims some digits
-                "query_coverage": 73.3333333333333,  # converstion to float in DB trims some digits
+                "identity": 81.81818181818183,
+                "query_coverage": 73.33333333333333,
                 "target_coverage": 0.0,
                 "gaps": 0.0,
                 "query_length": 30,
-                "result_id": 1
+                "result_id": 1,
+                'species_priority': 'b'
             }
+
+            assert data[0] == results

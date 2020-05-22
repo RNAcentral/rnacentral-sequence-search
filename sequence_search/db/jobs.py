@@ -16,9 +16,12 @@ import uuid
 
 import sqlalchemy as sa
 import psycopg2
+from collections import Counter
+from operator import itemgetter
 
 from . import DatabaseConnectionError, SQLError
-from .models import Job, JobChunk, JobChunkResult, JOB_STATUS_CHOICES, JOB_CHUNK_STATUS_CHOICES
+from .models import Job, InfernalJob, InfernalResult, JobChunk, JobChunkResult, JOB_STATUS_CHOICES, \
+    JOB_CHUNK_STATUS_CHOICES
 
 
 class JobNotFound(Exception):
@@ -34,7 +37,7 @@ async def sequence_exists(engine, query):
     Check if this query has already been searched
     :param engine: params to connect to the db
     :param query: the sequence that the user wants to search
-    :return: job_id if this query is in the db, otherwise returns none
+    :return: list of job_ids
     """
     try:
         async with engine.acquire() as connection:
@@ -42,13 +45,39 @@ async def sequence_exists(engine, query):
                 sql_query = sa.select([Job.c.id]).select_from(Job).where(
                     (Job.c.query == query) & Job.c.result_in_db
                 )
+                job_list = []
                 async for row in connection.execute(sql_query):
-                    return row[0] if row else None
+                    job_list.append(row[0])
+                return job_list
             except Exception as e:
                 raise SQLError("Failed to check if query exists for query = %s" % query) from e
     except psycopg2.Error as e:
         raise DatabaseConnectionError("Failed to open connection to the database in sequence_exists() for "
                                       "sequence with query = %s" % query) from e
+
+
+async def database_used_in_search(engine, job_id, databases):
+    """
+    Check the database used. If the database used in "job_id" is the same as in "databases",
+    we don't want to search again.
+    :param engine: params to connect to the db
+    :param job_id: id of the job
+    :param databases: database that the user wants to use to perform the search
+    :return: "true" if the database used in "job_id" is the same as in "databases", otherwise "false".
+    """
+    try:
+        async with engine.acquire() as connection:
+            try:
+                sql_query = sa.select([JobChunk.c.database]).select_from(JobChunk).where(JobChunk.c.job_id == job_id)
+                result = []
+                async for row in connection.execute(sql_query):
+                    result.append(row[0])
+                return True if Counter(result) == Counter(databases) else False
+            except Exception as e:
+                raise SQLError("Failed to check the database used for job_id = %s" % job_id) from e
+    except psycopg2.Error as e:
+        raise DatabaseConnectionError("Failed to open connection to the database in database_used_in_search() for "
+                                      "job_id = %s" % job_id) from e
 
 
 async def get_job(engine, job_id):
@@ -62,6 +91,7 @@ async def get_job(engine, job_id):
                     Job.c.ordering,
                     Job.c.submitted,
                     Job.c.finished,
+                    Job.c.hits,
                     Job.c.status
                 ]).select_from(Job).where(Job.c.id == job_id)
                 async for row in connection.execute(sql_query):
@@ -72,6 +102,7 @@ async def get_job(engine, job_id):
                         'ordering': row.ordering,
                         'submitted': row.submitted,
                         'finished': row.finished,
+                        'hits': row.hits,
                         'status': row.status
                     }
             except Exception as e:
@@ -81,7 +112,7 @@ async def get_job(engine, job_id):
                                       "get_job() for job with job_id = %s" % job_id) from e
 
 
-async def save_job(engine, query, description):
+async def save_job(engine, query, description, url):
     try:
         async with engine.acquire() as connection:
             try:
@@ -94,7 +125,8 @@ async def save_job(engine, query, description):
                         description=description,
                         ordering='e_value',
                         submitted=datetime.datetime.now(),
-                        status=JOB_STATUS_CHOICES.started
+                        status=JOB_STATUS_CHOICES.started,
+                        url=url
                     )
                 )
 
@@ -107,7 +139,7 @@ async def save_job(engine, query, description):
                                       "job_id = %s" % job_id) from e
 
 
-async def set_job_status(engine, job_id, status):
+async def set_job_status(engine, job_id, status, hits=None):
     if status == JOB_CHUNK_STATUS_CHOICES.success or \
        status == JOB_CHUNK_STATUS_CHOICES.error or \
        status == JOB_CHUNK_STATUS_CHOICES.timeout:
@@ -118,9 +150,10 @@ async def set_job_status(engine, job_id, status):
     try:
         async with engine.acquire() as connection:
             try:
-                query = sa.text('''UPDATE jobs SET status = :status, finished = :finished, 
+                query = sa.text('''UPDATE jobs SET status = :status, finished = :finished, hits = :hits, 
                 result_in_db = :result_in_db WHERE id = :job_id''')
-                await connection.execute(query, job_id=job_id, status=status, finished=finished, result_in_db=True)
+                await connection.execute(query, job_id=job_id, status=status, finished=finished, hits=hits,
+                                         result_in_db=True)
             except Exception as e:
                 raise SQLError("Failed to save job to the database about failed job, job_id = %s, "
                                "status = %s" % (job_id, status)) from e
@@ -130,26 +163,33 @@ async def set_job_status(engine, job_id, status):
 
 
 async def get_jobs_statuses(engine):
-    """Returns the dict of jobs with statuses of their job_chunks"""
+    """Returns all jobs from the last 15 days with job_chunks status"""
     try:
         async with engine.acquire() as connection:
             try:
                 # ambiguity in column names forces us to manually assign column labels
-                query = (sa.select([
+                select_statement = sa.select([
                     Job.c.id.label('id'),
+                    Job.c.query.label('query'),
                     Job.c.status.label('job_status'),
                     Job.c.submitted.label('submitted'),
                     JobChunk.c.job_id.label('job_id'),
                     JobChunk.c.database.label('database'),
                     JobChunk.c.status.label('status'),
                     JobChunk.c.consumer.label('consumer')
-                ], use_labels=True).select_from(sa.join(Job, JobChunk, Job.c.id == JobChunk.c.job_id)))  # noqa
+                ], use_labels=True)
+
+                query = (
+                    select_statement.select_from(sa.join(Job, JobChunk, Job.c.id == JobChunk.c.job_id))
+                    .where(Job.c.submitted > datetime.datetime.now() - datetime.timedelta(days=15))  # noqa
+                )
 
                 jobs_dict = {}
                 async for row in connection.execute(query):
                     if row.job_id not in jobs_dict:
                         jobs_dict[row.job_id] = {
                             'id': row.job_id,
+                            'query': row.query,
                             'status': row.job_status,
                             'submitted': str(row.submitted),
                             'chunks': [
@@ -164,8 +204,7 @@ async def get_jobs_statuses(engine):
                         })
 
                 jobs = list(jobs_dict.values())
-                jobs.sort(key=lambda job: job['submitted'])
-                jobs.reverse()
+                jobs.sort(key=itemgetter('submitted'), reverse=True)
                 return jobs
 
             except Exception as e:
@@ -217,10 +256,7 @@ async def get_job_chunks_status(engine, job_id):
                         'finished': row.finished
                     })
 
-                if output == []:
-                    raise JobNotFound(job_id)
-                else:
-                    return output
+                return output if output else JobNotFound(job_id)
 
             except JobNotFound as e:
                 raise e
@@ -235,23 +271,26 @@ async def update_job_status_from_job_chunks_status(engine, job_id):
     try:
         async with engine.acquire() as connection:
             try:
-                query = (sa.select([Job.c.id, JobChunk.c.job_id, JobChunk.c.status])
+                query = (sa.select([Job.c.id, JobChunk.c.job_id, JobChunk.c.status, JobChunk.c.hits])
                          .select_from(sa.join(Job, JobChunk, Job.c.id == JobChunk.c.job_id))  # noqa
                          .where(Job.c.id == job_id))  # noqa
 
                 unfinished_chunks_found = False
                 errors_found = False
+                hits = 0
                 async for row in connection.execute(query):
                     if row.status == JOB_CHUNK_STATUS_CHOICES.pending or row.status == JOB_CHUNK_STATUS_CHOICES.started:
                         unfinished_chunks_found = True
                         break
                     elif row.status == JOB_CHUNK_STATUS_CHOICES.error or row.status == JOB_CHUNK_STATUS_CHOICES.timeout:
                         errors_found = True
+                    if row.hits:
+                        hits += row.hits
 
                 if unfinished_chunks_found is False and errors_found is False:
-                    await set_job_status(engine, job_id, status=JOB_STATUS_CHOICES.success)
+                    await set_job_status(engine, job_id, status=JOB_STATUS_CHOICES.success, hits=hits)
                 elif unfinished_chunks_found is False and errors_found is True:
-                    await set_job_status(engine, job_id, status=JOB_STATUS_CHOICES.partial_success)
+                    await set_job_status(engine, job_id, status=JOB_STATUS_CHOICES.partial_success, hits=hits)
 
             except Exception as e:
                 raise SQLError("Failed to check job_chunk status, job_id = %s" % job_id) from e
@@ -324,7 +363,7 @@ async def set_job_ordering(engine, job_id, ordering):
                                       "set_job_ordering() for job with job_id = %s" % job_id) from e
 
 
-async def get_job_results(engine, job_id, limit=3000):
+async def get_job_results(engine, job_id, limit=1000):
     """
     Aggregates results from multiple job_chunks and returns them.
 
@@ -357,25 +396,33 @@ async def get_job_results(engine, job_id, limit=3000):
                     JobChunkResult.c.result_id
                 ])
                 .select_from(sa.join(JobChunk, JobChunkResult, JobChunk.c.id == JobChunkResult.c.job_chunk_id))  # noqa
+                .order_by(JobChunkResult.c.score.desc())
                 .limit(limit)
                 .where(JobChunk.c.job_id == job_id))  # noqa
 
-            # sql = sa.text('''
-            #     SELECT job_id, database, rnacentral_id, description, score, bias,
-            #     e_value, target_length, alignment, alignment_length,
-            #     gap_count, match_count, nts_count1, nts_count2, "identity",
-            #     query_coverage, target_coverage, gaps, query_length, result_id
-            #     FROM job_chunks, job_chunk_results
-            #     WHERE job_id = :job_id
-            #     GROUP BY rnacentral_id
-            #     LIMIT :limit
-            # ''')
-            #
-            # async for row in connection.execute(query, job_id=job_id, limit=limit):
-            #     id = row.id
+            # popular species: zebrafish, arabidopsis thaliana, caenorhabditis elegans, drosophila melanogaster,
+            # saccharomyces cerevisiae S288c, schizosaccharomyces pombe, escherichia coli str. K-12 substr. MG1655
+            # and bacillus subtilis subsp. subtilis str. 168, respectively.
+            popular_species = {7955, 3702, 6239, 7227, 559292, 4896, 511145, 224308}
 
             results = []
             async for row in connection.execute(sql):
+                # check species priority.
+                # priority order = human (9606), mouse (10090), popular species, others
+                try:
+                    taxid = row[0].split('_')[1]
+                    if taxid == '9606':
+                        species_priority = 'a'  # Very high priority
+                    elif taxid == '10090':
+                        species_priority = 'b'  # High priority
+                    elif int(taxid) in popular_species:
+                        species_priority = 'c'  # Medium priority
+                    else:
+                        species_priority = 'd'  # Low priority
+                except Exception:
+                    pass
+
+                # add result
                 results.append({
                     'rnacentral_id': row[0],
                     'description': row[3],
@@ -394,34 +441,189 @@ async def get_job_results(engine, job_id, limit=3000):
                     'target_coverage': row[16],
                     'gaps': row[17],
                     'query_length': row[18],
-                    'result_id': row[19]
+                    'result_id': row[19],
+                    'species_priority': species_priority if species_priority else 'd'
                 })
 
             # sort results by ordering, ordering is stored in the database
             ordering = await get_job_ordering(engine, job_id)
 
             if ordering == 'e_value':
-                results.sort(key=lambda result: result['e_value'])
+                results.sort(key=itemgetter('e_value', 'species_priority'))
             elif ordering == '-e_value':
-                results.sort(key=lambda result: result['e_value'])
-                results.reverse()
+                results.sort(key=itemgetter('e_value'), reverse=True)
+                results.sort(key=itemgetter('species_priority'))
             elif ordering == 'identity':
-                results.sort(key=lambda result: result['identity'])
+                results.sort(key=itemgetter('identity', 'species_priority'))
             elif ordering == '-identity':
-                results.sort(key=lambda result: result['identity'])
-                results.reverse()
+                results.sort(key=itemgetter('identity'), reverse=True)
+                results.sort(key=itemgetter('species_priority'))
             elif ordering == 'query_coverage':
-                results.sort(key=lambda result: result['query_coverage'])
+                results.sort(key=itemgetter('query_coverage', 'species_priority'))
             elif ordering == '-query_coverage':
-                results.sort(key=lambda result: result['query_coverage'])
-                results.reverse()
+                results.sort(key=itemgetter('query_coverage'), reverse=True)
+                results.sort(key=itemgetter('species_priority'))
             elif ordering == 'target_coverage':
-                results.sort(key=lambda result: result['target_coverage'])
+                results.sort(key=itemgetter('target_coverage', 'species_priority'))
             elif ordering == '-target_coverage':
-                results.sort(key=lambda result: result['target_coverage'])
-                results.reverse()
+                results.sort(key=itemgetter('target_coverage'), reverse=True)
+                results.sort(key=itemgetter('species_priority'))
 
             return results
 
+    except psycopg2.Error as e:
+        raise DatabaseConnectionError(str(e)) from e
+
+
+async def find_highest_priority_jobs(engine):
+    """
+    Find unfinished jobs to give consumers for processing.
+
+    :param engine: params to connect to the db
+    :return: list of jobs to submit
+    """
+    # among the running jobs, find the one, submitted first
+    try:
+        async with engine.acquire() as connection:
+            try:
+                output = []
+                select_statement = sa.select(
+                    [
+                        Job.c.id.label('id'),
+                        Job.c.status.label('job_status'),
+                        Job.c.submitted.label('submitted'),
+                        JobChunk.c.job_id.label('job_id'),
+                        JobChunk.c.id.label('job_chunk_id'),
+                        JobChunk.c.database.label('database'),
+                        JobChunk.c.status.label('status')
+                    ],
+                    use_labels=True
+                )
+
+                query = (select_statement
+                         .select_from(sa.join(Job, JobChunk, Job.c.id == JobChunk.c.job_id))  # noqa
+                         .where(sa.and_(Job.c.status == JOB_STATUS_CHOICES.started, JobChunk.c.status == JOB_CHUNK_STATUS_CHOICES.pending))
+                         .order_by(Job.c.submitted))  # noqa
+
+                async for row in connection.execute(query):
+                    output.append((row.id, row.submitted, row.database))
+
+                query = (sa.select([InfernalJob.c.job_id, InfernalJob.c.submitted])
+                         .select_from(InfernalJob)
+                         .where(InfernalJob.c.status == JOB_CHUNK_STATUS_CHOICES.pending)
+                         .order_by(InfernalJob.c.submitted)  # noqa
+                         )
+
+                async for row in connection.execute(query):
+                    output.append((row.job_id, row.submitted))
+
+                return sorted(output, key=lambda item: item[1])  # sort by date
+
+            except Exception as e:
+                raise SQLError("Failed to find highest priority jobs") from e
+
+    except psycopg2.Error as e:
+        raise DatabaseConnectionError(str(e)) from e
+
+
+async def get_infernal_job_results(engine, job_id):
+    """
+    Function to get cmscan command results
+    :param engine: params to connect to the db
+    :param job_id: id of the job
+    :return: list of dicts with cmscan command results
+    """
+    try:
+        async with engine.acquire() as connection:
+            sql = (sa.select([
+                    InfernalJob.c.job_id,
+                    InfernalResult.c.target_name,
+                    InfernalResult.c.accession_rfam,
+                    InfernalResult.c.query_name,
+                    InfernalResult.c.accession_seq,
+                    InfernalResult.c.mdl,
+                    InfernalResult.c.mdl_from,
+                    InfernalResult.c.mdl_to,
+                    InfernalResult.c.seq_from,
+                    InfernalResult.c.seq_to,
+                    InfernalResult.c.strand,
+                    InfernalResult.c.trunc,
+                    InfernalResult.c.pipeline_pass,
+                    InfernalResult.c.gc,
+                    InfernalResult.c.bias,
+                    InfernalResult.c.score,
+                    InfernalResult.c.e_value,
+                    InfernalResult.c.inc,
+                    InfernalResult.c.description,
+                    InfernalResult.c.alignment,
+                ])
+                .select_from(sa.join(InfernalJob, InfernalResult, InfernalJob.c.id == InfernalResult.c.infernal_job_id))  # noqa
+                .where(InfernalJob.c.job_id == job_id))  # noqa
+
+            results = []
+            async for row in connection.execute(sql):
+                results.append({
+                    'target_name': row[1],
+                    'accession_rfam': row[2],
+                    'query_name': row[3],
+                    'accession_seq': row[4],
+                    'mdl': row[5],
+                    'mdl_from': row[6],
+                    'mdl_to': row[7],
+                    'seq_from': row[8],
+                    'seq_to': row[9],
+                    'strand': row[10],
+                    'trunc': row[11],
+                    'pipeline_pass': row[12],
+                    'gc': row[13],
+                    'bias': row[14],
+                    'score': row[15],
+                    'e_value': row[16],
+                    'inc': row[17],
+                    'description': row[18],
+                    'alignment': row[19]
+                })
+
+            return results
+
+    except psycopg2.Error as e:
+        raise DatabaseConnectionError(str(e)) from e
+
+
+async def get_infernal_job_status(engine, job_id):
+    """
+    Function to get the status of the infernal job
+    :param engine: params to connect to the db
+    :param job_id: id of the job
+    :return: data about infernal job as a namedtuple
+    """
+    try:
+        async with engine.acquire() as connection:
+            try:
+                select_statement = sa.select(
+                    [
+                        InfernalJob.c.job_id,
+                        InfernalJob.c.submitted,
+                        InfernalJob.c.finished,
+                        InfernalJob.c.status,
+                    ],
+                )
+
+                query = (select_statement.select_from(InfernalJob).where(InfernalJob.c.job_id == job_id))  # noqa
+
+                async for row in connection.execute(query):
+                    result = ({
+                        'job_id': row.job_id,
+                        'submitted': row.submitted,
+                        'finished': row.finished,
+                        'status': row.status,
+                    })
+
+                return result if result else JobNotFound(job_id)
+
+            except JobNotFound as e:
+                raise e
+            except Exception as e:
+                raise SQLError("Failed to get infernal_job status, job_id = %s" % job_id) from e
     except psycopg2.Error as e:
         raise DatabaseConnectionError(str(e)) from e

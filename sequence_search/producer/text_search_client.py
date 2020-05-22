@@ -37,6 +37,7 @@ def rnacentral_ids_file_path(job_id):
 
 
 fields = [
+    'url',
     'active',
     'author',
     'common_name',

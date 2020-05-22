@@ -16,8 +16,8 @@ import hashlib
 
 from aiohttp import web
 from aiojobs.aiohttp import atomic
-from ast import literal_eval
 from pymemcache.client import base
+from pymemcache import serde
 
 from ...db.jobs import get_job_results, get_job, job_exists, set_job_ordering
 from ..text_search_client import get_text_search_results, ProxyConnectionError, EBITextSearchConnectionError, \
@@ -118,7 +118,7 @@ async def facets_search(request):
                 hitCount:
                   type: integer
                   description: >-
-                    Total number of entries found by this query. Note that entries array is paginated and
+                    Total number of entries analysed by this query. Note that entries array is paginated and
                     thus number of hits in it is less than or equal to hitCount.
                 entries:
                   type: array
@@ -133,6 +133,10 @@ async def facets_search(request):
                   type: string
                   description: >-
                     The query sequence to be displayed.
+                hits:
+                  type: integer
+                  description: >-
+                    Total number of entries found by this query.
                 textSearchError:
                   type: boolean
                   description: >-
@@ -292,10 +296,11 @@ async def facets_search(request):
     # set ordering, so that EBI text search returns entries in correct order
     await set_job_ordering(request.app['engine'], job_id, ordering)
 
-    # get sequence search query sequence and status
+    # get sequence search query sequence, status and number of hits
     job = await get_job(request.app['engine'], job_id)
     sequence = job['query']
     status = job['status']
+    hits = job['hits']
 
     # get sequence search results from the database, sort/aggregate?
     results = await get_job_results(request.app['engine'], job_id)
@@ -305,10 +310,10 @@ async def facets_search(request):
         ENVIRONMENT = request.app['settings'].ENVIRONMENT
 
         # we want to cache the EBI Search result
-        if ENVIRONMENT == 'PRODUCTION':
-            client = base.Client(('192.168.0.8', 11211))
-        else:
-            client = base.Client(('localhost', 11211))
+        ip_address = '192.168.0.8' if ENVIRONMENT == 'PRODUCTION' else 'localhost'
+        client = base.Client((ip_address, 11211),
+                             serializer=serde.get_python_memcache_serializer(pickle_version=2),
+                             deserializer=serde.python_memcache_deserializer)
 
         # create a hash with query parameters
         text_search_key = hashlib.md5(
@@ -319,37 +324,41 @@ async def facets_search(request):
         cached_result = client.get(text_search_key)
 
         if cached_result:
-            text_search_data = literal_eval(cached_result.decode('utf8'))
+            text_search_data = cached_result
             logging.debug("Using cache. This is the key used: {}".format(text_search_key))
         else:
             text_search_data = await get_text_search_results(
                 results, job_id, query, start, size, facetcount, ENVIRONMENT
             )
+
+            # if this worked, inject text search results into facets json
+            for entry in text_search_data['entries']:
+                for result in results:
+                    if result['rnacentral_id'] == entry['id']:
+                        result['description'] = entry['fields']['description'][0]
+                        entry.update(result)
+                        break
+
+            # sort facets in the same order as in text_search_client
+            text_search_data['facets'].sort(key=lambda el: facetfields.index(el['id']))
+
+            # merge the contents of the 'popular_species' facet into the 'TAXONOMY' facet
+            merge_popular_species_into_taxonomy_facet(text_search_data)
+
+            # add the query sequence to display on the page
+            text_search_data['sequence'] = sequence
+
+            # add the total number of hits
+            text_search_data['hits'] = hits
+
+            # add status of sequence search to display warnings, if need arises
+            text_search_data['sequenceSearchStatus'] = status
+
+            # text search worked successfully, unset text search error flag
+            text_search_data['textSearchError'] = False
+
             # cache the result
             client.set(text_search_key, text_search_data)
-
-        # if this worked, inject text search results into facets json
-        for entry in text_search_data['entries']:
-            for result in results:
-                if result['rnacentral_id'] == entry['id']:
-                    result['description'] = entry['fields']['description'][0]
-                    entry.update(result)
-                    break
-
-        # sort facets in the same order as in text_search_client
-        text_search_data['facets'].sort(key=lambda el: facetfields.index(el['id']))
-
-        # merge the contents of the 'popular_species' facet into the 'TAXONOMY' facet
-        merge_popular_species_into_taxonomy_facet(text_search_data)
-
-        # add the query sequence to display on the page
-        text_search_data['sequence'] = sequence
-
-        # add status of sequence search to display warnings, if need arises
-        text_search_data['sequenceSearchStatus'] = status
-
-        # text search worked successfully, unset text search error flag
-        text_search_data['textSearchError'] = False
 
     except (ProxyConnectionError, EBITextSearchConnectionError) as e:
         # text search is not available, pad output with facets stub, indicate that we have a text search error

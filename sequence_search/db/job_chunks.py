@@ -17,7 +17,7 @@ import sqlalchemy as sa
 import psycopg2
 
 from . import DatabaseConnectionError, SQLError, DoesNotExist
-from .models import Job, JobChunk, JOB_STATUS_CHOICES, JOB_CHUNK_STATUS_CHOICES
+from .models import JobChunk, JOB_CHUNK_STATUS_CHOICES
 
 
 async def get_job_chunk(engine, job_chunk_id):
@@ -86,48 +86,6 @@ async def save_job_chunk(engine, job_id, database):
                                       "for job_id = %s, database = %s" % (job_id, database)) from e
 
 
-async def find_highest_priority_job_chunks(engine):
-    """
-    Find the next job chunk to give consumers for processing.
-
-    Returns: [(job_id, job_chunk_id, database), (...), ...]
-    """
-    # among the running jobs, find the one, submitted first
-    try:
-        async with engine.acquire() as connection:
-            try:
-                select_statement = sa.select(
-                    [
-                        Job.c.id.label('id'),
-                        Job.c.status.label('job_status'),
-                        Job.c.submitted.label('submitted'),
-                        JobChunk.c.job_id.label('job_id'),
-                        JobChunk.c.id.label('job_chunk_id'),
-                        JobChunk.c.database.label('database'),
-                        JobChunk.c.status.label('status')
-                    ],
-                    use_labels=True
-                )
-
-                query = (select_statement
-                         .select_from(sa.join(Job, JobChunk, Job.c.id == JobChunk.c.job_id))  # noqa
-                         .where(sa.and_(Job.c.status == JOB_STATUS_CHOICES.started, JobChunk.c.status == JOB_CHUNK_STATUS_CHOICES.pending))
-                         .order_by(Job.c.submitted))  # noqa
-
-                output = []
-                # if there are started jobs and job_chunks, pick one from the earliest submitted job
-                async for row in connection.execute(query):  # select a job chunk to submit
-                    output.append((row.id, row.job_chunk_id, row.database))
-
-                return output
-
-            except Exception as e:
-                raise SQLError("Failed to find highest priority job chunks") from e
-
-    except psycopg2.Error as e:
-        raise DatabaseConnectionError(str(e)) from e
-
-
 async def get_consumer_ip_from_job_chunk(engine, job_chunk_id):
     try:
         async with engine.acquire() as connection:
@@ -143,10 +101,11 @@ async def get_consumer_ip_from_job_chunk(engine, job_chunk_id):
         raise DatabaseConnectionError(str(e)) from e
 
 
-async def set_job_chunk_status(engine, job_id, database, status):
+async def set_job_chunk_status(engine, job_id, database, status, hits=None):
     """
-    :param engine:
-    :param job_id:
+    :param hits: total number of hits
+    :param engine: params to connect to the db
+    :param job_id: id of the job
     :param database: Consumer-side database (actual file name stored in the database)
     :param status: an option from consumer.JOB_CHUNK_STATUS
     :return: None
@@ -173,19 +132,21 @@ async def set_job_chunk_status(engine, job_id, database, status):
                     ''')
 
                     id = None  # if connection didn't return any rows, return None
-                    async for row in connection.execute(query, job_id=job_id, database=database, status=status, submitted=submitted):
+                    async for row in connection.execute(query, job_id=job_id, database=database, status=status,
+                                                        submitted=submitted):
                         id = row.id
                     return id
                 elif finished:
                     query = sa.text('''
                         UPDATE job_chunks
-                        SET status = :status, finished = :finished
+                        SET status = :status, finished = :finished, hits = :hits
                         WHERE job_id = :job_id AND database = :database
                         RETURNING *;
                     ''')
 
                     id = None  # if connection didn't return any rows, return None
-                    async for row in connection.execute(query, job_id=job_id, database=database, status=status, finished=finished):
+                    async for row in connection.execute(query, job_id=job_id, database=database, status=status,
+                                                        finished=finished, hits=hits):
                         id = row.id
                     return id
                 else:

@@ -15,7 +15,8 @@ import shlex
 import asyncio.subprocess
 
 from . import settings
-from sequence_search.consumer.rnacentral_databases import query_file_path, result_file_path, database_file_path
+from sequence_search.consumer.rnacentral_databases import query_file_path, result_file_path, database_file_path, \
+    get_e_value
 
 
 class NhmmerError(Exception):
@@ -26,27 +27,24 @@ class NhmmerError(Exception):
 async def nhmmer_search(sequence, job_id, database):
     sequence = sequence.replace('T', 'U').upper()
 
-    # Set e-values dynamically depending on the query sequence length.
-    # The values were computed by searching the full dataset using random short
-    # sequences as queries with an extremely high e-value and recording the
-    # e-values of the best hit.
-    if len(sequence) <= 30:
-        e_value = pow(10, 5)
-    elif 30 < len(sequence) <= 40:
-        e_value = pow(10, 2)
-    elif 40 < len(sequence) <= 50:
-        e_value = pow(10, -1)
-    else:
-        e_value = pow(10, -2)
+    try:
+        if database.startswith('all-except-rrna') or database.startswith('whitelist-rrna'):
+            db_name = None
+        else:
+            db_name = database.split('-')[0]
+    except ValueError:
+        db_name = None
+
+    e_value = get_e_value(db_name) if db_name else 2767.610997
 
     params = {
         'query': query_file_path(job_id, database),
         'output': result_file_path(job_id, database),
         'nhmmer': settings.NHMMER_EXECUTABLE,
         'db': database_file_path(database),
+        'e_value': e_value,
         'cpu': 4,
-        'incE': e_value,
-        'E': e_value
+        'f3': '--F3 0.02' if len(sequence) < 50 else ''
     }
 
     # write out query in fasta format
@@ -59,11 +57,12 @@ async def nhmmer_search(sequence, job_id, database):
                '--qfasta '         # query format
                '--tformat fasta '  # target format
                '-o {output} '      # direct main output to a file
-               '--incE {incE} '    # use an E-value of <= X as the inclusion threshold
-               '-E {E} '           # report target sequences with an E-value of <= X
+               '-T 0 '             # report sequences >= this score threshold in output
+               '{f3} '             # stage 3 (Fwd) threshold: promote hits w/ P <= F3
                '--rna '            # explicitly specify database alphabet
                '--watson '         # search only top strand
                '--cpu {cpu} '      # number of CPUs to use
+               '-Z {e_value} '     # set database size (Megabases) for E-value calculations
                '{query} '          # query file
                '{db}').format(**params)
 

@@ -158,6 +158,18 @@ async def delegate_job_chunk_to_consumer(engine, consumer_ip, consumer_port, job
         logging.error(str(e))
 
 
+async def delegate_infernal_job_to_consumer(engine, consumer_ip, consumer_port, job_id, query):
+    try:
+        async with engine.acquire() as connection:
+            response = await ConsumerClient().submit_infernal_job(consumer_ip, consumer_port, job_id, query)
+
+            if response.status >= 400:
+                text = await response.text()
+                raise ConsumerConnectionError(text)
+    except psycopg2.Error as e:
+        logging.error(str(e))
+
+
 def get_ip(app):
     """
     Stolen from:
@@ -220,5 +232,21 @@ async def register_consumer_in_the_database(app):
             )
     except psycopg2.IntegrityError as e:
         pass  # this is usually a duplicate key error - which is acceptable
+    except psycopg2.Error as e:
+        raise DatabaseConnectionError(str(e)) from e
+
+
+async def set_consumer_fields(engine, consumer_ip, status, job_chunk_id):
+    """Write consumer status and job_chunk_id as infernal-job in the database."""
+    try:
+        async with engine.acquire() as connection:
+            query = sa.text('''
+                UPDATE consumer
+                SET status = :status, job_chunk_id = :job_chunk_id
+                WHERE ip=:consumer_ip
+                RETURNING consumer.*;
+            ''')
+            await connection.execute(query, consumer_ip=consumer_ip, status=status, job_chunk_id=job_chunk_id)
+
     except psycopg2.Error as e:
         raise DatabaseConnectionError(str(e)) from e

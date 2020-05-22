@@ -11,7 +11,7 @@ See the License for the specific language governing permissions and
 limitations under the License.
 """
 
-from .views import index, result, submit_job
+from .views import index, result, submit_job, submit_infernal_job
 from . import settings
 
 
@@ -19,6 +19,7 @@ def setup_routes(app):
     app.router.add_get('/', index, name='index')
     app.router.add_get('/results/{result_id}', result, name='result')
     app.router.add_post('/submit-job', submit_job, name='submit-job')
+    app.router.add_post('/submit-infernal-job', submit_infernal_job, name='submit-infernal-job')
     setup_static_routes(app)
 
 

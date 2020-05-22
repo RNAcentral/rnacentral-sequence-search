@@ -14,30 +14,39 @@
   - name: Install yum dependencies
     yum:
       name:
+      - bzip2-devel
       - curl
       - gcc
+      - gcc-c++
       - git
       - libaio
+      - libffi-devel
+      - make
       - openssl
       - openssl-devel
+      - postgresql.x86_64
       - tar
       - unzip
       - wget
       - zlib-devel
-      - gcc-c++
-      - make
-      - python36
-      - python36-devel
-      - python36-setuptools
-      - postgresql.x86_64
     tags: [ install-deps ]
 
-  - name: Install pip3
-    shell: easy_install-3.6 pip
+  - name: Install build tools
+    yum:
+      name: "@Development tools"
+      state: present
+    tags: [ install-deps ]
+
+  - name: Install Python 3.7
+    shell: |
+      curl -OL https://www.python.org/ftp/python/3.7.7/Python-3.7.7.tgz
+      tar -xzf Python-3.7.7.tgz
+      cd Python-3.7.7
+      ./configure --enable-optimizations
+      make altinstall
     args:
-      creates: /usr/local/bin/pip
+      creates: /usr/local/bin/python3.7
     tags: [ install-deps ]
-
 
 
   - name: Install nhmmer
@@ -52,6 +61,53 @@
     args:
       creates: /usr/local/bin/nhmmer
 
+  - name: Install Infernal
+    shell: |
+      curl -OL http://eddylab.org/infernal/infernal-1.1.3.tar.gz
+      tar xf infernal-1.1.3.tar.gz
+      cd infernal-1.1.3
+      ./configure --prefix /usr/local
+      make
+      make install
+
+  - name: Delete rfam directory
+    file:
+      path: /srv/sequence_search/consumer/rfam
+      state: absent
+    ignore_errors: yes
+    tags: [ rfam ]
+
+  - name: Create rfam directory
+    file:
+      path: /srv/sequence_search/consumer/rfam
+      state: directory
+      owner: centos
+      group: centos
+      mode: 0755
+    tags: [ rfam ]
+
+  - name: Install Rfam
+    shell:
+      chdir: /srv/sequence_search/consumer/rfam
+      cmd: curl -OL ftp://ftp.ebi.ac.uk/pub/databases/Rfam/CURRENT/Rfam.cm.gz && gunzip Rfam.cm.gz
+    tags: [ rfam ]
+
+  - name: Create the cm binaries
+    shell: /usr/local/bin/cmpress /srv/sequence_search/consumer/rfam/Rfam.cm
+    tags: [ rfam ]
+
+  - name: Delete cmsearch_tblout_deoverlap directory
+    file:
+      path: /srv/sequence_search/consumer/cmsearch_tblout_deoverlap
+      state: absent
+    ignore_errors: yes
+    tags: [ deoverlap ]
+
+  - name: Install cmsearch_tblout_deoverlap
+    shell:
+      chdir: /srv/sequence_search/consumer
+      cmd: git clone https://github.com/nawrockie/cmsearch_tblout_deoverlap.git
+    tags: [ deoverlap ]
 
 
   - name: Rsync aiohttp code
@@ -62,9 +118,12 @@
         - "--exclude=/sequence_search/consumer/databases"
         - "--exclude=/sequence_search/consumer/queries/*.fasta"
         - "--exclude=/sequence_search/consumer/results/*.fasta"
+        - "--exclude=/sequence_search/consumer/infernal-queries"
+        - "--exclude=/sequence_search/consumer/infernal-results"
+        - "--exclude=/sequence_search/consumer/cmsearch_tblout_deoverlap"
+        - "--exclude=/sequence_search/consumer/rfam"
         - "--exclude=/sequence_search/producer/static/node_modules"
     tags: [ rsync, quick ]
-
 
 
   - name: Delete logs directory
@@ -84,7 +143,6 @@
     tags: [ logs ]
 
 
-
   - name: Delete queries directory
     file:
       path: /srv/sequence_search/consumer/queries
@@ -99,7 +157,6 @@
       group: centos
       mode: 0755
     tags: [ queries, quick ]
-
 
 
   - name: Delete results directory
@@ -118,16 +175,37 @@
     tags: [ results, quick ]
 
 
-# Ansible chown is slow, cause it checks ownership before assigning it - so just run chown imperatively
-# https://groups.google.com/forum/#!topic/ansible-project/2O5u8GIZ5Rw
+  - name: Delete infernal queries directory
+    file:
+      path: /srv/sequence_search/consumer/infernal-queries
+      state: absent
+    tags: [ infernal-queries, quick ]
 
-# Alternatively:
-#    file:
-#      path: /srv/sequence_search
-#      owner: centos
-#      group: centos
-#      mode: 0755
-#      recurse: yes
+  - name: Create infernal queries directory
+    file:
+      path: /srv/sequence_search/consumer/infernal-queries
+      state: directory
+      owner: centos
+      group: centos
+      mode: 0755
+    tags: [ infernal-queries, quick ]
+
+
+  - name: Delete infernal results directory
+    file:
+      path: /srv/sequence_search/consumer/infernal-results
+      state: absent
+    tags: [ infernal-results, quick ]
+
+  - name: Create infernal results directory
+    file:
+      path: /srv/sequence_search/consumer/infernal-results
+      state: directory
+      owner: centos
+      group: centos
+      mode: 0755
+    tags: [ infernal-results, quick ]
+
 
   - name: Chown aiohttp code
     command: "chown -R centos:centos /srv/sequence_search"
@@ -140,9 +218,10 @@
 
 
   - name: Install pip3 requirements
-    shell: /usr/local/bin/pip install -r requirements.txt
+    shell: /usr/local/bin/pip3.7 install -r requirements.txt
     args:
       chdir: /srv/sequence_search
+    tags: [ pip-requirements ]
 
 
   - name: Create a symbolic link to sequence databases
@@ -189,5 +268,5 @@
     shell:
       chdir: /srv
 #      cmd: /usr/local/bin/gunicorn consumer.main:app --daemon --bind 0.0.0.0:8000 --worker-class aiohttp.worker.GunicornWebWorker --access-logfile /var/log/gunicorn/access_log --error-logfile /var/log/gunicorn/error_log --env ENVIRONMENT=PRODUCTION --log-level=DEBUG
-      cmd: ENVIRONMENT=PRODUCTION nohup python3 -m sequence_search.consumer &> /var/log/gunicorn/access_log &
+      cmd: ENVIRONMENT=PRODUCTION nohup /usr/local/bin/python3.7 -m sequence_search.consumer &> /var/log/gunicorn/access_log &
     tags: [ restart, quick ]
