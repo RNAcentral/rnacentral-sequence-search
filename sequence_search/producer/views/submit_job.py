@@ -139,8 +139,14 @@ async def submit_job(request):
         except KeyError:
             url = None
 
+        # get priority
+        try:
+            priority = data['priority']
+        except KeyError:
+            priority = None
+
         # save metadata about this job to the database
-        job_id = await save_job(request.app['engine'], data['query'], data['description'], url)
+        job_id = await save_job(request.app['engine'], data['query'], data['description'], url, priority)
 
         # save metadata about job_chunks to the database
         # TODO: what if Job was saved and JobChunk was not? Need transactions?
