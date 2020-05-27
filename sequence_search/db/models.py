@@ -133,6 +133,7 @@ InfernalJob = sa.Table('infernal_job', metadata,
                        sa.Column('consumer', sa.ForeignKey('consumer.ip'), nullable=True),
                        sa.Column('submitted', sa.DateTime, nullable=True),
                        sa.Column('finished', sa.DateTime, nullable=True),
+                       sa.Column('priority', sa.String(255)),
                        sa.Column('status', sa.String(255)))  # choices=JOB_CHUNK_STATUS_CHOICES
 
 InfernalResult = sa.Table('infernal_result', metadata,
@@ -248,6 +249,7 @@ async def migrate(ENVIRONMENT):
                   consumer VARCHAR(20) references consumer(ip),
                   submitted TIMESTAMP,
                   finished TIMESTAMP,
+                  priority VARCHAR(255),
                   status VARCHAR(255))
             ''')
 

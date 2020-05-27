@@ -157,7 +157,7 @@ async def submit_job(request):
 
         # save metadata about infernal_job to the database
         # TODO: what if Job was saved and InfernalJob was not? Need transactions?
-        await save_infernal_job(request.app['engine'], job_id)
+        await save_infernal_job(request.app['engine'], job_id, priority)
 
         # if there are unfinished jobs, change the status of each new job_chunk to pending;
         # otherwise try starting the job
