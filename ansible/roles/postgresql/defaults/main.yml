@@ -87,7 +87,11 @@ postgresql_hba_file: "{{ postgresql_conf_directory }}/pg_hba.conf"
 postgresql_ident_file: "{{ postgresql_conf_directory }}/pg_ident.conf"
 # Use data in another directory
 postgresql_varlib_directory_name: "postgresql"
-postgresql_data_directory: "/var/lib/{{ postgresql_varlib_directory_name }}/{{ postgresql_version }}/{{ postgresql_cluster_name }}"
+
+# data_directory changed by cribas
+#postgresql_data_directory: "/var/lib/{{ postgresql_varlib_directory_name }}/{{ postgresql_version }}/{{ postgresql_cluster_name }}"
+postgresql_data_directory: "/db/{{ postgresql_varlib_directory_name }}/{{ postgresql_version }}/{{ postgresql_cluster_name }}"
+
 postgresql_wal_directory: ""
 postgresql_pid_directory: "/var/run/postgresql"
 # If external_pid_file is not explicitly set, on extra PID file is written
