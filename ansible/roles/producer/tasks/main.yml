@@ -116,6 +116,12 @@
       dest: /srv/sequence_search/consumer/databases
       state: link
 
+  - name: Delete RNAcentral sequence search embed
+    file:
+      path: /srv/sequence_search/producer/static/rnacentral-sequence-search-embed
+      state: absent
+    ignore_errors: yes
+    tags: [ frontend ]
 
   - name: Install RNAcentral sequence search embed
     shell:
