@@ -1,0 +1,27 @@
+- hosts: postgres
+  remote_user: centos
+  become: true
+  become_method: sudo
+  vars:
+    ansible_ssh_private_key_file: "../terraform/sequence_search_rsa"
+  tasks:
+  - name: Create the directory
+    file:
+      path: /db
+      state: directory
+      owner: root
+      group: root
+      mode: 0755
+      recurse: yes
+
+  - name: Format the volume
+    filesystem:
+      fstype: xfs
+      dev: /dev/vdb
+
+  - name: Mount the volume
+    mount:
+      path: /db
+      src: /dev/vdb
+      fstype: xfs
+      state: mounted
