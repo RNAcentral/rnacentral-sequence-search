@@ -143,7 +143,7 @@ async def submit_job(request):
         try:
             priority = data['priority']
         except KeyError:
-            priority = None
+            priority = 'low'
 
         # save metadata about this job to the database
         job_id = await save_job(request.app['engine'], data['query'], data['description'], url, priority)
