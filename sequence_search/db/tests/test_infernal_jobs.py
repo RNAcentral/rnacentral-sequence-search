@@ -59,7 +59,7 @@ class InfernalTestCase(DBTestCase):
 
     @unittest_run_loop
     async def test_save_infernal_job(self):
-        await save_infernal_job(self.app['engine'], self.job_id)
+        await save_infernal_job(self.app['engine'], self.job_id, priority='low')
 
         async with self.app['engine'].acquire() as connection:
             query = sa.text('''
@@ -74,7 +74,7 @@ class InfernalTestCase(DBTestCase):
 
     @unittest_run_loop
     async def test_set_infernal_job_status(self):
-        await save_infernal_job(self.app['engine'], self.job_id)
+        await save_infernal_job(self.app['engine'], self.job_id, priority='low')
         infernal_job = await set_infernal_job_status(self.app['engine'], self.job_id, JOB_CHUNK_STATUS_CHOICES.success)
 
         async with self.app['engine'].acquire() as connection:
@@ -90,7 +90,7 @@ class InfernalTestCase(DBTestCase):
 
     @unittest_run_loop
     async def test_set_consumer_to_infernal_job(self):
-        await save_infernal_job(self.app['engine'], self.job_id)
+        await save_infernal_job(self.app['engine'], self.job_id, priority='low')
         consumer = get_ip(self.app)
         await set_consumer_to_infernal_job(self.app['engine'], self.job_id, consumer)
 
