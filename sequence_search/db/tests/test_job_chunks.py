@@ -121,6 +121,7 @@ class FindHighestPriorityJobChunkTestCase(DBTestCase):
                     id=self.job_id,
                     query='AACAGCATGAGTGCGCTGGATGCTG',
                     submitted=datetime.datetime.now(),
+                    priority='low',
                     status=JOB_STATUS_CHOICES.started
                 )
             )
@@ -130,6 +131,7 @@ class FindHighestPriorityJobChunkTestCase(DBTestCase):
                     id=self.job_id2,
                     query='CGTGCTGAATAGCTGGAGAGGCTCAT',
                     submitted=datetime.datetime.now(),
+                    priority='low',
                     status=JOB_STATUS_CHOICES.started
                 )
             )
@@ -157,10 +159,41 @@ class FindHighestPriorityJobChunkTestCase(DBTestCase):
         chunks = await find_highest_priority_jobs(self.app['engine'])
         assert len(chunks) == 2
 
-        job_id, submitted, database = chunks[0]
+        job_id, priority, submitted, database = chunks[0]
 
         assert job_id == self.job_id
         assert database == 'mirbase'
+
+    @unittest_run_loop
+    async def test_job_priority(self):
+        job_id3 = str(uuid.uuid4())
+        async with self.app['engine'].acquire() as connection:
+            await connection.execute(
+                Job.insert().values(
+                    id=job_id3,
+                    query='GGACGGAGGCGCGCCCGAGAUGAGUAG',
+                    submitted=datetime.datetime.now(),
+                    priority='high',
+                    status=JOB_STATUS_CHOICES.started
+                )
+            )
+
+            await connection.scalar(
+                JobChunk.insert().values(
+                    job_id=job_id3,
+                    database='rfam',
+                    submitted=datetime.datetime.now(),
+                    status=JOB_CHUNK_STATUS_CHOICES.pending
+                )
+            )
+
+        chunks = await find_highest_priority_jobs(self.app['engine'])
+        assert len(chunks) == 3
+
+        job_id, priority, submitted, database = chunks[0]
+
+        assert job_id == job_id3
+        assert database == 'rfam'
 
 
 class GetConsumerIpFromJobChunkTestCase(DBTestCase):
