@@ -22,6 +22,7 @@ RnacentralDatabases = namedtuple("rnacentral_databases", ["id", "label", "e_valu
 
 # TODO: get the bds and e-value from elsewhere and not leave them hard coded
 rnacentral_databases = [
+    RnacentralDatabases("5srrnadb", "5SrRNAdb", 1.367736),
     RnacentralDatabases("dictybase", "dictyBase", 0.014499),
     RnacentralDatabases("ena", "ENA", 6781.500248),
     RnacentralDatabases("ensembl", "Ensembl", 982.98274),
@@ -31,6 +32,7 @@ rnacentral_databases = [
     RnacentralDatabases("ensembl_protists", "Ensembl Protists", 1.845517),
     RnacentralDatabases("flybase", "FlyBase", 9.201378),
     RnacentralDatabases("gencode", "GENCODE", 44.917561),
+    RnacentralDatabases("genecards", "GeneCards", 302.56356),
     RnacentralDatabases("greengenes", "GreenGenes", 1423.553627),
     RnacentralDatabases("gtrnadb", "GtRNAdb", 5.853569),
     RnacentralDatabases("hgnc", "HGNC", 7.082387),
@@ -38,8 +40,10 @@ rnacentral_databases = [
     RnacentralDatabases("lncbook", "LncBook", 405.319356),
     RnacentralDatabases("lncipedia", "LNCipedia", 194.814831),
     RnacentralDatabases("lncrnadb", "lncRNAdb", 0.191325),
+    RnacentralDatabases("malacards", "MalaCards", 52.329187),
     RnacentralDatabases("mgi", "MGI", 14.605057),
     RnacentralDatabases("mirbase", "miRBase", 4.657073),
+    RnacentralDatabases("mirgenedb", "MirGeneDB", 1.669902),
     RnacentralDatabases("modomics", "Modomics", 0.050331),
     RnacentralDatabases("noncode", "NONCODE", 265.434743),
     RnacentralDatabases("pdbe", "PDBe", 1.031273),
@@ -50,6 +54,7 @@ rnacentral_databases = [
     RnacentralDatabases("rgd", "RGD", 26.121729),
     RnacentralDatabases("sgd", "SGD", 0.0594),
     RnacentralDatabases("silva", "SILVA", 3560.052088),
+    RnacentralDatabases("snodb", "snoDB", 0.23168),
     RnacentralDatabases("snopy", "snOPY", 0.295894),
     RnacentralDatabases("srpdb", "SRPDB", 0.133472),
     RnacentralDatabases("tair", "TAIR", 1.865084),
