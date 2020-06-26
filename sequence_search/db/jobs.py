@@ -112,7 +112,7 @@ async def get_job(engine, job_id):
                                       "get_job() for job with job_id = %s" % job_id) from e
 
 
-async def save_job(engine, query, description, url):
+async def save_job(engine, query, description, url, priority):
     try:
         async with engine.acquire() as connection:
             try:
@@ -126,7 +126,8 @@ async def save_job(engine, query, description, url):
                         ordering='e_value',
                         submitted=datetime.datetime.now(),
                         status=JOB_STATUS_CHOICES.started,
-                        url=url
+                        url=url,
+                        priority=priority
                     )
                 )
 
@@ -480,9 +481,9 @@ async def find_highest_priority_jobs(engine):
     Find unfinished jobs to give consumers for processing.
 
     :param engine: params to connect to the db
-    :return: list of jobs to submit
+    :return: sorted list of job chunks and infernal jobs
     """
-    # among the running jobs, find the one, submitted first
+    # among the running jobs, find the one with high priority, submitted first
     try:
         async with engine.acquire() as connection:
             try:
@@ -492,6 +493,7 @@ async def find_highest_priority_jobs(engine):
                         Job.c.id.label('id'),
                         Job.c.status.label('job_status'),
                         Job.c.submitted.label('submitted'),
+                        Job.c.priority.label('priority'),
                         JobChunk.c.job_id.label('job_id'),
                         JobChunk.c.id.label('job_chunk_id'),
                         JobChunk.c.database.label('database'),
@@ -503,21 +505,23 @@ async def find_highest_priority_jobs(engine):
                 query = (select_statement
                          .select_from(sa.join(Job, JobChunk, Job.c.id == JobChunk.c.job_id))  # noqa
                          .where(sa.and_(Job.c.status == JOB_STATUS_CHOICES.started, JobChunk.c.status == JOB_CHUNK_STATUS_CHOICES.pending))
-                         .order_by(Job.c.submitted))  # noqa
+                         .order_by(Job.c.priority, Job.c.submitted))  # noqa
 
+                # get job chunks
                 async for row in connection.execute(query):
-                    output.append((row.id, row.submitted, row.database))
+                    output.append((row.id, row.priority, row.submitted, row.database))
 
-                query = (sa.select([InfernalJob.c.job_id, InfernalJob.c.submitted])
+                query = (sa.select([InfernalJob.c.job_id, InfernalJob.c.submitted, InfernalJob.c.priority])
                          .select_from(InfernalJob)
                          .where(InfernalJob.c.status == JOB_CHUNK_STATUS_CHOICES.pending)
-                         .order_by(InfernalJob.c.submitted)  # noqa
+                         .order_by(InfernalJob.c.priority, InfernalJob.c.submitted)  # noqa
                          )
 
+                # get infernal jobs
                 async for row in connection.execute(query):
-                    output.append((row.job_id, row.submitted))
+                    output.append((row.job_id, row.priority, row.submitted))
 
-                return sorted(output, key=lambda item: item[1])  # sort by date
+                return sorted(output, key=itemgetter(1, 2))  # sort by priority first, then by date
 
             except Exception as e:
                 raise SQLError("Failed to find highest priority jobs") from e

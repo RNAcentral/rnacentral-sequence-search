@@ -19,11 +19,12 @@ from . import DatabaseConnectionError, SQLError
 from .models import InfernalJob, JOB_CHUNK_STATUS_CHOICES
 
 
-async def save_infernal_job(engine, job_id):
+async def save_infernal_job(engine, job_id, priority):
     """
     Create infernal job
     :param engine: params to connect to the db
     :param job_id: id of the job
+    :param priority: priority of the job, high or low
     """
     try:
         async with engine.acquire() as connection:
@@ -32,6 +33,7 @@ async def save_infernal_job(engine, job_id):
                     InfernalJob.insert().values(
                         job_id=job_id,
                         submitted=datetime.datetime.now(),
+                        priority=priority,
                         status=JOB_CHUNK_STATUS_CHOICES.pending)
                 )
             except Exception as e:

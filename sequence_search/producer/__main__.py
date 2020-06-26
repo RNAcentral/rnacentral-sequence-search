@@ -57,16 +57,16 @@ async def check_chunks_and_consumers(app):
     available_consumers = await find_available_consumers(app['engine'])
 
     for consumer in available_consumers:
-        if len(unfinished_job) > 0:
+        if unfinished_job:
             job = unfinished_job.pop(0)
             query = await get_job_query(app['engine'], job[0])
-            if len(job) == 3:
+            if len(job) == 4:
                 await delegate_job_chunk_to_consumer(
                     engine=app['engine'],
                     consumer_ip=consumer.ip,
                     consumer_port=consumer.port,
                     job_id=job[0],
-                    database=job[2],
+                    database=job[3],
                     query=query
                 )
             else:

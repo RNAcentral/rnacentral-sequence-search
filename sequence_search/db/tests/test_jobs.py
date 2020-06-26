@@ -40,6 +40,7 @@ class GetJobTestCase(DBTestCase):
                     query='AACAGCATGAGTGCGCTGGATGCTG',
                     description='CATE_ECOLI',
                     submitted=datetime.datetime.now(),
+                    priority='low',
                     status=JOB_STATUS_CHOICES.started
                 )
             )
@@ -66,7 +67,13 @@ class SaveJobTestCase(DBTestCase):
 
     @unittest_run_loop
     async def test_save_job(self):
-        job_id = await save_job(self.app['engine'], query="AACAGCATGAGTGCGCTGGATGCTG", description="", url='localhost')
+        job_id = await save_job(
+            self.app['engine'],
+            query="AACAGCATGAGTGCGCTGGATGCTG",
+            description="",
+            url='localhost',
+            priority='low'
+        )
         assert job_id is not None
 
 

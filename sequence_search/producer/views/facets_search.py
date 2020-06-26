@@ -335,7 +335,11 @@ async def facets_search(request):
             for entry in text_search_data['entries']:
                 for result in results:
                     if result['rnacentral_id'] == entry['id']:
-                        result['description'] = entry['fields']['description'][0]
+                        try:
+                            result['description'] = entry['fields']['description'][0]
+                        except (KeyError, IndexError) as e:
+                            result['description'] = result['rnacentral_id']
+                            logging.debug("Error - description not found for rnacentral_id {}".format(result['rnacentral_id']))
                         entry.update(result)
                         break
 

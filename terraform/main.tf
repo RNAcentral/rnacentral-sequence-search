@@ -1,7 +1,9 @@
 locals {
-  count = "${terraform.workspace == "default" ? var.default_instances : terraform.workspace == "test" ? var.test_instances : var.covid_instances }"
-  floating_ip = "${terraform.workspace == "default" ? var.default_floating_ip : terraform.workspace == "test" ? var.test_floating_ip : var.covid_floating_ip }"
-  tfstate_file = "${terraform.workspace == "default" ? var.default_tfstate : terraform.workspace == "test" ? var.test_tfstate : var.covid_tfstate }"
+  count = "${terraform.workspace == "default" ? var.default_instances : var.test_instances}"
+  floating_ip = "${terraform.workspace == "default" ? var.default_floating_ip : var.test_floating_ip }"
+  nfs_size = "${terraform.workspace == "default" ? var.one_hundred : var.fifty }"
+  db_size = "${terraform.workspace == "default" ? var.two_hundred : var.fifty }"
+  tfstate_file = "${terraform.workspace == "default" ? var.default_tfstate : var.test_tfstate }"
 }
 
 output "floating_ip" {
@@ -228,12 +230,22 @@ resource "openstack_compute_instance_v2" "consumers" {
 
 resource "openstack_blockstorage_volume_v2" "nfs_volume" {
   name = "${terraform.workspace}-nfs-volume"
-  size = 100
+  size = "${local.nfs_size}"
 }
 
 resource "openstack_compute_volume_attach_v2" "attached" {
   instance_id = "${openstack_compute_instance_v2.nfs_server.id}"
   volume_id = "${openstack_blockstorage_volume_v2.nfs_volume.id}"
+}
+
+resource "openstack_blockstorage_volume_v2" "db_volume" {
+  name = "${terraform.workspace}-db-volume"
+  size = "${local.db_size}"
+}
+
+resource "openstack_compute_volume_attach_v2" "attach_db" {
+  instance_id = "${openstack_compute_instance_v2.postgres.id}"
+  volume_id = "${openstack_blockstorage_volume_v2.db_volume.id}"
 }
 
 resource "openstack_compute_floatingip_associate_v2" "sequence_search" {

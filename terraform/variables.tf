@@ -46,6 +46,18 @@ variable "covid_instances" {
   default = 2
 }
 
+variable "fifty" {
+  default = 50
+}
+
+variable "one_hundred" {
+  default = 100
+}
+
+variable "two_hundred" {
+  default = 200
+}
+
 variable "default_tfstate" {
   default = "terraform.tfstate"
 }

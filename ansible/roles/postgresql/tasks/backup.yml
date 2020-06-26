@@ -1,7 +1,7 @@
 ---
   # Added by cribas
   - name: Copy the script to do backups
-    copy: src=../postgres/backup.sh dest=/etc/cron.hourly/backup.sh owner=postgres group=postgres mode=0755
+    copy: src=../postgres/backup.sh dest=/etc/cron.daily/backup.sh owner=postgres group=postgres mode=0755
 
   - name: Create backup directory
     file:

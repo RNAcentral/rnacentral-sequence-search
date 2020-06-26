@@ -90,6 +90,7 @@ Job = sa.Table('jobs', metadata,
                sa.Column('result_in_db', sa.Boolean),
                sa.Column('hits', sa.Integer, nullable=True),
                sa.Column('status', sa.String(255)),  # choices=JOB_STATUS_CHOICES
+               sa.Column('priority', sa.String(255)),
                sa.Column('url', sa.String(255)))
 
 """Part of the search job, run against a specific database and assigned to a specific consumer"""
@@ -132,6 +133,7 @@ InfernalJob = sa.Table('infernal_job', metadata,
                        sa.Column('consumer', sa.ForeignKey('consumer.ip'), nullable=True),
                        sa.Column('submitted', sa.DateTime, nullable=True),
                        sa.Column('finished', sa.DateTime, nullable=True),
+                       sa.Column('priority', sa.String(255)),
                        sa.Column('status', sa.String(255)))  # choices=JOB_CHUNK_STATUS_CHOICES
 
 InfernalResult = sa.Table('infernal_result', metadata,
@@ -200,6 +202,7 @@ async def migrate(ENVIRONMENT):
                   result_in_db BOOLEAN,
                   hits INTEGER,
                   status VARCHAR(255),
+                  priority VARCHAR(255),
                   url VARCHAR(255))
             ''')
 
@@ -246,6 +249,7 @@ async def migrate(ENVIRONMENT):
                   consumer VARCHAR(20) references consumer(ip),
                   submitted TIMESTAMP,
                   finished TIMESTAMP,
+                  priority VARCHAR(255),
                   status VARCHAR(255))
             ''')
 
