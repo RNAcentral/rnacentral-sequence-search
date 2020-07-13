@@ -62,7 +62,8 @@
       - regexp: '^#?CACHESIZE="64"'
         line: 'CACHESIZE="1024"'
       - regexp: '^#?OPTIONS=""'
-        line: 'OPTIONS="-l 192.168.0.8 -U 0 -vv >> /var/log/memcached 2>&1"'
+        line: 'OPTIONS="-I 5m -l 192.168.0.8 -U 0 -vv >> /var/log/memcached 2>&1"'
+    tags: [ memcached ]
 
   - name: Ensure Memcached is started and set to run on startup
     service: name=memcached state=started enabled=yes
