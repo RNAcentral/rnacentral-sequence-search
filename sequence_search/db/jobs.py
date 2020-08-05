@@ -257,7 +257,10 @@ async def get_job_chunks_status(engine, job_id):
                         'finished': row.finished
                     })
 
-                return output if output else JobNotFound(job_id)
+                if output:
+                    return output
+                else:
+                    raise JobNotFound(job_id)
 
             except JobNotFound as e:
                 raise e
@@ -615,6 +618,7 @@ async def get_infernal_job_status(engine, job_id):
 
                 query = (select_statement.select_from(InfernalJob).where(InfernalJob.c.job_id == job_id))  # noqa
 
+                result = False
                 async for row in connection.execute(query):
                     result = ({
                         'job_id': row.job_id,
@@ -623,7 +627,10 @@ async def get_infernal_job_status(engine, job_id):
                         'status': row.status,
                     })
 
-                return result if result else JobNotFound(job_id)
+                if result:
+                    return result
+                else:
+                    raise JobNotFound(job_id)
 
             except JobNotFound as e:
                 raise e
