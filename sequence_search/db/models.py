@@ -90,6 +90,8 @@ Job = sa.Table('jobs', metadata,
                sa.Column('result_in_db', sa.Boolean),
                sa.Column('hits', sa.Integer, nullable=True),
                sa.Column('status', sa.String(255)),  # choices=JOB_STATUS_CHOICES
+               sa.Column('r2dt_id', sa.String(255)),
+               sa.Column('r2dt_date', sa.DateTime),
                sa.Column('priority', sa.String(255)),
                sa.Column('url', sa.String(255)))
 
@@ -202,6 +204,8 @@ async def migrate(ENVIRONMENT):
                   result_in_db BOOLEAN,
                   hits INTEGER,
                   status VARCHAR(255),
+                  r2dt_id VARCHAR(255),
+                  r2dt_date TIMESTAMP,
                   priority VARCHAR(255),
                   url VARCHAR(255))
             ''')
