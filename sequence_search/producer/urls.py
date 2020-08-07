@@ -15,7 +15,7 @@ import os
 from aiohttp_swagger import setup_swagger
 from .views import index, submit_job, job_status, job_result, rnacentral_databases, job_results_urs_list, \
     facets, facets_search, list_rnacentral_ids, post_rnacentral_ids, consumers_statuses, jobs_statuses, show_searches, \
-    infernal_job_result, infernal_status
+    infernal_job_result, infernal_status, r2dt
 from . import settings
 
 
@@ -35,6 +35,7 @@ def setup_routes(app):
     app.router.add_get('/api/show-searches', show_searches, name='show-searches')
     app.router.add_get('/api/infernal-status/{job_id:[A-Za-z0-9_-]+}', infernal_status, name='infernal-status')
     app.router.add_get('/api/infernal-result/{job_id:[A-Za-z0-9_-]+}', infernal_job_result, name='infernal-job-result')
+    app.router.add_patch('/api/r2dt/{job_id:[A-Za-z0-9_-]+}', r2dt, name='r2dt')
     setup_static_routes(app)
 
     # setup swagger documentation
