@@ -103,6 +103,8 @@ async def job_status(request):
         "query": chunks[0]['query'],
         "description": chunks[0]['description'],
         "status": chunks[0]['job_status'],
+        "r2dt_id": chunks[0]['r2dt_id'],
+        "r2dt_date": (now - chunks[0]['r2dt_date']).seconds if chunks[0]['r2dt_date'] else None,
         "elapsedTime": elapsed_time(chunks[0]['job_submitted'], chunks[0]['job_finished'], now),
         "now": str(datetime.datetime.now()),
         "chunks": [
