@@ -228,6 +228,8 @@ async def get_job_chunks_status(engine, job_id):
                         Job.c.status.label('job_status'),
                         Job.c.submitted.label('job_submitted'),
                         Job.c.finished.label('job_finished'),
+                        Job.c.r2dt_id.label('r2dt_id'),
+                        Job.c.r2dt_date.label('r2dt_date'),
                         JobChunk.c.job_id.label('job_id'),
                         JobChunk.c.database.label('database'),
                         JobChunk.c.status.label('status'),
@@ -251,6 +253,8 @@ async def get_job_chunks_status(engine, job_id):
                         'job_status': row.job_status,
                         'job_submitted': row.job_submitted,
                         'job_finished': row.job_finished,
+                        'r2dt_id': row.r2dt_id,
+                        'r2dt_date': row.r2dt_date,
                         'database': row.database,
                         'status': row.status,
                         'submitted': row.submitted,
@@ -638,3 +642,25 @@ async def get_infernal_job_status(engine, job_id):
                 raise SQLError("Failed to get infernal_job status, job_id = %s" % job_id) from e
     except psycopg2.Error as e:
         raise DatabaseConnectionError(str(e)) from e
+
+
+async def save_r2dt_id(engine, job_id, r2dt_id, r2dt_date):
+    """
+    Update the r2dt_id for a given search
+    :param engine: params to connect to the db
+    :param job_id: id of the job
+    :param r2dt_id: id of the R2DT
+    :param r2dt_date: date of the last update of r2dt_id
+    :return: r2dt_id
+    """
+    try:
+        async with engine.acquire() as connection:
+            try:
+                query = sa.text('''UPDATE jobs SET r2dt_id = :r2dt_id, r2dt_date = :r2dt_date WHERE id = :job_id''')
+                await connection.execute(query, r2dt_id=r2dt_id, r2dt_date=r2dt_date, job_id=job_id)
+                return r2dt_id
+            except Exception as e:
+                raise SQLError("Failed to save r2dt_id to the database for the job_id = %s" % job_id) from e
+    except psycopg2.Error as e:
+        raise DatabaseConnectionError("Failed to open connection to the database in save_r2dt_id() "
+                                      "for job with job_id = %s" % job_id) from e

@@ -27,3 +27,4 @@ from .consumers_statuses import consumers_statuses
 from .show_searches import show_searches
 from .infernal_job_result import infernal_job_result
 from .infernal_status import infernal_status
+from .r2dt import r2dt
