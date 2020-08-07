@@ -89,6 +89,8 @@ class SubmitJobTestCase(AioHTTPTestCase):
                 'query': '',
                 'description': None,
                 'status': JOB_STATUS_CHOICES.started,
+                'r2dt_id': None,
+                'r2dt_date': None,
                 'elapsedTime': 0,
                 'now': data['now'],
                 'chunks': [
