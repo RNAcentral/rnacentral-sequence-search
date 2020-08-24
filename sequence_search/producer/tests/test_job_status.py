@@ -15,11 +15,12 @@ import datetime
 import logging
 import uuid
 
+from aiohttp.test_utils import AioHTTPTestCase
 from aiohttp.test_utils import unittest_run_loop
 
-from sequence_search.producer.__main__ import create_app
 from sequence_search.db.models import Job, JobChunk, JOB_STATUS_CHOICES, JOB_CHUNK_STATUS_CHOICES
-from aiohttp.test_utils import AioHTTPTestCase
+from sequence_search.db.settings import get_postgres_credentials
+from sequence_search.producer.__main__ import create_app
 
 
 """
@@ -33,13 +34,12 @@ class SubmitJobTestCase(AioHTTPTestCase):
     async def get_application(self):
         logging.basicConfig(level=logging.ERROR)  # subdue messages like 'DEBUG:asyncio:Using selector: KqueueSelector'
         app = create_app()
+        settings = get_postgres_credentials(ENVIRONMENT='TEST')
+        app.update(name='test', settings=settings)
         return app
 
     async def setUpAsync(self):
         await super().setUpAsync()
-
-        logging.info("settings = %s" % self.app['settings'].__dict__)
-
         self.job_id = str(uuid.uuid4())
 
         async with self.app['engine'].acquire() as connection:

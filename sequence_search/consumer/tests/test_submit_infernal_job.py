@@ -21,8 +21,9 @@ from aiohttp.test_utils import AioHTTPTestCase, unittest_run_loop
 
 from sequence_search.consumer.__main__ import create_app
 from sequence_search.db.consumers import get_ip
-from sequence_search.db.models import Job, InfernalJob
 from sequence_search.db.jobs import JOB_STATUS_CHOICES
+from sequence_search.db.models import Job, InfernalJob
+from sequence_search.db.settings import get_postgres_credentials
 
 
 class SubmitInfernalTestCase(AioHTTPTestCase):
@@ -32,6 +33,8 @@ class SubmitInfernalTestCase(AioHTTPTestCase):
     async def get_application(self):
         logging.basicConfig(level=logging.ERROR)  # subdue messages like 'DEBUG:asyncio:Using selector: KqueueSelector'
         app = create_app()
+        settings = get_postgres_credentials(ENVIRONMENT='TEST')
+        app.update(name='test', settings=settings)
         self.url = app.router["submit-infernal-job"].url_for()
         return app
 

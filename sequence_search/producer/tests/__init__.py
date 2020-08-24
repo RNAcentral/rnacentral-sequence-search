@@ -11,7 +11,8 @@ See the License for the specific language governing permissions and
 limitations under the License.
 """
 
-from .test_submit_job import *
-from .test_job_status import *
-from .test_job_result import *
 from .test_facets_search import *
+from .test_job_result import *
+from .test_job_status import *
+from .test_r2dt import *
+from .test_submit_job import *
