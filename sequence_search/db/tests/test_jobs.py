@@ -16,10 +16,10 @@ import uuid
 
 from aiohttp.test_utils import unittest_run_loop
 
-from sequence_search.db.tests.test_base import DBTestCase
+from sequence_search.db.jobs import get_job, get_job_query, job_exists, JOB_STATUS_CHOICES, save_job, save_r2dt_id, \
+    sequence_exists, set_job_status
 from sequence_search.db.models import Job
-from sequence_search.db.jobs import get_job, save_job, set_job_status, sequence_exists, job_exists, get_job_query,\
-    JOB_STATUS_CHOICES
+from sequence_search.db.tests.test_base import DBTestCase
 
 
 class GetJobTestCase(DBTestCase):
@@ -60,7 +60,7 @@ class SaveJobTestCase(DBTestCase):
     """
     Run this test with the following command:
 
-    ENVIRONMENT=TEST python -m unittest sequence_search.db.test_jobs.SaveJobTestCase
+    ENVIRONMENT=TEST python -m unittest sequence_search.db.tests.test_jobs.SaveJobTestCase
     """
     async def setUpAsync(self):
         await super().setUpAsync()
@@ -81,7 +81,7 @@ class SetJobStatusTestCase(DBTestCase):
     """
     Run this test with the following command:
 
-    ENVIRONMENT=TEST python -m unittest sequence_search.db.test_jobs.SetJobStatusTestCase
+    ENVIRONMENT=TEST python -m unittest sequence_search.db.tests.test_jobs.SetJobStatusTestCase
     """
     job_id = str(uuid.uuid4())
 
@@ -108,7 +108,7 @@ class GetJobQueryTestCase(DBTestCase):
     """
     Run this test with the following command:
 
-    ENVIRONMENT=TEST python -m unittest sequence_search.db.test_jobs.GetJobQueryTestCase
+    ENVIRONMENT=TEST python -m unittest sequence_search.db.tests.test_jobs.GetJobQueryTestCase
     """
     job_id = str(uuid.uuid4())
 
@@ -136,7 +136,7 @@ class JobAndSequenceExistsTestCase(DBTestCase):
     """
     Run this test with the following command:
 
-    ENVIRONMENT=TEST python -m unittest sequence_search.db.test_jobs.JobAndSequenceExistsTestCase
+    ENVIRONMENT=TEST python -m unittest sequence_search.db.tests.test_jobs.JobAndSequenceExistsTestCase
     """
     job_id = str(uuid.uuid4())
 
@@ -164,3 +164,37 @@ class JobAndSequenceExistsTestCase(DBTestCase):
     async def test_sequence_exists(self):
         job = await sequence_exists(self.app['engine'], 'AACAGCATGAGTGCGCTGGATGCTG')
         assert self.job_id in job
+
+
+class SaveR2DTTestCase(DBTestCase):
+    """
+    Run this test with the following command:
+
+    ENVIRONMENT=TEST python -m unittest sequence_search.db.tests.test_jobs.SaveR2DTTestCase
+    """
+    job_id = str(uuid.uuid4())
+
+    async def setUpAsync(self):
+        await super().setUpAsync()
+
+        async with self.app['engine'].acquire() as connection:
+            await connection.execute(
+                Job.insert().values(
+                    id=self.job_id,
+                    query='AACAGCATGAGTGCGCTGGATGCTG',
+                    description='CATE_ECOLI',
+                    submitted=datetime.datetime.now(),
+                    result_in_db=True,
+                    status=JOB_STATUS_CHOICES.success
+                )
+            )
+
+    @unittest_run_loop
+    async def test_save_r2dt_id(self):
+        job = await save_r2dt_id(
+            self.app['engine'],
+            self.job_id,
+            "r2dt-R20200819-142803-0200-7914324-p1m",
+            datetime.datetime.now()
+        )
+        assert job is "r2dt-R20200819-142803-0200-7914324-p1m"
