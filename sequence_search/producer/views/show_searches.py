@@ -51,4 +51,26 @@ async def show_searches(request):
         last_week_result = convert_average_time(last_week_records)
         last_week_result[0].update({'search': 'last-week'})
 
-        return web.json_response(all_searches_result + last_24_hours_result + last_week_result)
+        searches_per_month = await conn.execute(
+            "SELECT date_trunc('month', submitted) AS submitted_month, count(id) FROM jobs "
+            "WHERE (description !='sequence-search-test' OR description IS NULL) "
+            "GROUP BY submitted_month "
+            "ORDER BY submitted_month",
+        )
+        search_results_per_month = await searches_per_month.fetchall()
+        searches_per_month_list = []
+        for row in search_results_per_month:
+            row_as_dict = dict(row)
+            period = str(row_as_dict['submitted_month'].strftime("%Y-%m"))
+            if period == "2020-05":
+                # Remove 525 searches due to a bug in the batch search
+                searches_per_month_list.append({period: row_as_dict['count'] - 525})
+            elif period == "2020-06":
+                # Add 50 searches that were performed in the test environment
+                searches_per_month_list.append({period: row_as_dict['count'] + 50})
+            else:
+                searches_per_month_list.append({period: row_as_dict['count']})
+
+        return web.json_response(
+            all_searches_result + last_24_hours_result + last_week_result + [searches_per_month_list]
+        )
