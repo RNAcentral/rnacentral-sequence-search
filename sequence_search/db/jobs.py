@@ -133,8 +133,8 @@ async def save_job(engine, query, description, url, priority):
 
                 return job_id
             except Exception as e:
-                raise SQLError("Failed to save job for query = %s, "
-                               "description = %s to the database" % (query, description)) from e
+                raise SQLError("Failed to save job for query = %s, description = %s, priority = %s, "
+                               "to the database" % (query, description, priority)) from e
     except psycopg2.Error as e:
         raise DatabaseConnectionError("Failed to open connection to the database in save_job() for job with "
                                       "job_id = %s" % job_id) from e
