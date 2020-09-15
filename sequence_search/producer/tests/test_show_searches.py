@@ -101,9 +101,10 @@ class ShowSearchesTestCase(AioHTTPTestCase):
             assert response.status == 200
             data = await response.json()
 
-            assert data == [
-                {"count": 3, "avg_time": 0, "search": "all"},
-                {"count": 1, "avg_time": 0, "search": "last-24-hours"},
-                {"count": 2, "avg_time": 0, "search": "last-week"},
-                searches_per_month
-            ]
+            assert data == {
+                "all_searches_result": {"count": 3, "avg_time": 0},
+                "last_24_hours_result": {"count": 1, "avg_time": 0},
+                "last_week_result": {"count": 2, "avg_time": 0},
+                "searches_per_month": searches_per_month,
+                "expert_db_results": [{"rnacentral.org": []}, {"rfam": []}, {"mirbase": []}, {"scottgroup": []}]
+            }

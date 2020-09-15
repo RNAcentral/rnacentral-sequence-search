@@ -31,7 +31,6 @@ async def show_searches(request):
         )
         all_searches_records = await all_searches.fetchall()
         all_searches_result = convert_average_time(all_searches_records)
-        all_searches_result[0].update({'search': 'all'})
 
         last_24_hours = await conn.execute(
             "SELECT count(*), avg(finished - submitted) as avg_time FROM jobs "
@@ -40,7 +39,6 @@ async def show_searches(request):
         )
         last_24_hours_records = await last_24_hours.fetchall()
         last_24_hours_result = convert_average_time(last_24_hours_records)
-        last_24_hours_result[0].update({'search': 'last-24-hours'})
 
         last_week = await conn.execute(
             "SELECT count(*), avg(finished - submitted) as avg_time FROM jobs "
@@ -49,7 +47,6 @@ async def show_searches(request):
         )
         last_week_records = await last_week.fetchall()
         last_week_result = convert_average_time(last_week_records)
-        last_week_result[0].update({'search': 'last-week'})
 
         searches_per_month = await conn.execute(
             "SELECT date_trunc('month', submitted) AS submitted_month, count(id) FROM jobs "
@@ -57,20 +54,44 @@ async def show_searches(request):
             "GROUP BY submitted_month "
             "ORDER BY submitted_month",
         )
-        search_results_per_month = await searches_per_month.fetchall()
-        searches_per_month_list = []
-        for row in search_results_per_month:
+        searches_per_month_records = await searches_per_month.fetchall()
+        searches_per_month_result = []
+        for row in searches_per_month_records:
             row_as_dict = dict(row)
             period = str(row_as_dict['submitted_month'].strftime("%Y-%m"))
             if period == "2020-05":
                 # Remove 525 searches due to a bug in the batch search
-                searches_per_month_list.append({period: row_as_dict['count'] - 525})
+                searches_per_month_result.append({period: row_as_dict['count'] - 525})
             elif period == "2020-06":
                 # Add 50 searches that were performed in the test environment
-                searches_per_month_list.append({period: row_as_dict['count'] + 50})
+                searches_per_month_result.append({period: row_as_dict['count'] + 50})
             else:
-                searches_per_month_list.append({period: row_as_dict['count']})
+                searches_per_month_result.append({period: row_as_dict['count']})
 
-        return web.json_response(
-            all_searches_result + last_24_hours_result + last_week_result + [searches_per_month_list]
-        )
+        expert_dbs = ["rnacentral.org", "rfam", "mirbase", "scottgroup"]
+        expert_db_results = []
+        for db in expert_dbs:
+            searches_per_db = await conn.execute(
+                "SELECT date_trunc('month', submitted) AS submitted_month, count(id) FROM jobs "
+                "WHERE (description !='sequence-search-test' OR description IS NULL) AND url LIKE %s "
+                "GROUP BY submitted_month "
+                "ORDER BY submitted_month",
+                "%"+db+"%"
+            )
+            searches_per_db_records = await searches_per_db.fetchall()
+            searches_per_db_list = []
+            for row in searches_per_db_records:
+                row_as_dict = dict(row)
+                period = str(row_as_dict['submitted_month'].strftime("%Y-%m"))
+                searches_per_db_list.append({period: row_as_dict['count']})
+            expert_db_results.append({db: searches_per_db_list})
+
+        response = {
+            "all_searches_result": all_searches_result[0],
+            "last_24_hours_result": last_24_hours_result[0],
+            "last_week_result": last_week_result[0],
+            "searches_per_month": searches_per_month_result,
+            "expert_db_results": expert_db_results
+        }
+
+        return web.json_response(response)
