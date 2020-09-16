@@ -84,7 +84,17 @@ async def show_searches(request):
                 row_as_dict = dict(row)
                 period = str(row_as_dict['submitted_month'].strftime("%Y-%m"))
                 searches_per_db_list.append({period: row_as_dict['count']})
-            expert_db_results.append({db: searches_per_db_list})
+
+            if db == "rnacentral.org":
+                expert_db = "RNAcentral"
+            elif db == "rfam":
+                expert_db = "Rfam"
+            elif db == "mirbase":
+                expert_db = "miRBase"
+            elif db == "scottgroup":
+                expert_db = "snoDB"
+
+            expert_db_results.append({expert_db: searches_per_db_list})
 
         response = {
             "all_searches_result": all_searches_result[0],

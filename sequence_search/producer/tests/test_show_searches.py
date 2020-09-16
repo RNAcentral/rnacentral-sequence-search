@@ -106,5 +106,5 @@ class ShowSearchesTestCase(AioHTTPTestCase):
                 "last_24_hours_result": {"count": 1, "avg_time": 0},
                 "last_week_result": {"count": 2, "avg_time": 0},
                 "searches_per_month": searches_per_month,
-                "expert_db_results": [{"rnacentral.org": []}, {"rfam": []}, {"mirbase": []}, {"scottgroup": []}]
+                "expert_db_results": [{"RNAcentral": []}, {"Rfam": []}, {"miRBase": []}, {"snoDB": []}]
             }
