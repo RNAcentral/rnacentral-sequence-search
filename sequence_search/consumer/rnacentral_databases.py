@@ -23,6 +23,7 @@ RnacentralDatabases = namedtuple("rnacentral_databases", ["id", "label", "e_valu
 # TODO: get the bds and e-value from elsewhere and not leave them hard coded
 rnacentral_databases = [
     RnacentralDatabases("5srrnadb", "5SrRNAdb", 1.367736),
+    RnacentralDatabases("crw", "CRW", 1.195812),
     RnacentralDatabases("dictybase", "dictyBase", 0.014499),
     RnacentralDatabases("ena", "ENA", 12907.977719),
     RnacentralDatabases("ensembl", "Ensembl", 1205.521756),
@@ -56,11 +57,13 @@ rnacentral_databases = [
     RnacentralDatabases("silva", "SILVA", 7354.869166),
     RnacentralDatabases("snodb", "snoDB", 0.23168),
     RnacentralDatabases("snopy", "snOPY", 0.295894),
+    RnacentralDatabases("snorna_database", "snoRNA Database", 0.036421),
     RnacentralDatabases("srpdb", "SRPDB", 0.133472),
     RnacentralDatabases("tair", "TAIR", 1.865084),
     RnacentralDatabases("tarbase", "TarBase", 0.032912),
     RnacentralDatabases("tmrna_web", "tmRNA Website", 4.017364),
     RnacentralDatabases("wormbase", "WormBase", 4.583006),
+    RnacentralDatabases("zfin", "ZFIN", 0.954655),
     RnacentralDatabases("zwd", "ZWD", 4.329375)
 ]
 
