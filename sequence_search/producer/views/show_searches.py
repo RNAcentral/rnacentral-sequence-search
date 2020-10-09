@@ -68,7 +68,7 @@ async def show_searches(request):
             else:
                 searches_per_month_result.append({period: row_as_dict['count']})
 
-        expert_dbs = ["rnacentral.org", "rfam", "mirbase", "scottgroup"]
+        expert_dbs = ["rnacentral.org", "rfam", "mirbase", "scottgroup", ""]
         expert_db_results = []
         for db in expert_dbs:
             searches_per_db = await conn.execute(
@@ -76,7 +76,7 @@ async def show_searches(request):
                 "WHERE (description !='sequence-search-test' OR description IS NULL) AND url LIKE %s "
                 "GROUP BY submitted_month "
                 "ORDER BY submitted_month",
-                "%"+db+"%"
+                "%"+db+"%" if db != "" else ""
             )
             searches_per_db_records = await searches_per_db.fetchall()
             searches_per_db_list = []
@@ -93,6 +93,8 @@ async def show_searches(request):
                 expert_db = "miRBase"
             elif db == "scottgroup":
                 expert_db = "snoDB"
+            elif db == "":
+                expert_db = "Others"
 
             expert_db_results.append({expert_db: searches_per_db_list})
 
