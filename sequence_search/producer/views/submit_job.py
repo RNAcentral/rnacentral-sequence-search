@@ -137,12 +137,17 @@ async def submit_job(request):
         try:
             url = data['url']
         except KeyError:
-            url = None
+            url = ''
 
         # get priority
         try:
             priority = data['priority']
         except KeyError:
+            priority = 'low'
+
+        expert_dbs = ["rnacentral.org", "rfam.xfam.org", "rfam.org", "mirbase.org", "scottgroup.med.usherbrooke.ca"]
+        search_from_expert_db = [item for item in expert_dbs if item in url]
+        if not search_from_expert_db:
             priority = 'low'
 
         # save metadata about this job to the database
