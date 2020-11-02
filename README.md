@@ -208,7 +208,7 @@ To configure Jenkins deployment:
 14. Edit `postgres/local_init.sql` file and replace role `burkov` there with your username on local machine
 15. Edit `sequence_search/db/settings.py` and replace role `burkov` with your username on local machine
 16. `docker build -t local-postgres -f postgres/local.Dockerfile postgres` - this will create an image with postgres databases.
-17. `docker run -d -p 5432:5432 -t local-postgres` - this will create and start an instance of postgres on your local machine's 5432 port.
+17. `docker run -d -p 5432:5432 -e POSTGRES_PASSWORD=postgres -t local-postgres` - this will create and start an instance of postgres on your local machine's 5432 port.
 18. `python3 -m sequence_search.db` - creates necessary database tables for producer and consumer to run
 19. `python3 -m sequence_search.producer` - starts producer server on port 8002
 20. `python3 -m sequence_search.consumer` - starts consumer server on port 8000
