@@ -198,20 +198,39 @@ To configure Jenkins deployment:
     ./configure --prefix /usr/local && \
     make && \
     make install && \
-    cd easel; make install`
-8. `rsync <database/fasta/files/location/on/local/machine> databases/` - copy `.fasta` files with databases we want to search against into `sequence_search/consumer/databases folder`
-9. Update the contents of `sequence_search/consumer/rnacentral_database.py` accordingly (there's a mapping of database human-readable names to file names).
-10. `popd`
-11. `pushd sequence_search/producer/static`
-12. `npm install --save-dev && npm run build`
+    cd easel; make install && \
+    cd ../../`
+8. `curl -OL http://eddylab.org/infernal/infernal-1.1.3.tar.gz && \
+    tar xf infernal-1.1.3.tar.gz && \
+    cd infernal-1.1.3 && \
+    ./configure --prefix /usr/local && \
+    make && \
+    make install && \
+    cd ../`
+9. `mkdir rfam && \
+    cd rfam && \
+    curl -OL ftp://ftp.ebi.ac.uk/pub/databases/Rfam/CURRENT/Rfam.cm.gz && \
+    gunzip Rfam.cm.gz && \
+    cmpress Rfam.cm && \
+    cd ../`
+10. `git clone https://github.com/nawrockie/cmsearch_tblout_deoverlap.git`    
+11. `rsync <database/fasta/files/location/on/local/machine> databases/` - copy `.fasta` files with databases we want to search against into `sequence_search/consumer/databases folder`
+12. If necessary, update the contents of `sequence_search/consumer/rnacentral_database.py` accordingly (there's a mapping of database human-readable names to file names).
 13. `popd`
-14. Edit `postgres/local_init.sql` file and replace role `burkov` there with your username on local machine
-15. Edit `sequence_search/db/settings.py` and replace role `burkov` with your username on local machine
-16. `docker build -t local-postgres -f postgres/local.Dockerfile postgres` - this will create an image with postgres databases.
-17. `docker run -d -p 5432:5432 -e POSTGRES_PASSWORD=postgres -t local-postgres` - this will create and start an instance of postgres on your local machine's 5432 port.
-18. `python3 -m sequence_search.db` - creates necessary database tables for producer and consumer to run
-19. `python3 -m sequence_search.producer` - starts producer server on port 8002
-20. `python3 -m sequence_search.consumer` - starts consumer server on port 8000
+14. `pushd sequence_search/producer/static`
+15. `git clone https://github.com/RNAcentral/rnacentral-sequence-search-embed.git && \
+     cd rnacentral-sequence-search-embed && \
+     git checkout localhost`
+16. `popd`
+17. Edit `postgres/local_init.sql` file and replace role `apetrov` there with your username on local machine
+18. Edit `sequence_search/db/settings.py` and replace role `apetrov` with your username on local machine
+19. `docker build -t local-postgres -f postgres/local.Dockerfile postgres` - this will create an image with postgres databases.
+20. `docker run -d -p 5432:5432 -e POSTGRES_PASSWORD=postgres -t local-postgres` - this will create and start an instance of postgres on your local machine's 5432 port.
+21. `python3 -m sequence_search.db` - creates necessary database tables for producer and consumer to run
+22. `python3 -m sequence_search.producer` - starts producer server on port 8002
+23. `python3 -m sequence_search.consumer` - starts consumer server on port 8000
+24. `brew install memcached` - install memcached using Homebrew
+25. `memcached` - start memcached server
 
 ### Sources of inspiration
 
