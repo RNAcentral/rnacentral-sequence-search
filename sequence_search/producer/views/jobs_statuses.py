@@ -19,42 +19,6 @@ from ...db.jobs import get_jobs_statuses, SQLError, DatabaseConnectionError
 
 @atomic
 async def jobs_statuses(request):
-    """
-    ---
-    tags:
-    - dashboard
-    summary: Shows the status of a job and its chunks
-    parameters:
-    - name: job_id
-      in: path
-      description: ID of job to display status for
-      required: true
-      schema:
-        type: string
-    responses:
-      200:
-        description: Successfully returns results
-        content:
-          application/json:
-            schema:
-              type: object
-              properties:
-                job_id:
-                  type: string
-                status:
-                  type: string
-                chunks:
-                  type: array
-        examples:
-          application/json:
-            {
-              job_id: "662c258b-04d8-4347-b8f5-3d9df82d769e",
-              status: "started",
-              chunks: [{'database': 'mirbase', 'status': 'started'}, {'database': 'pombase', 'status': 'started'}]
-            }
-      404:
-        description: No status for given job_id (probably, job with this job_id doesn't exist)
-    """
+    # Shows the status of a job and its chunks
     statuses = await get_jobs_statuses(request.app['engine'])
-
     return web.json_response(statuses)

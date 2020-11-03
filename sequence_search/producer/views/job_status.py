@@ -24,7 +24,7 @@ async def job_status(request):
     """
     ---
     tags:
-    - jobs
+    - Jobs
     summary: Shows the status of a job and its chunks
     parameters:
     - name: job_id
@@ -67,15 +67,20 @@ async def job_status(request):
         examples:
           application/json:
             {
-              job_id: "662c258b-04d8-4347-b8f5-3d9df82d769e",
-              query: "AUUGAAGUGCGCACCCCGCAUUUAG",
-              description: "URS0000049E57",
-              status: "started",
-              elapsedTime: "14",
-              now: "2019-04-12 19:03:37.417665",
-              chunks: [
-                {'database': 'mirbase', 'status': 'started', elapsedTime: "12"},
-                {'database': 'pombase', 'status': 'started', elapsedTime: "2"}
+              "job_id": "be7629c7-0dd3-4cb4-90bb-b51efb36432e",
+              "query": "AGGUCAGGAGUUUGAGACCAGCCUGGCCAA",
+              "description": null,
+              "status": "success",
+              "r2dt_id": null,
+              "r2dt_date": null,
+              "elapsedTime": 0,
+              "now": "2020-11-03 11:35:16.673957",
+              "chunks": [
+                {
+                  "database": "snodb-0.fasta",
+                  "status": "success",
+                  "elapsedTime": 0
+                }
               ]
             }
       404:

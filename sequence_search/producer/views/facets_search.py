@@ -57,7 +57,7 @@ async def facets_search(request):
     """
     ---
     tags:
-    - facets
+    - Facets
     summary: Runs EBI text search for the results of sequence search and accompanies them with facets
     parameters:
     - name: job_id

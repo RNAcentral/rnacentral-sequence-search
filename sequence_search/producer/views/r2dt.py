@@ -20,11 +20,7 @@ from ...db.jobs import save_r2dt_id
 
 @atomic
 async def r2dt(request):
-    """
-    Update the r2dt_id for a given search
-    :param request: used to get the job_id and the data needed to update the r2dt_id
-    :return: r2dt_id
-    """
+    # Update the r2dt_id for a given search
     job_id = request.match_info['job_id']
     data = await request.json()
     r2dt_id = await save_r2dt_id(request.app['engine'], job_id, data['r2dt_id'], datetime.datetime.now())

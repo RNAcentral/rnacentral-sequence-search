@@ -22,7 +22,7 @@ async def consumers_statuses(request):
     """
     ---
     tags:
-    - dashboard
+    - Dashboard
     summary: Shows the status of a consumer
     parameters: []
     responses:
@@ -44,7 +44,7 @@ async def consumers_statuses(request):
                   status: "busy"
                 }]
       '404':
-        description: No status for given job_id (probably, job with this job_id doesn't exist)
+        description: Not Found
     """
     try:
         consumers = await get_consumers_statuses(request.app['engine'])

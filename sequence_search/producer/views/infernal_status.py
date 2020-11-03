@@ -25,6 +25,31 @@ async def infernal_status(request):
     Function that returns the status and duration of the infernal job
     :param request: used to get job_id and params to connect to the db
     :return: json with job_id, status and elapsedTime of the infernal job
+
+    ---
+    tags:
+    - Jobs
+    summary: Shows the status of the infernal job
+    parameters:
+    - name: job_id
+      in: path
+      description: ID of job to display status for
+      required: true
+      schema:
+        type: string
+    responses:
+      200:
+        description: Successfully returns results
+        examples:
+          application/json:
+            {
+                "job_id": "81c5c0bc-537d-4fbf-b819-30b5a783fd64",
+                "status": "success",
+                "elapsedTime": 1,
+                "now": "2020-11-03 10:43:25.179856"
+            }
+      404:
+        description: No status for given job_id (probably, job with this job_id doesn't exist)
     """
     job_id = request.match_info['job_id']
 

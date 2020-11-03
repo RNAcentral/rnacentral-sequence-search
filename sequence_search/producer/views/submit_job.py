@@ -73,7 +73,7 @@ async def submit_job(request):
 
     ---
     tags:
-    - jobs
+    - Jobs
     summary: Accepts a job for execution
     consumes:
      - application/json

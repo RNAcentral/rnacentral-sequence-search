@@ -23,7 +23,7 @@ async def job_result(request):
     """
     ---
     tags:
-    - jobs
+    - Jobs
     summary: Shows the result of a job
     parameters:
     - name: job_id
@@ -78,6 +78,8 @@ async def job_result(request):
                     type: integer
                   result_id:
                     type: integer
+                  species_priority:
+                    type: string
         examples:
           application/json:
             [{
@@ -98,7 +100,8 @@ async def job_result(request):
               target_coverage: 0,
               gaps: 0,
               query_length: 30,
-              result_id: 1
+              result_id: 1,
+              species_priority: 'a'
             }]
 
       '404':
