@@ -5,7 +5,7 @@ SQLAlchemy==1.3.16
 aiopg==1.0.0
 aiohttp-jinja2==1.2.0
 aiohttp-devtools==0.13.1
-aiohttp-swagger==1.0.14
+aiohttp-swagger==1.0.15
 aiohttp-cors==0.7.0
 aiojobs==0.2.1
 async-timeout==3.0.1
