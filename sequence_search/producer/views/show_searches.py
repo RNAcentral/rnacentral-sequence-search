@@ -68,7 +68,7 @@ async def show_searches(request):
             else:
                 searches_per_month_result.append({period: row_as_dict['count']})
 
-        expert_dbs = ["rnacentral.org", "rfam", "mirbase", "scottgroup", ""]
+        expert_dbs = ["rnacentral.org", "rfam", "mirbase", "scottgroup", "gtrnadb", ""]
         expert_db_results = []
         for db in expert_dbs:
             searches_per_db = await conn.execute(
@@ -93,6 +93,8 @@ async def show_searches(request):
                 expert_db = "miRBase"
             elif db == "scottgroup":
                 expert_db = "snoDB"
+            elif db == "gtrnadb":
+                expert_db = "GtRNAdb"
             elif db == "":
                 expert_db = "Others"
 
