@@ -145,7 +145,10 @@ async def submit_job(request):
         except KeyError:
             priority = 'low'
 
-        expert_dbs = ["rnacentral.org", "rfam.xfam.org", "rfam.org", "mirbase.org", "scottgroup.med.usherbrooke.ca"]
+        expert_dbs = [
+            "rnacentral.org", "rfam.xfam.org", "rfam.org", "mirbase.org", "scottgroup.med.usherbrooke.ca",
+            "gtrnadb.ucsc.edu"
+        ]
         search_from_expert_db = [item for item in expert_dbs if item in url]
         if not search_from_expert_db:
             priority = 'low'
