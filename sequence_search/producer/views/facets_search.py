@@ -88,7 +88,7 @@ async def facets_search(request):
       in: query
       description: Each facet returns top 'facetcount' elements (e.g. with facetcount=2 taxonomy facet
         will return ['Homo sapiens', 'Mus musculus'])
-      type: string
+      type: integer
       required: false
     - name: ordering
       in: query
