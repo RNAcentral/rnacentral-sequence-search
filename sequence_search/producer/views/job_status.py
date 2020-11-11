@@ -22,6 +22,10 @@ from ...db.jobs import get_job_chunks_status, JobNotFound
 @atomic
 async def job_status(request):
     """
+    Function that returns the status and duration of the job
+    :param request: used to get job_id and params to connect to the db
+    :return: list of json object
+
     ---
     tags:
     - Jobs
@@ -29,62 +33,14 @@ async def job_status(request):
     parameters:
     - name: job_id
       in: path
-      description: ID of job to display status for
+      description: Unique job identification
+      type: string
       required: true
-      schema:
-        type: string
     responses:
       200:
-        description: Successfully returns results
-        content:
-          application/json:
-            schema:
-              type: object
-              properties:
-                job_id:
-                  type: string
-                query:
-                  type: string
-                description:
-                  type: string
-                status:
-                  type: string
-                elapsedTime:
-                  type: string
-                now:
-                  type: string
-                chunks:
-                  type: array
-                  items:
-                    type: object
-                    properties:
-                      database:
-                        type: string
-                      status:
-                        type: string
-                      elapsedTime:
-                        type: string
-        examples:
-          application/json:
-            {
-              "job_id": "be7629c7-0dd3-4cb4-90bb-b51efb36432e",
-              "query": "AGGUCAGGAGUUUGAGACCAGCCUGGCCAA",
-              "description": null,
-              "status": "success",
-              "r2dt_id": null,
-              "r2dt_date": null,
-              "elapsedTime": 0,
-              "now": "2020-11-03 11:35:16.673957",
-              "chunks": [
-                {
-                  "database": "snodb-0.fasta",
-                  "status": "success",
-                  "elapsedTime": 0
-                }
-              ]
-            }
+        description: Ok
       404:
-        description: No status for given job_id (probably, job with this job_id doesn't exist)
+        description: Not found (probably, job with this job_id doesn't exist)
     """
     job_id = request.match_info['job_id']
 

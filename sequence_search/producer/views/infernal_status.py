@@ -33,23 +33,14 @@ async def infernal_status(request):
     parameters:
     - name: job_id
       in: path
-      description: ID of job to display status for
+      description: Unique job identification
+      type: string
       required: true
-      schema:
-        type: string
     responses:
       200:
-        description: Successfully returns results
-        examples:
-          application/json:
-            {
-                "job_id": "81c5c0bc-537d-4fbf-b819-30b5a783fd64",
-                "status": "success",
-                "elapsedTime": 1,
-                "now": "2020-11-03 10:43:25.179856"
-            }
+        description: Ok
       404:
-        description: No status for given job_id (probably, job with this job_id doesn't exist)
+        description: Not found (probably, job with this job_id doesn't exist)
     """
     job_id = request.match_info['job_id']
 

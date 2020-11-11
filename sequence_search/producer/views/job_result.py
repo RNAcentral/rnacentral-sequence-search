@@ -21,6 +21,10 @@ from ...db import DatabaseConnectionError
 @atomic
 async def job_result(request):
     """
+    Function that returns the status of consumers
+    :param request: used to get job_id and params to connect to the db
+    :return: list of json object
+
     ---
     tags:
     - Jobs
@@ -28,84 +32,14 @@ async def job_result(request):
     parameters:
     - name: job_id
       in: path
-      description: ID of job to display result for
+      description: Unique job identification
+      type: string
       required: true
-      schema:
-        type: string
     responses:
       200:
-        description: Successfully returns result
-        content:
-          application/json:
-            schema:
-              type: array
-              items:
-                type: object
-                properties:
-                  rnacentral_id:
-                    type: string
-                  description:
-                    type: string
-                  score:
-                    type: float
-                  bias:
-                    type: float
-                  e_value:
-                    type: float
-                  target_length:
-                    type: integer
-                  alignment:
-                    type: string
-                  alignment_length:
-                    type: integer
-                  gap_count:
-                    type: integer
-                  match_count:
-                    type: integer
-                  nts_count1:
-                    type: integer
-                  nts_count2:
-                    type: integer
-                  identity:
-                    type: float
-                  query_coverage:
-                    type: float
-                  target_coverage:
-                    type: float
-                  gaps:
-                    type: float
-                  query_length:
-                    type: integer
-                  result_id:
-                    type: integer
-                  species_priority:
-                    type: string
-        examples:
-          application/json:
-            [{
-              rnacentral_id: 'URS000075D2D2',
-              description: 'Mus musculus miR - 1195 stem - loop',
-              score: 6.5,
-              bias: 0.7,
-              e_value: 32,
-              target_length: 98,
-              alignment: "Query  8 GAGUUUGAGACCAGCCUGGCCA 29\n| | | | | | | | | | | | | | | | | |\nSbjct_10090\n22\nGAGUUCGAGGCCAGCCUGCUCA\n43",
-              alignment_length: 22,
-              gap_count: 0,
-              match_count: 18,
-              nts_count1: 22,
-              nts_count2: 0,
-              identity: 81.81818181818183,
-              query_coverage: 73.33333333333333,
-              target_coverage: 0,
-              gaps: 0,
-              query_length: 30,
-              result_id: 1,
-              species_priority: 'a'
-            }]
-
-      '404':
-        description: No result for given job_id (probably, job with this job_id doesn't exist)
+        description: Ok
+      404:
+        description: Not found (probably, job with this job_id doesn't exist)
     """
     job_id = request.match_info['job_id']
     engine = request.app['engine']

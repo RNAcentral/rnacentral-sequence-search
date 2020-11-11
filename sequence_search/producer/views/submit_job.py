@@ -68,8 +68,12 @@ def serialize(request, data):
 @atomic
 async def submit_job(request):
     """
+    Function to submit a query.
+    :param request: used to get the params to connect to the db
+    :return: json with job_id
+
     Example:
-    curl -H "Content-Type:application/json" -d "{\"databases\": [\"miRBase\"], \"query\": \"AGGUCAGGAGUUUGAGACCAGCCUGGCCAA\"}" localhost:8002/api/submit-job
+    curl -H "Content-Type:application/json" -d "{\"databases\": [\"miRBase\"], \"query\": \"CUAUACAAUCUACUGUCUUUC\"}" localhost:8002/api/submit-job
 
     ---
     tags:
@@ -79,28 +83,29 @@ async def submit_job(request):
      - application/json
     parameters:
      - in: body
-       name: query
-       description: Nucleotide sequence to search for as a string of nucleotides or a fasta file with a single sequence
+       name: Sequence and database
+       description: Query sequence and database to be used in the search
+       required: true
        schema:
-         type: string
-         required: true
-         example: "AGGUCAGGAGUUUGAGACCAGCCUGGCCAA"
-     - in: body
-       name: databases
-       description: List of RNAcentral member databases to search the query sequence against. Can be an empty list.
-       schema:
-         type: array
-         items:
-           type: string
-         required: true
-         example: ['mirbase', 'pombase']
+         properties:
+           query:
+             type: string
+             description: Query sequence
+             example: "CUAUACAAUCUACUGUCUUUC"
+           databases:
+             type: array
+             description: Database to search the query sequence against. Empty list uses the RNAcentral database
+             example: ['mirbase']
+         required:
+           - query
+           - databases
     responses:
       201:
-        description: Job accepted.
-        content:
-          application/json: {}
+        description: Created
       400:
-        description: Invalid input (either query is not a nucleotide sequence, or databases not in RNAcentral)
+        description: Bad request (either query is not a nucleotide sequence, or the database is not in RNAcentral)
+      500:
+        description: Internal server error
     """
     data = await request.json()
 

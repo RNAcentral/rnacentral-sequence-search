@@ -20,6 +20,10 @@ from ...db.consumers import get_consumers_statuses, DatabaseConnectionError
 @atomic
 async def consumers_statuses(request):
     """
+    Function to submit a query.
+    :param request: used to get the params to connect to the db
+    :return: list of json object
+
     ---
     tags:
     - Dashboard
@@ -27,23 +31,8 @@ async def consumers_statuses(request):
     parameters: []
     responses:
       200:
-        description: Successfully returns results
-        content:
-          application/json:
-            schema:
-              type: array
-              properties:
-                ip:
-                  type: string
-                status:
-                  type: string
-            examples:
-              application/json:
-                [{
-                  ip: "192.168.0.7",
-                  status: "busy"
-                }]
-      '404':
+        description: Ok
+      404:
         description: Not Found
     """
     try:
