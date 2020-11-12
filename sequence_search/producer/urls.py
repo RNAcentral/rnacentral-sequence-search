@@ -39,7 +39,7 @@ def setup_routes(app):
     setup_static_routes(app)
 
     # setup swagger documentation
-    setup_swagger(app, swagger_url="api/doc", title="RNAcentral sequence similarity search")
+    setup_swagger(app, swagger_url="api/doc", title="RNAcentral sequence similarity search", description="")
 
 
 def setup_static_routes(app):
