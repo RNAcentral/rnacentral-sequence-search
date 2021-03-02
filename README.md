@@ -166,7 +166,7 @@ To configure Jenkins deployment:
 
 1. `git clone https://github.com/RNAcentral/rnacentral-sequence-search.git`
 2. `cd rnacentral-sequence-search`
-3. `virtualenv ENV --python=python3`
+3. `python3 -m venv ENV`
 4. `source ENV/bin/activate`
 5. `pip3 install -r sequence_search/requirements.txt`
 6. `pushd sequence_search/consumer`
