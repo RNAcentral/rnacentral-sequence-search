@@ -55,18 +55,40 @@ async def show_searches(request):
             "ORDER BY submitted_month",
         )
         searches_per_month_records = await searches_per_month.fetchall()
-        searches_per_month_result = []
+
+        # Old searches was delete to save space.
+        # For this reason, the number of searches from Nov/2019 to Dez/20 is hardcoded.
+        searches_per_month_result = [
+            {"2019-11": 550}, {"2019-12": 1278}, {"2020-01": 1110}, {"2020-02": 602}, {"2020-03": 1142},
+            {"2020-04": 918}, {"2020-05": 2003}, {"2020-06": 1218}, {"2020-07": 2899}, {"2020-08": 3210},
+            {"2020-09": 4138}, {"2020-10": 8435}, {"2020-11": 3521}, {"2020-12": 18267}
+        ]
+
         for row in searches_per_month_records:
             row_as_dict = dict(row)
             period = str(row_as_dict['submitted_month'].strftime("%Y-%m"))
-            if period == "2020-05":
-                # Remove 525 searches due to a bug in the batch search
-                searches_per_month_result.append({period: row_as_dict['count'] - 525})
-            elif period == "2020-06":
-                # Add 50 searches that were performed in the test environment
-                searches_per_month_result.append({period: row_as_dict['count'] + 50})
+            if period == "2021-03":
+                # Add 135 searches that were performed in the test environment
+                searches_per_month_result.append({period: row_as_dict['count'] + 135})
             else:
                 searches_per_month_result.append({period: row_as_dict['count']})
+
+        rnacentral_searches = [
+            {"2020-05": 1116}, {"2020-06": 613}, {"2020-07": 850}, {"2020-08": 1584}, {"2020-09": 2263},
+            {"2020-10": 1435}, {"2020-11": 900}, {"2020-12": 672}
+        ]
+        rfam_searches = [
+            {"2020-05": 1313}, {"2020-06": 540}, {"2020-07": 1611}, {"2020-08": 1010}, {"2020-09": 1005},
+            {"2020-10": 1292}, {"2020-11": 1806}, {"2020-12": 1340}
+        ]
+        mirbase_searches = [
+            {"2020-07": 351}, {"2020-08": 614}, {"2020-09": 827}, {"2020-10": 529}, {"2020-11": 497},
+            {"2020-12": 849}
+        ]
+        snodb_searches = [
+            {"2020-07": 74}, {"2020-08": 0}, {"2020-09": 32}, {"2020-10": 11}, {"2020-11": 69}, {"2020-12": 4}
+        ]
+        gtrnadb_searches = [{"2020-11": 60}, {"2020-12": 26}]
 
         expert_dbs = ["rnacentral.org", "rfam", "mirbase", "scottgroup", "gtrnadb", ""]
         expert_db_results = []
@@ -79,7 +101,25 @@ async def show_searches(request):
                 "%"+db+"%" if db != "" else ""
             )
             searches_per_db_records = await searches_per_db.fetchall()
-            searches_per_db_list = []
+            if db == "rnacentral.org":
+                expert_db = "RNAcentral"
+                searches_per_db_list = rnacentral_searches
+            elif db == "rfam":
+                expert_db = "Rfam"
+                searches_per_db_list = rfam_searches
+            elif db == "mirbase":
+                expert_db = "miRBase"
+                searches_per_db_list = mirbase_searches
+            elif db == "scottgroup":
+                expert_db = "snoDB"
+                searches_per_db_list = snodb_searches
+            elif db == "gtrnadb":
+                expert_db = "GtRNAdb"
+                searches_per_db_list = gtrnadb_searches
+            elif db == "":
+                expert_db = "Others"
+                searches_per_db_list = []
+
             for row in searches_per_db_records:
                 row_as_dict = dict(row)
                 period = str(row_as_dict['submitted_month'].strftime("%Y-%m"))
