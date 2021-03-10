@@ -117,7 +117,7 @@ async def show_searches(request):
                 expert_db = "GtRNAdb"
                 searches_per_db_list = gtrnadb_searches
             elif db == "":
-                expert_db = "Others"
+                expert_db = "API"
                 searches_per_db_list = []
 
             for row in searches_per_db_records:
@@ -136,7 +136,7 @@ async def show_searches(request):
             elif db == "gtrnadb":
                 expert_db = "GtRNAdb"
             elif db == "":
-                expert_db = "Others"
+                expert_db = "API"
 
             expert_db_results.append({expert_db: searches_per_db_list})
 
