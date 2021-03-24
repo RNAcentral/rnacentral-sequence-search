@@ -10,7 +10,7 @@ set +o allexport
 CONTENT_TYPE="Content-Type: application/json"
 SIZE=$(( $RANDOM % 5 + 20 ))
 NEW_SEQUENCE=$(cat /dev/urandom | env LC_CTYPE=C tr -dc ACGTU | head -c $SIZE)
-DATABASES_LIST=("flybase" "gencode" "mirbase" "pdbe" "snopy" "srpdb")
+DATABASES_LIST=("gtrnadb" "snodb" "mirbase")
 DATABASE=${DATABASES_LIST[RANDOM%${#DATABASES_LIST[@]}]}
 DATABASE_AND_QUERY="{\"databases\": [\"$DATABASE\"], \"query\": \">sequence-search-test\n$NEW_SEQUENCE\"}"
 
