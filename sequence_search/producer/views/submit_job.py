@@ -57,7 +57,7 @@ def serialize(request, data):
         raise ValueError("The sequence cannot be longer than %s nucleotides.\n" % MAX_QUERY_LENGTH)
 
     # normalize query: convert nucleotides to RNA
-    data['query'] = data['query'].replace('T', 'U')
+    data['query'] = data['query'].strip().replace('T', 'U')
 
     # validate databases
     producer_validator(data['databases'])
