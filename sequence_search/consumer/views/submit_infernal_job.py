@@ -11,7 +11,6 @@ See the License for the specific language governing permissions and
 limitations under the License.
 """
 import asyncio
-import datetime
 import logging
 
 from aiohttp import web
@@ -39,46 +38,45 @@ class InfernalError(Exception):
 
 
 async def infernal(engine, job_id, sequence, consumer_ip):
-    logger.info('Infernal search started for: job_id = %s' % job_id)
-    t0 = datetime.datetime.now()
     process, filename = await infernal_search(sequence=sequence, job_id=job_id)
 
     try:
         task = asyncio.ensure_future(process.communicate())
         await asyncio.wait_for(task, MAX_RUN_TIME)
-        logging.debug("Time - Cmscan searched for sequences for {} seconds".format(
-            (datetime.datetime.now() - t0).total_seconds())
-        )
-        return_code = process.returncode
-        if return_code != 0:
+        if process.returncode != 0:
             raise InfernalError("Infernal process returned non-zero status code")
-    except asyncio.TimeoutError as e:
+    except asyncio.TimeoutError:
         logger.warning('Infernal timeout for: job_id = %s' % job_id)
         process.kill()
         # TODO: what do we do in case we lost the database connection here?
         await set_infernal_job_status(engine, job_id, status=JOB_CHUNK_STATUS_CHOICES.timeout)
+        await set_consumer_fields(engine, consumer_ip, CONSUMER_STATUS_CHOICES.available, job_chunk_id=None)
+        return
     except Exception as e:
-        logger.error('Infernal error for: job_id = %s' % job_id)
+        logger.error('Infernal error for job_id: %s - Message: %s' % (job_id, e))
         # TODO: what do we do in case we lost the database connection here?
         await set_infernal_job_status(engine, job_id, status=JOB_CHUNK_STATUS_CHOICES.error)
+        await set_consumer_fields(engine, consumer_ip, CONSUMER_STATUS_CHOICES.available, job_chunk_id=None)
+        return
     else:
-        logger.info('Infernal search success for: job_id = %s' % job_id)
+        logger.debug('Infernal search success for: job_id = %s' % job_id)
 
     process_deoverlap, file_deoverlap = await infernal_deoverlap(job_id=job_id)
 
     try:
         task_deoverlap = asyncio.ensure_future(process_deoverlap.communicate())
         await asyncio.wait_for(task_deoverlap, MAX_RUN_TIME)
-        return_code = process_deoverlap.returncode
-        if return_code != 0:
+        if process_deoverlap.returncode != 0:
             raise InfernalError("Deoverlap process returned non-zero status code")
     except asyncio.TimeoutError:
         logging.debug('Deoverlap timeout for: job_id = %s' % job_id)
         process_deoverlap.kill()
         await set_infernal_job_status(engine, job_id, status=JOB_CHUNK_STATUS_CHOICES.timeout)
-    except Exception:
-        logging.debug('Deoverlap error for: job_id = %s' % job_id)
+        await set_consumer_fields(engine, consumer_ip, CONSUMER_STATUS_CHOICES.available, job_chunk_id=None)
+    except Exception as e:
+        logging.debug('Deoverlap error for job_id: %s - Message: %s' % (job_id, e))
         await set_infernal_job_status(engine, job_id, status=JOB_CHUNK_STATUS_CHOICES.error)
+        await set_consumer_fields(engine, consumer_ip, CONSUMER_STATUS_CHOICES.available, job_chunk_id=None)
     else:
         logging.debug('Deoverlap success for: job_id = %s' % job_id)
 
