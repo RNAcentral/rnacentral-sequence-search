@@ -46,7 +46,7 @@ if curl -s --head  --request GET $HOST | grep "200 OK" > /dev/null; then
     fi
 
     # Check if the EBI endpoint is up
-    if curl -s --head --request GET ${EBI_ENDPOINT}?toolid=nhmmer\&jobid=${JOB_ID} | grep "200 OK" > /dev/null; then
+    if curl -s --head --request GET ${EBI_ENDPOINT}?toolid=nhmmer\&jobid=${JOB_ID} | grep "HTTP/1.1 200" > /dev/null; then
         # Facets search
         FACETS_SEARCH=$(curl -s ${HOST}/api/facets-search/$JOB_ID | jq '[.hitCount,.textSearchError]')
         HIT_COUNT=$(echo ${FACETS_SEARCH} |  jq '.[0]')
