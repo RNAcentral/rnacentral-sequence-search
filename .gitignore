@@ -1,5 +1,13 @@
 openstack.rc
 
+terraform/providers.tf
+terraform/terraform.tfstate.backup
+terraform/terraform.tfstate.d/test/*.backup
+terraform/sequence_search_rsa
+terraform/sequence_search_rsa.pub
+terraform/.terraform
+terraform/current_state
+
 terraform_embassy_3/providers.tf
 terraform_embassy_3/terraform.tfstate.backup
 terraform_embassy_3/terraform.tfstate.d/test/*.backup
