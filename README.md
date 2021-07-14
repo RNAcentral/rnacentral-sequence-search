@@ -200,15 +200,13 @@ To configure Jenkins deployment:
      cd rnacentral-sequence-search-embed && \
      git checkout localhost`
 16. `popd`
-17. Edit `postgres/local_init.sql` file and replace role `apetrov` there with your username on local machine
-18. Edit `sequence_search/db/settings.py` and replace role `apetrov` with your username on local machine
-19. `docker build -t local-postgres -f postgres/local.Dockerfile postgres` - this will create an image with postgres databases.
-20. `docker run -d -p 5432:5432 -e POSTGRES_PASSWORD=postgres -t local-postgres` - this will create and start an instance of postgres on your local machine's 5432 port.
-21. `python3 -m sequence_search.db` - creates necessary database tables for producer and consumer to run
-22. `python3 -m sequence_search.producer` - starts producer server on port 8002
-23. `python3 -m sequence_search.consumer` - starts consumer server on port 8000
-24. `brew install memcached` - install memcached using Homebrew
-25. `memcached` - start memcached server
+17. `docker build -t local-postgres -f postgres/local.Dockerfile postgres` - this will create an image with postgres databases.
+18. `docker run -d -p 5432:5432 -e POSTGRES_PASSWORD=postgres -t local-postgres` - this will create and start an instance of postgres on your local machine's 5432 port.
+19. `python3 -m sequence_search.db` - creates necessary database tables for producer and consumer to run
+20. `python3 -m sequence_search.producer` - starts producer server on port 8002
+21. `python3 -m sequence_search.consumer` - starts consumer server on port 8000
+22. `brew install memcached` - install memcached using Homebrew
+23. `memcached` - start memcached server
 
 ### Sources of inspiration
 
