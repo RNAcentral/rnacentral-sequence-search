@@ -31,7 +31,7 @@ variable "test_floating_ip" {
 }
 
 variable "covid_floating_ip" {
-  default = ""
+  default = "45.88.81.141"
 }
 
 variable "default_instances" {
