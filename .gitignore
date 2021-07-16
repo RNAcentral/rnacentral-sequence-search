@@ -3,6 +3,7 @@ openstack.rc
 terraform/providers.tf
 terraform/terraform.tfstate.backup
 terraform/terraform.tfstate.d/test/*.backup
+terraform/terraform.tfstate.d/covid/*.backup
 terraform/sequence_search_rsa
 terraform/sequence_search_rsa.pub
 terraform/.terraform
