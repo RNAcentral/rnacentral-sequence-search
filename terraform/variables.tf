@@ -39,7 +39,7 @@ variable "default_instances" {
 }
 
 variable "test_instances" {
-  default = 2
+  default = 10
 }
 
 variable "covid_instances" {
