@@ -1,13 +1,13 @@
 variable "image" {
-  default = "CentOS7-Cloud"
+  default = "CentOS-8-GenericCloud-8.1"
 }
 
 variable "flavor" {
-  default = "s1.capacious"
+  default = "4c6m50d"
 }
 
 variable "flavor_monitor" {
-  default = "s1.small"
+  default = "1c2m20d"
 }
 
 variable "ssh_key_file" {
@@ -19,27 +19,27 @@ variable "ssh_user_name" {
 }
 
 variable "external_network_id" {
-  default = "e25c3173-bb5c-4bbc-83a7-f0551099c8cd"  # ext-net-36
+  default = "9948edde-640b-482b-a6bc-ad1466000d86"
 }
 
 variable "default_floating_ip" {
-  default = "193.62.55.40"
+  default = "45.88.81.147"
 }
 
 variable "test_floating_ip" {
-  default = "193.62.55.123"
+  default = "45.88.80.122"
 }
 
 variable "covid_floating_ip" {
-  default = "193.62.55.100"
+  default = "45.88.81.141"
 }
 
 variable "default_instances" {
-  default = 30
+  default = 40
 }
 
 variable "test_instances" {
-  default = 7
+  default = 10
 }
 
 variable "covid_instances" {

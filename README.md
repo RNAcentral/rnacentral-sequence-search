@@ -27,9 +27,6 @@ running unit-tests on local machine only, it is not using any database or networ
 **Requirements**
 
 - [Terraform](https://www.terraform.io)
-- [Terraform inventory](https://github.com/adammck/terraform-inventory)
-- [Virtual environment](https://virtualenv.pypa.io/en/latest/) with installed dependencies
-- [Memcached](https://memcached.org/)
 
 1. Create `terraform/providers.tf` using the `providers.tf.template` file.
 
@@ -37,21 +34,13 @@ running unit-tests on local machine only, it is not using any database or networ
 
   `cd terraform && ssh-keygen -t rsa -b 4096`
 
-  See: https://help.github.com/en/articles/generating-a-new-ssh-key-and-adding-it-to-the-ssh-agent
-
-3. Follow steps in `redeploy.jenkinsfile`.
-
-  - Install SSH keys
-  - Run `terraform init && terraform apply` to create the infrastructure
-  - Run ansible to create postgres database
-  - Run ansible to create producer instance
-  - Run ansible to create consumer instances
+3. Run `terraform init && terraform apply` to create the infrastructure
 
 ### Development workflow
 
 1. Choose terraform workspace:
 
-    `terraform workspace select <env>` where `env` can be `default` or `test`.
+    `terraform workspace select <env>` where `env` can be `default`, `test` or `covid`.
     Once the workspace is selected, terraform will choose the correct `tfstate`
     file and will know how to configure ssh keys.
 
@@ -60,53 +49,31 @@ running unit-tests on local machine only, it is not using any database or networ
     This will check that the infrastructure is up and running, configure ssh keys,
     and update ansible inventory on each run.
 
-3. To apply python or ansible changes, run the appropriate ansible playbook:
-
-    `ansible-playbook -i hosts ...`
-
 ---------------------------
 
 ### Additional notes
 
-#### How to upload image with databases to openstack
+The installation and configuration of VMs in production is done via Ansible. 
 
-1. Create an .iso image from `databases` folder on Mac:
+#### How to generate the hosts file used by Ansible
 
- `cd sequence_search/consumer`
- `hdiutil makehybrid -o databases.iso databases -iso -joliet`
+1. Run `terraform show -json > current_state`
 
-2. To upload image to the cloud first download `openstack.rc` (v2) from Horizon dashboard
+2. Run this python script to create the `ansible/hosts` file:
 
-3. Source it: `source openstack.rc`, enter your user's password
+`python hosts.py`
 
-4. Create a glance image:
+3. You can now run ansible commands with:
 
- `glance image-create --name sequence_search_databases --disk-format=iso --container-format=bare --file databases.iso`
+`pushd ansible;  ansible-playbook -i hosts <file>`
 
-See: https://matt.berther.io/2008/12/14/creating-iso-images-from-a-folder-in-osx/
+#### Restart the sequence search
 
-#### How to dynamically generate ansible inventory from terraform state
+In case you need to restart the sequence search, run these commands:
 
-1. (a) Install terraform inventory (https://github.com/adammck/terraform-inventory):
+`ansible-playbook -i hosts producer.yml --tag restart`
 
-`brew install terraform-inventory`
-
-1. (b) Alternatively, download and install platform-specific distribution from here:
-
-https://github.com/adammck/terraform-inventory/releases
-
-2. Create terraform infrastructure:
-
-`pushd terraform; terraform apply; popd`
-
-3. Generate the ansible inventory from terraform state and save it to hosts file:
-
-`terraform-inventory -inventory terraform/terraform.tfstate > ansible/hosts`
-
-4. You can run ansible commands now with:
-
-`pushd ansible;  ...`
-
+`ansible-playbook -i hosts consumers.yml --tag restart`
 
 #### Frontend
 
@@ -117,10 +84,9 @@ The code is available here: https://github.com/RNAcentral/rnacentral-sequence-se
 
 #### Using terraform workspaces for blue-green release
 
-1. Choose a workspace: `terraform workspace select <environment>`
+1. Choose a workspace: `terraform workspace select <env>`
 
-  Environment can be `default` or `test`. Al subsequent terraform commands
-  will apply only to that environment.
+  Env can be `default`, `test` or `covid`. All subsequent terraform commands will apply only to that environment.
 
 2. Apply terraform changes: `terraform apply`
 
@@ -128,21 +94,20 @@ The code is available here: https://github.com/RNAcentral/rnacentral-sequence-se
 
 3. Update local ssh config: `ansible-playbook -i hosts localhost.yml`
 
-  The IP address will be set depending on the current `terraform.tfstate` which
-  is enabled by the terraform workspace.
+  The IP address will be set depending on the current `terraform.tfstate` which is enabled by the terraform workspace.
 
 4. Run any other ansible playbooks: `ansible-playbook -i hosts producer.yml`
 
 
-#### How to create a load balancer and do blue-green release
+#### How to create a load balancer and move from one environment to another
 
-1. `pushd terraform_load_balancer; terraform apply; popd`
+1. `pushd terraform/load_balancer; terraform apply; popd`
 
 2. Run the command bellow passing the IPs as variables on the command line:
 
     ```
     cd ansible_load_balancer
-    ansible-playbook -i hosts --private-key=../terraform_load_balancer/load_balancer_rsa --extra-vars "main_ip=main.ip.address fallback_ip=fallback.ip.address" load_balancer.yml
+    ansible-playbook -i hosts --private-key=../terraform/load_balancer/load_balancer_rsa --extra-vars "main_ip=main.ip.address fallback_ip=fallback.ip.address" load_balancer.yml
     ```
 
 The load balancer is an nginx server that proxies http requests to the currently selected producer machine's `8002` 
@@ -152,21 +117,11 @@ port. If you want to change the port of producer machine, go to `load_balancer.y
 If you want to update nginx configuration, make changes in
 `ansible_load_balancer/roles/ansible_load_balancer/templates/upstream.conf.js`.
 
-#### Installation in production using Jenkins
-
-To configure Jenkins deployment:
-
-- Install and configure Jenkins
-- In Jenkins interface create a one-branch pipeline for each `*.jenkinsfile` in `/jenkins` folder
-- In Jenkins upload secret file `openstack.rc` copied from RedHat Horizon dashboard
- (Project -> Compute -> Access & Security -> API Access)
-- Install python-based dependencies via `pip install -r requirements.txt` (possibly, using a virtualenv)
-
 #### Manual installation in local environment
 
 1. `git clone https://github.com/RNAcentral/rnacentral-sequence-search.git`
 2. `cd rnacentral-sequence-search`
-3. `virtualenv ENV --python=python3`
+3. `python3 -m venv ENV`
 4. `source ENV/bin/activate`
 5. `pip3 install -r sequence_search/requirements.txt`
 6. `pushd sequence_search/consumer`
@@ -200,15 +155,13 @@ To configure Jenkins deployment:
      cd rnacentral-sequence-search-embed && \
      git checkout localhost`
 16. `popd`
-17. Edit `postgres/local_init.sql` file and replace role `apetrov` there with your username on local machine
-18. Edit `sequence_search/db/settings.py` and replace role `apetrov` with your username on local machine
-19. `docker build -t local-postgres -f postgres/local.Dockerfile postgres` - this will create an image with postgres databases.
-20. `docker run -d -p 5432:5432 -e POSTGRES_PASSWORD=postgres -t local-postgres` - this will create and start an instance of postgres on your local machine's 5432 port.
-21. `python3 -m sequence_search.db` - creates necessary database tables for producer and consumer to run
-22. `python3 -m sequence_search.producer` - starts producer server on port 8002
-23. `python3 -m sequence_search.consumer` - starts consumer server on port 8000
-24. `brew install memcached` - install memcached using Homebrew
-25. `memcached` - start memcached server
+17. `docker build -t local-postgres -f postgres/local.Dockerfile postgres` - this will create an image with postgres databases.
+18. `docker run -d -p 5432:5432 -e POSTGRES_PASSWORD=postgres -t local-postgres` - this will create and start an instance of postgres on your local machine's 5432 port.
+19. `python3 -m sequence_search.db` - creates necessary database tables for producer and consumer to run
+20. `python3 -m sequence_search.producer` - starts producer server on port 8002
+21. `python3 -m sequence_search.consumer` - starts consumer server on port 8000
+22. `brew install memcached` - install memcached using Homebrew
+23. `memcached` - start memcached server
 
 ### Sources of inspiration
 

@@ -37,7 +37,7 @@ async def get_job_chunk(engine, job_chunk_id):
 
     except psycopg2.Error as e:
         raise DatabaseConnectionError("Failed to open database connection in get_job_chunk "
-                                      "for job_id = %s, database = %s" % job_chunk_id) from e
+                                      "for job_id = %s" % job_chunk_id) from e
 
 
 async def get_job_chunk_from_job_and_database(engine, job_id, database):

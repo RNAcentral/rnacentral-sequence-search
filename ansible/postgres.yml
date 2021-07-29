@@ -67,6 +67,22 @@
     postgresql_listen_addresses:
       - '*'
 
+    # Added by cribas - values obtained from PGTune (https://pgtune.leopard.in.ua/#/)
+    # The most important item here is the maximum number of connections allowed.
+    postgresql_max_connections: 300
+    postgresql_shared_buffers: 1536MB
+    postgresql_effective_cache_size: 4608MB
+    postgresql_maintenance_work_mem: 384MB
+    postgresql_checkpoint_completion_target: 0.9
+    postgresql_wal_buffers: 16MB
+    postgresql_random_page_cost: 4
+    postgresql_effective_io_concurrency: 2
+    postgresql_work_mem: 2621kB
+    postgresql_max_wal_size: 4GB
+    postgresql_min_wal_size: 1GB
+    postgresql_max_worker_processes: 4
+    postgresql_max_parallel_workers_per_gather: 2
+
   roles:
     - postgresql
     - ssh

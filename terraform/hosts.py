@@ -7,32 +7,32 @@ import json
 with open('current_state') as json_file:
     data = json.load(json_file)
     file = open('../ansible/hosts', 'w')
+    consumers = False
 
-    file.write('[nfs_server]\n')
-    file.write([obj for obj in data['values']['root_module']['resources'] if
-                obj['address'] == 'openstack_compute_instance_v2.nfs_server'][0]['values']['access_ip_v4'] + '\n')
-    file.write('\n')
-
-    file.write('[postgres]\n')
-    file.write([obj for obj in data['values']['root_module']['resources'] if obj['address'] == 'openstack_compute_instance_v2.postgres'][0]['values']['access_ip_v4'] + '\n')
-    file.write('\n')
-
-    file.write('[sequence_search]\n')
-    file.write([obj for obj in data['values']['root_module']['resources'] if obj['address'] == 'openstack_compute_floatingip_associate_v2.sequence_search'][0]['values']['floating_ip'] + '\n')
-    file.write('\n')
-
-    file.write('[producer]\n')
-    file.write([obj for obj in data['values']['root_module']['resources'] if obj['address'] == 'openstack_compute_instance_v2.producer'][0]['values']['access_ip_v4'] + '\n')
-    file.write('\n')
-
-    file.write('[monitor]\n')
-    file.write([obj for obj in data['values']['root_module']['resources'] if
-                obj['address'] == 'openstack_compute_instance_v2.monitor'][0]['values']['access_ip_v4'] + '\n')
-    file.write('\n')
-
-    file.write('[consumers]\n')
     for obj in data['values']['root_module']['resources']:
-        if obj['address'] == 'openstack_compute_instance_v2.consumers':
+        if obj['address'] == 'openstack_compute_instance_v2.nfs_server':
+            file.write('\n')
+            file.write('[nfs_server]\n')
             file.write(obj['values']['access_ip_v4'] + '\n')
-
-# print(json.dumps(output, indent=4))
+        elif obj['address'] == 'openstack_compute_instance_v2.postgres':
+            file.write('\n')
+            file.write('[postgres]\n')
+            file.write(obj['values']['access_ip_v4'] + '\n')
+        elif obj['address'] == 'openstack_compute_floatingip_associate_v2.sequence_search':
+            file.write('\n')
+            file.write('[sequence_search]\n')
+            file.write(obj['values']['floating_ip'] + '\n')
+        elif obj['address'] == 'openstack_compute_instance_v2.producer':
+            file.write('\n')
+            file.write('[producer]\n')
+            file.write(obj['values']['access_ip_v4'] + '\n')
+        elif obj['address'] == 'openstack_compute_instance_v2.monitor':
+            file.write('\n')
+            file.write('[monitor]\n')
+            file.write(obj['values']['access_ip_v4'] + '\n')
+        elif obj['address'].startswith('openstack_compute_instance_v2.consumers'):
+            if not consumers:
+                file.write('\n')
+                file.write('[consumers]\n')
+                consumers = True
+            file.write(obj['values']['access_ip_v4'] + '\n')

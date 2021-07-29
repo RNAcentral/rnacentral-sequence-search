@@ -3,10 +3,25 @@ openstack.rc
 terraform/providers.tf
 terraform/terraform.tfstate.backup
 terraform/terraform.tfstate.d/test/*.backup
+terraform/terraform.tfstate.d/covid/*.backup
 terraform/sequence_search_rsa
 terraform/sequence_search_rsa.pub
 terraform/.terraform
 terraform/current_state
+
+terraform/load_balancer/providers.tf
+terraform/load_balancer/terraform.tfstate.backup
+terraform/load_balancer/load_balancer_rsa
+terraform/load_balancer/load_balancer_rsa.pub
+terraform/load_balancer/.terraform
+
+terraform_embassy_3/providers.tf
+terraform_embassy_3/terraform.tfstate.backup
+terraform_embassy_3/terraform.tfstate.d/test/*.backup
+terraform_embassy_3/sequence_search_rsa
+terraform_embassy_3/sequence_search_rsa.pub
+terraform_embassy_3/.terraform
+terraform_embassy_3/current_state
 
 terraform_load_balancer/providers.tf
 terraform_load_balancer/terraform.tfstate.backup

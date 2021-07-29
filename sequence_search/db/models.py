@@ -127,6 +127,9 @@ JobChunkResult = sa.Table('job_chunk_results', metadata,
                           sa.Column('target_coverage', sa.Float),
                           sa.Column('gaps', sa.Float),
                           sa.Column('query_length', sa.Integer),
+                          sa.Column('alignment_start', sa.Integer),
+                          sa.Column('alignment_stop', sa.Integer),
+                          sa.Column('alignment_sequence', sa.Text),
                           sa.Column('result_id', sa.Integer))
 
 InfernalJob = sa.Table('infernal_job', metadata,
@@ -243,6 +246,9 @@ async def migrate(ENVIRONMENT):
                   target_coverage FLOAT NOT NULL,
                   gaps FLOAT NOT NULL,
                   query_length INTEGER NOT NULL,
+                  alignment_start INTEGER NOT NULL,
+                  alignment_stop INTEGER NOT NULL,
+                  alignment_sequence TEXT NOT NULL,
                   result_id INTEGER NOT NULL)
             ''')
 

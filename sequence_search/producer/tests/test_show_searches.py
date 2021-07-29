@@ -87,14 +87,28 @@ class ShowSearchesTestCase(AioHTTPTestCase):
         date_01 = self.date_01.strftime("%Y-%m")
         date_02 = self.date_02.strftime("%Y-%m")
         date_03 = self.date_03.strftime("%Y-%m")
-        searches_per_month = []
+        searches_per_month = [
+            {"2019-11": 550}, {"2019-12": 1278}, {"2020-01": 1110}, {"2020-02": 602}, {"2020-03": 1142},
+            {"2020-04": 918}, {"2020-05": 2003}, {"2020-06": 1218}, {"2020-07": 2899}, {"2020-08": 3210},
+            {"2020-09": 4138}, {"2020-10": 8435}, {"2020-11": 3521}, {"2020-12": 18267}
+        ]
+
+        # Add 135 searches that were performed in the test environment in Mar/21
+        date_01_value = 0
+        date_03_value = 0
+        if date_01 == "2021-03":
+            date_01_value = 135
+        elif date_03 == "2021-03":
+            date_03_value = 135
 
         if date_01 == date_02 and date_02 == date_03:
-            searches_per_month = [{date_01: 3}]
+            searches_per_month.append({date_01: 3 + date_01_value})
         elif date_01 == date_02 and date_02 != date_03:
-            searches_per_month = [{date_03: 1}, {date_01: 2}]
+            searches_per_month.append({date_03: 1 + date_03_value})
+            searches_per_month.append({date_01: 2 + date_01_value})
         elif date_01 != date_02 and date_02 == date_03:
-            searches_per_month = [{date_03: 2}, {date_01: 1}]
+            searches_per_month.append({date_03: 2 + date_03_value})
+            searches_per_month.append({date_01: 1 + date_01_value})
 
         url = self.app.router["show-searches"].url_for()
         async with self.client.get(path=url) as response:
@@ -106,5 +120,16 @@ class ShowSearchesTestCase(AioHTTPTestCase):
                 "last_24_hours_result": {"count": 1, "avg_time": 0},
                 "last_week_result": {"count": 2, "avg_time": 0},
                 "searches_per_month": searches_per_month,
-                "expert_db_results": [{"RNAcentral": []}, {"Rfam": []}, {"miRBase": []}, {"snoDB": []}, {"Others": []}]
+                "expert_db_results": [
+                    {'RNAcentral': [{'2020-05': 1116}, {'2020-06': 613}, {'2020-07': 850}, {'2020-08': 1584},
+                                    {'2020-09': 2263}, {'2020-10': 1435}, {'2020-11': 900}, {'2020-12': 672}]},
+                    {'Rfam': [{'2020-05': 1313}, {'2020-06': 540}, {'2020-07': 1611}, {'2020-08': 1010},
+                              {'2020-09': 1005}, {'2020-10': 1292}, {'2020-11': 1806}, {'2020-12': 1340}]},
+                    {'miRBase': [{'2020-07': 351}, {'2020-08': 614}, {'2020-09': 827}, {'2020-10': 529},
+                                 {'2020-11': 497}, {'2020-12': 849}]},
+                    {'snoDB': [{'2020-07': 74}, {'2020-08': 0}, {'2020-09': 32}, {'2020-10': 11}, {'2020-11': 69},
+                               {'2020-12': 4}]},
+                    {'GtRNAdb': [{'2020-11': 60}, {'2020-12': 26}]},
+                    {'API': []}
+                ]
             }

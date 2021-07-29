@@ -1,9 +1,9 @@
 locals {
-  count = "${terraform.workspace == "default" ? var.default_instances : var.test_instances}"
-  floating_ip = "${terraform.workspace == "default" ? var.default_floating_ip : var.test_floating_ip }"
+  count = "${terraform.workspace == "default" ? var.default_instances : terraform.workspace == "test" ? var.test_instances : var.covid_instances }"
+  floating_ip = "${terraform.workspace == "default" ? var.default_floating_ip : terraform.workspace == "test" ? var.test_floating_ip : var.covid_floating_ip }"
+  tfstate_file = "${terraform.workspace == "default" ? var.default_tfstate : terraform.workspace == "test" ? var.test_tfstate : var.covid_tfstate }"
   nfs_size = "${terraform.workspace == "default" ? var.one_hundred : var.fifty }"
   db_size = "${terraform.workspace == "default" ? var.two_hundred : var.fifty }"
-  tfstate_file = "${terraform.workspace == "default" ? var.default_tfstate : var.test_tfstate }"
 }
 
 output "floating_ip" {
@@ -163,7 +163,7 @@ resource "openstack_compute_secgroup_v2" "sequence_search_monitor_instance" {
 }
 
 resource "openstack_compute_instance_v2" "producer" {
-  depends_on = ["openstack_compute_keypair_v2.sequence_search", "openstack_networking_subnet_v2.sequence_search"]
+  depends_on = [openstack_compute_keypair_v2.sequence_search, openstack_networking_subnet_v2.sequence_search]
   name = "${terraform.workspace}-producer"
   image_name = "${var.image}"
   flavor_name = "${var.flavor}"
@@ -176,7 +176,7 @@ resource "openstack_compute_instance_v2" "producer" {
 }
 
 resource "openstack_compute_instance_v2" "postgres" {
-  depends_on = ["openstack_compute_keypair_v2.sequence_search", "openstack_networking_subnet_v2.sequence_search"]
+  depends_on = [openstack_compute_keypair_v2.sequence_search, openstack_networking_subnet_v2.sequence_search]
   name = "${terraform.workspace}-postgres"
   image_name = "${var.image}"
   flavor_name = "${var.flavor}"
@@ -189,9 +189,9 @@ resource "openstack_compute_instance_v2" "postgres" {
 }
 
 resource "openstack_compute_instance_v2" "nfs_server" {
-  depends_on = ["openstack_compute_keypair_v2.sequence_search", "openstack_networking_subnet_v2.sequence_search"]
+  depends_on = [openstack_compute_keypair_v2.sequence_search, openstack_networking_subnet_v2.sequence_search]
   name              = "${terraform.workspace}-nfs-server"
-  image_name        = "ubuntu-16.04"
+  image_name        = "Ubuntu-18.04"
   flavor_name       = "${var.flavor}"
   key_pair          = "${openstack_compute_keypair_v2.sequence_search.name}"
   security_groups   = [ "${openstack_compute_secgroup_v2.sequence_search_nfs_instance.name}" ]
@@ -202,7 +202,7 @@ resource "openstack_compute_instance_v2" "nfs_server" {
 }
 
 resource "openstack_compute_instance_v2" "monitor" {
-  depends_on = ["openstack_compute_keypair_v2.sequence_search", "openstack_networking_subnet_v2.sequence_search"]
+  depends_on = [openstack_compute_keypair_v2.sequence_search, openstack_networking_subnet_v2.sequence_search]
   name = "${terraform.workspace}-monitor"
   image_name = "${var.image}"
   flavor_name = "${var.flavor_monitor}"
@@ -216,7 +216,7 @@ resource "openstack_compute_instance_v2" "monitor" {
 
 resource "openstack_compute_instance_v2" "consumers" {
   count = "${local.count}"
-  depends_on = ["openstack_compute_keypair_v2.sequence_search", "openstack_networking_subnet_v2.sequence_search"]
+  depends_on = [openstack_compute_keypair_v2.sequence_search, openstack_networking_subnet_v2.sequence_search]
   name = "${terraform.workspace}-consumer-${count.index + 1}"
   image_name = "${var.image}"
   flavor_name = "${var.flavor}"
@@ -249,7 +249,7 @@ resource "openstack_compute_volume_attach_v2" "attach_db" {
 }
 
 resource "openstack_compute_floatingip_associate_v2" "sequence_search" {
-  depends_on = ["openstack_compute_instance_v2.producer", "openstack_networking_router_interface_v2.sequence_search"]
+  depends_on = [openstack_compute_instance_v2.producer, openstack_networking_router_interface_v2.sequence_search]
   floating_ip = "${local.floating_ip}"
   instance_id = "${openstack_compute_instance_v2.producer.id}"
 }

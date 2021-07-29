@@ -2,15 +2,17 @@
 
 ---
   # This role is related to producer installation
-  - name: Enable epel repository
-    yum_repository:
-      name: epel
-      baseurl: https://download.fedoraproject.org/pub/epel/$releasever/$basearch/
-      enabled: yes
-      state: present
-      description: epel repostiory
-      gpgcheck: no
-    tags: [ install-deps ]
+
+# This repository did not work on CentOS 8
+#  - name: Enable epel repository
+#    yum_repository:
+#      name: epel
+#      baseurl: https://download.fedoraproject.org/pub/epel/$releasever/$basearch/
+#      enabled: yes
+#      state: present
+#      description: epel repostiory
+#      gpgcheck: no
+#    tags: [ install-deps ]
 
   - name: Install yum dependencies
     yum:
@@ -20,6 +22,7 @@
       - gcc
       - gcc-c++
       - git
+      - iptables-services
       - libaio
       - libffi-devel
       - make

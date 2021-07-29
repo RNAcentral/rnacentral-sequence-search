@@ -401,7 +401,10 @@ async def get_job_results(engine, job_id, limit=1000):
                     JobChunkResult.c.target_coverage,
                     JobChunkResult.c.gaps,
                     JobChunkResult.c.query_length,
-                    JobChunkResult.c.result_id
+                    JobChunkResult.c.result_id,
+                    JobChunkResult.c.alignment_start,
+                    JobChunkResult.c.alignment_stop,
+                    JobChunkResult.c.alignment_sequence,
                 ])
                 .select_from(sa.join(JobChunk, JobChunkResult, JobChunk.c.id == JobChunkResult.c.job_chunk_id))  # noqa
                 .order_by(JobChunkResult.c.score.desc())
@@ -450,6 +453,9 @@ async def get_job_results(engine, job_id, limit=1000):
                     'gaps': row[17],
                     'query_length': row[18],
                     'result_id': row[19],
+                    'alignment_start': row[20],
+                    'alignment_stop': row[21],
+                    'alignment_sequence': row[22],
                     'species_priority': species_priority if species_priority else 'd'
                 })
 

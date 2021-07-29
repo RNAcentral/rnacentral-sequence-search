@@ -1,15 +1,16 @@
 ---
   # This role is about consumer installation
 
-  - name: Enable epel repository
-    yum_repository:
-      name: epel
-      baseurl: https://download.fedoraproject.org/pub/epel/$releasever/$basearch/
-      enabled: yes
-      state: present
-      description: epel repostiory
-      gpgcheck: no
-    tags: [ install-deps ]
+# This repository did not work on CentOS 8
+#  - name: Enable epel repository
+#    yum_repository:
+#      name: epel
+#      baseurl: https://download.fedoraproject.org/pub/epel/$releasever/$basearch/
+#      enabled: yes
+#      state: present
+#      description: epel repostiory
+#      gpgcheck: no
+#    tags: [ install-deps ]
 
   - name: Install yum dependencies
     yum:
@@ -19,6 +20,7 @@
       - gcc
       - gcc-c++
       - git
+      - iptables-services
       - libaio
       - libffi-devel
       - make
@@ -89,7 +91,7 @@
   - name: Install Rfam
     shell:
       chdir: /srv/sequence_search/consumer/rfam
-      cmd: curl -OL ftp://ftp.ebi.ac.uk/pub/databases/Rfam/CURRENT/Rfam.cm.gz && gunzip Rfam.cm.gz
+      cmd: curl -OL http://ftp.ebi.ac.uk/pub/databases/Rfam/CURRENT/Rfam.cm.gz && gunzip Rfam.cm.gz
     tags: [ rfam ]
 
   - name: Create the cm binaries

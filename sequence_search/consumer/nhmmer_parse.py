@@ -65,6 +65,8 @@ score  bias    Evalue   hmmfrom    hmm to     alifrom    ali to      envfrom    
             'score': float(scores[0]),
             'bias': float(scores[1]),
             'e_value': float(scores[2]),
+            'alignment_start': float(scores[5]),
+            'alignment_stop': float(scores[6]),
             'target_length': int(scores[9]),
         }
 
@@ -93,6 +95,7 @@ URS0000000013 137 AAGAGGGGGACCUUCGGGCCUCUCGCGUCAAGAU 170
     nts_count1 = 0
     nts_count2 = 0
     gap_count = 0
+    alignment_sequence = ''
 
     for i, line in enumerate(lines):
         gaps = line.count('-') + line.count('.')
@@ -121,6 +124,11 @@ URS0000000013 137 AAGAGGGGGACCUUCGGGCCUCUCGCGUCAAGAU 170
                 nts_count2 += block_length - gaps
                 gap_count += gaps
             alignment.append(line)
+            try:
+                get_alignment_sequence = list(filter(None, line.split(" ")))[2]
+                alignment_sequence += get_alignment_sequence
+            except IndexError:
+                pass
         elif i % 5 == 3:  # skip nhmmer confidence lines
             pass
         elif i % 5 == 4:  # blank line
@@ -137,6 +145,7 @@ URS0000000013 137 AAGAGGGGGACCUUCGGGCCUCUCGCGUCAAGAU 170
         'query_coverage': (float(nts_count1) / query_length) * 100,
         'target_coverage': (float(nts_count2) / target_length) * 100,
         'gaps': (float(gap_count) / alignment_length) * 100,
+        'alignment_sequence': alignment_sequence.replace('-', '')
     }
 
 
