@@ -3,7 +3,7 @@ variable "image" {
 }
 
 variable "flavor" {
-  default = "4c6m50d"
+  default = "4c8m80d"
 }
 
 variable "flavor_monitor" {
@@ -35,7 +35,7 @@ variable "covid_floating_ip" {
 }
 
 variable "default_instances" {
-  default = 40
+  default = 15
 }
 
 variable "test_instances" {
