@@ -35,7 +35,7 @@ variable "covid_floating_ip" {
 }
 
 variable "default_instances" {
-  default = 15
+  default = 25
 }
 
 variable "test_instances" {
