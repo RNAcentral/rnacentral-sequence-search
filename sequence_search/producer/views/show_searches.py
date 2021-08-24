@@ -32,6 +32,13 @@ async def show_searches(request):
         all_searches_records = await all_searches.fetchall()
         all_searches_result = convert_average_time(all_searches_records)
 
+        high_priority = await conn.execute(
+            "SELECT count(*), avg(finished - submitted) as avg_time FROM jobs "
+            "WHERE (description !='sequence-search-test' OR description IS NULL) AND priority = 'high'"
+        )
+        high_priority_records = await high_priority.fetchall()
+        high_priority_result = convert_average_time(high_priority_records)
+
         last_24_hours = await conn.execute(
             "SELECT count(*), avg(finished - submitted) as avg_time FROM jobs "
             "WHERE (description !='sequence-search-test' OR description IS NULL) AND submitted > %s",
@@ -154,6 +161,7 @@ async def show_searches(request):
 
         response = {
             "all_searches_result": all_searches_result[0],
+            "high_priority_result": high_priority_result[0],
             "last_24_hours_result": last_24_hours_result[0],
             "last_week_result": last_week_result[0],
             "searches_per_month": searches_per_month_result,
