@@ -25,35 +25,40 @@ def convert_average_time(records):
 
 async def show_searches(request):
     async with request.app['engine'].acquire() as conn:
-        all_searches = await conn.execute(
-            "SELECT count(*), avg(finished - submitted) as avg_time FROM jobs "
-            "WHERE description !='sequence-search-test' OR description IS NULL"
-        )
+        query = "SELECT count(*), avg(finished - submitted) as avg_time FROM jobs " \
+                "WHERE (description !='sequence-search-test' OR description IS NULL) "
+
+        all_searches = await conn.execute(query)
         all_searches_records = await all_searches.fetchall()
         all_searches_result = convert_average_time(all_searches_records)
 
-        high_priority = await conn.execute(
-            "SELECT count(*), avg(finished - submitted) as avg_time FROM jobs "
-            "WHERE (description !='sequence-search-test' OR description IS NULL) AND priority = 'high'"
-        )
+        high_priority = await conn.execute(query + "AND priority = 'high'")
         high_priority_records = await high_priority.fetchall()
         high_priority_result = convert_average_time(high_priority_records)
 
         last_24_hours = await conn.execute(
-            "SELECT count(*), avg(finished - submitted) as avg_time FROM jobs "
-            "WHERE (description !='sequence-search-test' OR description IS NULL) AND submitted > %s",
-            datetime.datetime.now() - datetime.timedelta(days=1)
+            query + "AND submitted > %s", datetime.datetime.now() - datetime.timedelta(days=1)
         )
         last_24_hours_records = await last_24_hours.fetchall()
         last_24_hours_result = convert_average_time(last_24_hours_records)
 
+        high_priority_24_hours = await conn.execute(
+            query + "AND priority = 'high' AND submitted > %s", datetime.datetime.now() - datetime.timedelta(days=1)
+        )
+        high_priority_24_hours_records = await high_priority_24_hours.fetchall()
+        high_priority_24_hours_result = convert_average_time(high_priority_24_hours_records)
+
         last_week = await conn.execute(
-            "SELECT count(*), avg(finished - submitted) as avg_time FROM jobs "
-            "WHERE (description !='sequence-search-test' OR description IS NULL) AND submitted > %s",
-            datetime.datetime.now() - datetime.timedelta(days=7)
+            query + "AND submitted > %s", datetime.datetime.now() - datetime.timedelta(days=7)
         )
         last_week_records = await last_week.fetchall()
         last_week_result = convert_average_time(last_week_records)
+
+        high_priority_last_week = await conn.execute(
+            query + "AND priority = 'high' AND submitted > %s", datetime.datetime.now() - datetime.timedelta(days=7)
+        )
+        high_priority_last_week_records = await high_priority_last_week.fetchall()
+        high_priority_last_week_result = convert_average_time(high_priority_last_week_records)
 
         searches_per_month = await conn.execute(
             "SELECT date_trunc('month', submitted) AS submitted_month, count(id) FROM jobs "
@@ -161,9 +166,11 @@ async def show_searches(request):
 
         response = {
             "all_searches_result": all_searches_result[0],
-            "high_priority_result": high_priority_result[0],
             "last_24_hours_result": last_24_hours_result[0],
             "last_week_result": last_week_result[0],
+            "high_priority_result": high_priority_result[0],
+            "high_priority_24_hours_result": high_priority_24_hours_result[0],
+            "high_priority_last_week_result": high_priority_last_week_result[0],
             "searches_per_month": searches_per_month_result,
             "expert_db_results": expert_db_results
         }
