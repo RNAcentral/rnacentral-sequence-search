@@ -2,7 +2,7 @@ locals {
   count = "${terraform.workspace == "default" ? var.default_instances : terraform.workspace == "test" ? var.test_instances : var.covid_instances }"
   floating_ip = "${terraform.workspace == "default" ? var.default_floating_ip : terraform.workspace == "test" ? var.test_floating_ip : var.covid_floating_ip }"
   tfstate_file = "${terraform.workspace == "default" ? var.default_tfstate : terraform.workspace == "test" ? var.test_tfstate : var.covid_tfstate }"
-  nfs_size = "${terraform.workspace == "default" ? var.one_hundred : var.fifty }"
+  nfs_size = "${terraform.workspace == "default" ? var.one_hundred : terraform.workspace == "test" ? var.ninety : var.fifty }"
   db_size = "${terraform.workspace == "default" ? var.two_hundred : var.fifty }"
 }
 
@@ -79,6 +79,20 @@ resource "openstack_compute_secgroup_v2" "sequence_search" {
   rule {
     from_port = 8002
     to_port = 8002
+    ip_protocol = "tcp"
+    cidr = "0.0.0.0/0"
+  }
+
+  rule {
+    from_port = 8081
+    to_port = 8081
+    ip_protocol = "tcp"
+    cidr = "192.168.0.0/24"
+  }
+
+  rule {
+    from_port = 8080
+    to_port = 8080
     ip_protocol = "tcp"
     cidr = "0.0.0.0/0"
   }
@@ -219,7 +233,7 @@ resource "openstack_compute_instance_v2" "consumers" {
   depends_on = [openstack_compute_keypair_v2.sequence_search, openstack_networking_subnet_v2.sequence_search]
   name = "${terraform.workspace}-consumer-${count.index + 1}"
   image_name = "${var.image}"
-  flavor_name = "${var.flavor}"
+  flavor_name = "${var.flavor_consumer}"
   key_pair = "${openstack_compute_keypair_v2.sequence_search.name}"
   security_groups = [ "${openstack_compute_secgroup_v2.sequence_search.name}" ]
   network {
