@@ -3,11 +3,15 @@ variable "image" {
 }
 
 variable "flavor" {
-  default = "4c6m50d"
+  default = "4c6m50d"  # 4 vcpu | 6GB RAM | 50GB disk
+}
+
+variable "flavor_consumer" {
+  default = "4c8m80d"  # 4 vcpu | 8GB RAM | 80GB disk
 }
 
 variable "flavor_monitor" {
-  default = "1c2m20d"
+  default = "1c2m20d"  # 1 vcpu | 2GB RAM | 20GB disk
 }
 
 variable "ssh_key_file" {
@@ -35,11 +39,11 @@ variable "covid_floating_ip" {
 }
 
 variable "default_instances" {
-  default = 40
+  default = 25
 }
 
 variable "test_instances" {
-  default = 10
+  default = 8
 }
 
 variable "covid_instances" {
@@ -48,6 +52,10 @@ variable "covid_instances" {
 
 variable "fifty" {
   default = 50
+}
+
+variable "ninety" {
+  default = 90  # created to use the entire volume
 }
 
 variable "one_hundred" {

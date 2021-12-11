@@ -35,7 +35,7 @@ rnacentral_databases = [
     RnacentralDatabases("flybase", "FlyBase", 3.429574),
     RnacentralDatabases("genecards", "GeneCards", 305.92219),
     RnacentralDatabases("greengenes", "GreenGenes", 1423.553627),
-    RnacentralDatabases("gtrnadb", "GtRNAdb", 993.581646),
+    RnacentralDatabases("gtrnadb", "GtRNAdb", 18.260962),
     RnacentralDatabases("hgnc", "HGNC", 7.575653),
     RnacentralDatabases("lncbase", "LncBase", 0.029263),
     RnacentralDatabases("lncbook", "LncBook", 403.980845),

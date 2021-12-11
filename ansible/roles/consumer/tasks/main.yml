@@ -235,7 +235,7 @@
 
   - name: Get running processes
 #    shell: "sudo kill $(ps -ef | grep -v grep | grep -w gunicorn | awk '{print $2}')"
-    shell: "sudo kill $(ps -ef | grep -v grep | grep -w consumer | awk '{print $2}')"
+    shell: "sudo kill $(ps -ef | grep -v grep | grep -w 'python3.7 -m sequence_search.consumer' | awk '{print $2}')"
     register: running_processes
     ignore_errors: yes
     tags: [ restart, quick ]
