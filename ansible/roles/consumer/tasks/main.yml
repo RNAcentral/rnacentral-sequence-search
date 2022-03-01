@@ -1,5 +1,10 @@
 ---
   # This role is about consumer installation
+  #
+  # CentOS Linux 8 reached End Of Life (EOL) on December 31st, 2021!
+  # A new OS must be used, but for now I've updated the mirror in order to run Ansible playbooks.
+  # sudo sed -i 's/mirrorlist/#mirrorlist/g' /etc/yum.repos.d/CentOS-*
+  # sudo sed -i 's|#baseurl=http://mirror.centos.org|baseurl=http://vault.centos.org|g' /etc/yum.repos.d/CentOS-
 
 # This repository did not work on CentOS 8
 #  - name: Enable epel repository
