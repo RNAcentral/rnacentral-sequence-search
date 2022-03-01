@@ -15,19 +15,12 @@ terraform/load_balancer/load_balancer_rsa
 terraform/load_balancer/load_balancer_rsa.pub
 terraform/load_balancer/.terraform
 
-terraform_embassy_3/providers.tf
-terraform_embassy_3/terraform.tfstate.backup
-terraform_embassy_3/terraform.tfstate.d/test/*.backup
-terraform_embassy_3/sequence_search_rsa
-terraform_embassy_3/sequence_search_rsa.pub
-terraform_embassy_3/.terraform
-terraform_embassy_3/current_state
-
-terraform_load_balancer/providers.tf
-terraform_load_balancer/terraform.tfstate.backup
-terraform_load_balancer/load_balancer_rsa
-terraform_load_balancer/load_balancer_rsa.pub
-terraform_load_balancer/.terraform
+gcp/providers.tf
+gcp/terraform.tfstate.backup
+gcp/gcp_rsa
+gcp/gcp_rsa.pub
+gcp/.terraform*
+gcp/prj*
 
 ukcloud/providers.tf
 ukcloud/terraform.tfstate.backup
