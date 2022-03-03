@@ -19,6 +19,28 @@ resource "google_compute_subnetwork" "sequence_search" {
   depends_on = [google_compute_network.sequence_search]
 }
 
+resource "google_compute_address" "nat-ip" {
+  name = "gcp-nat-ip"
+}
+
+resource "google_compute_router" "nat-router" {
+  name = "gcp-nat-router"
+  network = google_compute_network.sequence_search.name
+}
+
+resource "google_compute_router_nat" "nat-gateway" {
+  name = "gcp-nat-gateway"
+  router = google_compute_router.nat-router.name
+  nat_ip_allocate_option = "MANUAL_ONLY"
+  nat_ips = [ google_compute_address.nat-ip.self_link ]
+  source_subnetwork_ip_ranges_to_nat = "LIST_OF_SUBNETWORKS"
+  subnetwork {
+     name = google_compute_subnetwork.sequence_search.name
+     source_ip_ranges_to_nat = ["ALL_IP_RANGES"]
+  }
+  depends_on = [ google_compute_address.nat-ip ]
+}
+
 resource "google_compute_firewall" "allow-internal" {
   name = "gcp-fw-allow-internal"
   network = google_compute_network.sequence_search.name
@@ -176,4 +198,8 @@ resource "google_compute_attached_disk" "attached" {
 
 output "vm-external-ip" {
   value = google_compute_instance.producer.network_interface.0.access_config.0.nat_ip
+}
+
+output "nat_ip_address" {
+  value = google_compute_address.nat-ip.address
 }
