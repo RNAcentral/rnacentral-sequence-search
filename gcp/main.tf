@@ -187,6 +187,7 @@ resource "google_compute_disk" "nfs_volume" {
   name = "gcp-nfs-volume"
   zone = "${var.region}"
   image = "debian-9-stretch-v20200805"
+  size = 50
   physical_block_size_bytes = 4096
 }
 
