@@ -3,6 +3,7 @@
   vars:
     ansible_python_interpreter: "/usr/bin/python3" # set ansible interpreter to python3
     ansible_ssh_private_key_file: "../terraform/sequence_search_rsa"
+    # ansible_ssh_private_key_file: "../gcp/gcp_rsa"
     network_ip: 192.168.0.0/24
   become: true
   gather_facts: no
@@ -40,11 +41,13 @@
       filesystem:
         fstype: xfs
         dev: /dev/vdb
+        # dev: /dev/sdb  # used in GCP
 
     - name: Mount volume to nfs directory
       mount:
         path: /nfs
         src: /dev/vdb
+        # src: /dev/sdb  # used in GCP
         fstype: xfs
         state: mounted
 
