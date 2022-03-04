@@ -216,11 +216,11 @@ async def migrate(ENVIRONMENT):
             await connection.execute('''
                 CREATE TABLE job_chunks (
                   id serial PRIMARY KEY,
-                  job_id VARCHAR(36) references jobs(id),
+                  job_id VARCHAR(36) references jobs(id) ON UPDATE CASCADE ON DELETE CASCADE,
                   database VARCHAR(255),
                   submitted TIMESTAMP,
                   finished TIMESTAMP,
-                  consumer VARCHAR(20) references consumer(ip),
+                  consumer VARCHAR(20) references consumer(ip) ON UPDATE CASCADE ON DELETE SET NULL,
                   hits INTEGER,
                   status VARCHAR(255))
             ''')
@@ -228,7 +228,7 @@ async def migrate(ENVIRONMENT):
             await connection.execute('''
                 CREATE TABLE job_chunk_results (
                   id serial PRIMARY KEY,
-                  job_chunk_id INT references job_chunks(id),
+                  job_chunk_id INT references job_chunks(id) ON UPDATE CASCADE ON DELETE CASCADE,
                   rnacentral_id VARCHAR(255) NOT NULL,
                   description TEXT,
                   score FLOAT NOT NULL,
@@ -255,8 +255,8 @@ async def migrate(ENVIRONMENT):
             await connection.execute('''
                 CREATE TABLE infernal_job (
                   id serial PRIMARY KEY,
-                  job_id VARCHAR(36) references jobs(id),
-                  consumer VARCHAR(20) references consumer(ip),
+                  job_id VARCHAR(36) references jobs(id) ON UPDATE CASCADE ON DELETE CASCADE,
+                  consumer VARCHAR(20) references consumer(ip) ON UPDATE CASCADE ON DELETE SET NULL,
                   submitted TIMESTAMP,
                   finished TIMESTAMP,
                   priority VARCHAR(255),
@@ -266,7 +266,7 @@ async def migrate(ENVIRONMENT):
             await connection.execute('''
                 CREATE TABLE infernal_result (
                   id serial PRIMARY KEY,
-                  infernal_job_id INT references infernal_job(id),
+                  infernal_job_id INT references infernal_job(id) ON UPDATE CASCADE ON DELETE CASCADE,
                   target_name VARCHAR(255),
                   accession_rfam VARCHAR(255),
                   query_name VARCHAR(255),
