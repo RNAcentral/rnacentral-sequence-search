@@ -14,6 +14,7 @@
   become_method: sudo
   vars:
     ansible_ssh_private_key_file: "../terraform/sequence_search_rsa"
+    # ansible_ssh_private_key_file: "../gcp/gcp_rsa"
   tasks:
     - name: Drop the database and re-create it
       shell:

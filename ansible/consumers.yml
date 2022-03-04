@@ -6,6 +6,7 @@
   become_method: sudo
   vars:
     ansible_ssh_private_key_file: "../terraform/sequence_search_rsa"
+    # ansible_ssh_private_key_file: "../gcp/gcp_rsa"
   roles:
     - {role: consumer, tags: 'consumer'}
     - ssh

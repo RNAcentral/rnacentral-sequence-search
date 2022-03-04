@@ -1,6 +1,7 @@
 - name: NFS client installation and nfs server mount
   vars:
     ansible_ssh_private_key_file: "../terraform/sequence_search_rsa"
+    # ansible_ssh_private_key_file: "../gcp/gcp_rsa"
     nfs_server_ip: 192.168.0.7
     nfs_mount_path: "/nfs"
   hosts: producer:consumers

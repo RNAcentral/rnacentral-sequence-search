@@ -32,6 +32,8 @@
       - openssl
       - openssl-devel
       - postgresql.x86_64
+      - rsync
+      - rsync-daemon
       - tar
       - unzip
       - wget
