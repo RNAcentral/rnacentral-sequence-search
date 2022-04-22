@@ -95,7 +95,7 @@ async def get_text_search_results(results, job_id, query, start, size, facetcoun
     # get the hostname of the machine to use the correct URL
     hostname = socket.gethostname()
 
-    if hostname == 'default-producer':
+    if hostname == 'default-producer' or hostname == 'gcp-producer':
         ebi_search_url = 'https://www.ebi.ac.uk/ebisearch/ws/rest/rnacentral/seqtoolresults/'
     else:
         ebi_search_url = 'https://wwwdev.ebi.ac.uk/ebisearch/ws/rest/rnacentral/seqtoolresults/'
