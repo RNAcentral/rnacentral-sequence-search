@@ -19,7 +19,7 @@ variable "ssh_user_name" {
 }
 
 variable "default_instances" {
-  default = 1
+  default = 8
 }
 
 variable "default_tfstate" {
