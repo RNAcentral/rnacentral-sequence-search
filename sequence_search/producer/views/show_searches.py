@@ -28,14 +28,7 @@ async def show_searches(request):
         query = "SELECT count(*), avg(finished - submitted) as avg_time FROM jobs " \
                 "WHERE (description !='sequence-search-test' OR description IS NULL) "
 
-        all_searches = await conn.execute(query)
-        all_searches_records = await all_searches.fetchall()
-        all_searches_result = convert_average_time(all_searches_records)
-
-        high_priority = await conn.execute(query + "AND priority = 'high'")
-        high_priority_records = await high_priority.fetchall()
-        high_priority_result = convert_average_time(high_priority_records)
-
+        # number of searches and average time in the last 24 hours
         last_24_hours = await conn.execute(
             query + "AND submitted > %s", datetime.datetime.now() - datetime.timedelta(days=1)
         )
@@ -48,6 +41,7 @@ async def show_searches(request):
         high_priority_24_hours_records = await high_priority_24_hours.fetchall()
         high_priority_24_hours_result = convert_average_time(high_priority_24_hours_records)
 
+        # number of searches and average time in the last 7 days
         last_week = await conn.execute(
             query + "AND submitted > %s", datetime.datetime.now() - datetime.timedelta(days=7)
         )
@@ -60,126 +54,48 @@ async def show_searches(request):
         high_priority_last_week_records = await high_priority_last_week.fetchall()
         high_priority_last_week_result = convert_average_time(high_priority_last_week_records)
 
-        searches_per_month = await conn.execute(
-            "SELECT date_trunc('month', submitted) AS submitted_month, count(id) FROM jobs "
-            "WHERE (description !='sequence-search-test' OR description IS NULL) "
-            "GROUP BY submitted_month "
-            "ORDER BY submitted_month",
-        )
-        searches_per_month_records = await searches_per_month.fetchall()
-
-        # TODO: Create table in the database to store search data
-        # Old searches was delete to save space.
-        # Sequence search was migrated to Embassy 4 on 16/Jul/21.
-        # For these reasons, the number of searches from Nov/2019 to Feb/22 is hardcoded.
-        searches_per_month_result = [
-            {"2019-11": 550}, {"2019-12": 1278}, {"2020-01": 1110}, {"2020-02": 602}, {"2020-03": 1142},
-            {"2020-04": 918}, {"2020-05": 2003}, {"2020-06": 1218}, {"2020-07": 2899}, {"2020-08": 3210},
-            {"2020-09": 4138}, {"2020-10": 8435}, {"2020-11": 3521}, {"2020-12": 18267}, {"2021-01": 4974},
-            {"2021-02": 3463}, {"2021-03": 5362}, {"2021-04": 3541}, {"2021-05": 3685}, {"2021-06": 3712},
-            {"2021-07": 3080}, {"2021-08": 4230}, {"2021-09": 3100}, {"2021-10": 4630}, {"2021-11": 4470},
-            {"2021-12": 3145}, {"2022-01": 2782}, {"2022-02": 11758},
-        ]
+        # get data from statistic table
+        searches_per_month_query = await conn.execute("SELECT period,source,total FROM statistic")
+        searches_per_month_records = await searches_per_month_query.fetchall()
+        searches_per_month_result = []
 
         for row in searches_per_month_records:
             row_as_dict = dict(row)
-            period = str(row_as_dict['submitted_month'].strftime("%Y-%m"))
-            if period == "2022-03":
-                # Add 906 searches (searches done before cleaning the db)
-                searches_per_month_result.append({period: row_as_dict['count'] + 906})
-            else:
-                searches_per_month_result.append({period: row_as_dict['count']})
-
-        rnacentral_searches = [
-            {"2020-05": 1116}, {"2020-06": 613}, {"2020-07": 850}, {"2020-08": 1584}, {"2020-09": 2263},
-            {"2020-10": 1435}, {"2020-11": 900}, {"2020-12": 672}, {"2021-01": 1242}, {"2021-02": 883},
-            {"2021-03": 2482}, {"2021-04": 942}, {"2021-05": 1173}, {"2021-06": 869}, {"2021-07": 835},
-            {"2021-08": 763}, {"2021-09": 837}, {"2021-10": 1336}, {"2021-11": 1267}, {"2021-12": 1077},
-            {"2022-01": 826}, {"2022-02": 1159},
-        ]
-        rfam_searches = [
-            {"2020-05": 1313}, {"2020-06": 540}, {"2020-07": 1611}, {"2020-08": 1010}, {"2020-09": 1005},
-            {"2020-10": 1292}, {"2020-11": 1806}, {"2020-12": 1340}, {"2021-01": 1254}, {"2021-02": 1452},
-            {"2021-03": 1538}, {"2021-04": 1102}, {"2021-05": 1278}, {"2021-06": 1149}, {"2021-07": 1031},
-            {"2021-08": 2580}, {"2021-09": 1095}, {"2021-10": 2826}, {"2021-11": 2305}, {"2021-12": 1594},
-            {"2022-01": 1560}, {"2022-02": 1279},
-        ]
-        mirbase_searches = [
-            {"2020-07": 351}, {"2020-08": 614}, {"2020-09": 827}, {"2020-10": 529}, {"2020-11": 497},
-            {"2020-12": 849}, {"2021-01": 2202}, {"2021-02": 1109}, {"2021-03": 1109}, {"2021-04": 1489},
-            {"2021-05": 398}, {"2021-06": 958}, {"2021-07": 1217}, {"2021-08": 381}, {"2021-09": 399},
-            {"2021-10": 385}, {"2021-11": 632}, {"2021-12": 442}, {"2022-01": 355}, {"2022-02": 477},
-        ]
-        snodb_searches = [
-            {"2020-07": 74}, {"2020-08": 0}, {"2020-09": 32}, {"2020-10": 11}, {"2020-11": 69}, {"2020-12": 4},
-            {"2021-01": 53}, {"2021-02": 4}, {"2021-03": 9}, {"2021-04": 2}, {"2021-05": 4}, {"2021-06": 3},
-            {"2021-07": 6}, {"2021-08": 4}, {"2021-09": 6}, {"2021-10": 13}, {"2021-11": 32}, {"2021-12": 9},
-            {"2022-01": 4}, {"2022-02": 17},
-        ]
-        gtrnadb_searches = [
-            {"2020-11": 60}, {"2020-12": 26}, {"2021-01": 10}, {"2021-02": 13}, {"2021-03": 51}, {"2021-04": 6},
-            {"2021-05": 38}, {"2021-06": 19}, {"2021-07": 17}, {"2021-08": 18}, {"2021-09": 16}, {"2021-10": 63},
-            {"2021-11": 34}, {"2021-12": 15}, {"2022-01": 30}, {"2022-02": 10},
-        ]
-
-        expert_dbs = ["rnacentral.org", "rfam", "mirbase", "scottgroup", "gtrnadb", ""]
-        expert_db_results = []
-        for db in expert_dbs:
-            searches_per_db = await conn.execute(
-                "SELECT date_trunc('month', submitted) AS submitted_month, count(id) FROM jobs "
-                "WHERE (description !='sequence-search-test' OR description IS NULL) AND url LIKE %s "
-                "GROUP BY submitted_month "
-                "ORDER BY submitted_month",
-                "%"+db+"%" if db != "" else ""
+            searches_per_month_result.append(
+                {'period': row_as_dict['period'], 'source': row_as_dict['source'], 'total': row_as_dict['total']}
             )
-            searches_per_db_records = await searches_per_db.fetchall()
-            if db == "rnacentral.org":
-                expert_db = "RNAcentral"
-                searches_per_db_list = rnacentral_searches
-            elif db == "rfam":
-                expert_db = "Rfam"
-                searches_per_db_list = rfam_searches
-            elif db == "mirbase":
-                expert_db = "miRBase"
-                searches_per_db_list = mirbase_searches
-            elif db == "scottgroup":
-                expert_db = "snoDB"
-                searches_per_db_list = snodb_searches
-            elif db == "gtrnadb":
-                expert_db = "GtRNAdb"
-                searches_per_db_list = gtrnadb_searches
-            elif db == "":
-                expert_db = "API"
-                searches_per_db_list = []
 
-            for row in searches_per_db_records:
-                row_as_dict = dict(row)
-                period = str(row_as_dict['submitted_month'].strftime("%Y-%m"))
-                searches_per_db_list.append({period: row_as_dict['count']})
+        searches_per_month = []
+        expert_db_results = [
+            {"RNAcentral": []}, {"Rfam": []}, {"miRBase": []}, {"snoDB": []}, {"GtRNAdb": []},
+        ]
 
-            if db == "rnacentral.org":
-                expert_db = "RNAcentral"
-            elif db == "rfam":
-                expert_db = "Rfam"
-            elif db == "mirbase":
-                expert_db = "miRBase"
-            elif db == "scottgroup":
-                expert_db = "snoDB"
-            elif db == "gtrnadb":
-                expert_db = "GtRNAdb"
-            elif db == "":
-                expert_db = "API"
+        for elem in searches_per_month_result:
+            period = elem['period']
+            source = elem['source']
+            total = elem['total']
 
-            expert_db_results.append({expert_db: searches_per_db_list})
+            # add results in search_per_month
+            if not any(period in item for item in searches_per_month):
+                searches_per_month.append({period: total})
+            else:
+                for item in searches_per_month:
+                    for key, value in item.items():
+                        if key == period:
+                            item[key] = value + total
+
+            # add results in expert_db_results
+            for item in expert_db_results:
+                for key, value in item.items():
+                    if key == source:
+                        value.append({period: total})
 
         response = {
-            "all_searches_result": all_searches_result[0],
             "last_24_hours_result": last_24_hours_result[0],
             "last_week_result": last_week_result[0],
-            "high_priority_result": high_priority_result[0],
             "high_priority_24_hours_result": high_priority_24_hours_result[0],
             "high_priority_last_week_result": high_priority_last_week_result[0],
-            "searches_per_month": searches_per_month_result,
+            "searches_per_month": searches_per_month,
             "expert_db_results": expert_db_results
         }
 
