@@ -9,8 +9,9 @@ aiohttp-swagger==1.0.15
 aiohttp-cors==0.7.0
 aiojobs==0.2.1
 async-timeout==3.0.1
-requests==2.23.0
+requests==2.26.0
 netifaces==0.10.9
 gunicorn==20.0.4
 glance==19.0.2
 pymemcache==3.1.1
+python-dotenv==0.20.0
