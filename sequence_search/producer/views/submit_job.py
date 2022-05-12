@@ -15,6 +15,7 @@ import re
 
 from aiohttp import web
 from aiojobs.aiohttp import atomic
+from datetime import datetime
 
 from sequence_search.db.models import JOB_CHUNK_STATUS_CHOICES
 from sequence_search.producer.settings import MIN_QUERY_LENGTH, MAX_QUERY_LENGTH
@@ -22,6 +23,7 @@ from ...db.consumers import delegate_job_chunk_to_consumer, find_available_consu
 from ...db.jobs import find_highest_priority_jobs, save_job, sequence_exists, database_used_in_search
 from ...db.job_chunks import save_job_chunk, set_job_chunk_status
 from ...db.infernal_job import save_infernal_job
+from ...db.statistic import create_statistic, get_statistic, update_statistic
 from ...consumer.rnacentral_databases import producer_validator, producer_to_consumers_databases
 
 
@@ -157,6 +159,28 @@ async def submit_job(request):
         search_from_expert_db = [item for item in expert_dbs if item in url]
         if not search_from_expert_db:
             priority = 'low'
+            source = 'API'
+        else:
+            if "rnacentral.org" in url:
+                source = "RNAcentral"
+            elif "rfam.xfam.org" or "rfam.org" in url:
+                source = "Rfam"
+            elif "mirbase.org" in url:
+                source = "miRBase"
+            elif "scottgroup.med.usherbrooke.ca" in url:
+                source = "snoDB"
+            elif "gtrnadb.ucsc.edu" in url:
+                source = "GtRNAdb"
+            else:
+                source = 'API'
+
+        period = datetime.today().strftime('%Y-%m')
+        statistic = await get_statistic(request.app['engine'], source, period)
+
+        if statistic:
+            await update_statistic(request.app['engine'], statistic['statistic_id'], statistic['statistic_total'] + 1)
+        else:
+            await create_statistic(request.app['engine'], source, period)
 
         # save metadata about this job to the database
         job_id = await save_job(request.app['engine'], data['query'], data['description'], url, priority)
