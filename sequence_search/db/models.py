@@ -164,6 +164,12 @@ InfernalResult = sa.Table('infernal_result', metadata,
                           sa.Column('description', sa.String(255)),
                           sa.Column('alignment', sa.Text))
 
+"""Number of searches performed"""
+Statistic = sa.Table('statistic', metadata,
+                     sa.Column('id', sa.Integer, primary_key=True),
+                     sa.Column('period', sa.String(7)),
+                     sa.Column('source', sa.String(50)),
+                     sa.Column('total', sa.Integer))
 
 # Migrations
 # ----------
@@ -187,6 +193,7 @@ async def migrate(ENVIRONMENT):
             await connection.execute('DROP TABLE IF EXISTS infernal_job')
             await connection.execute('DROP TABLE IF EXISTS jobs')
             await connection.execute('DROP TABLE IF EXISTS consumer')
+            # await connection.execute('DROP TABLE IF EXISTS statistic')
 
             await connection.execute('''
                 CREATE TABLE consumer (
@@ -286,6 +293,14 @@ async def migrate(ENVIRONMENT):
                   inc VARCHAR(255),
                   description VARCHAR(255),
                   alignment TEXT)
+            ''')
+
+            await connection.execute('''
+                CREATE TABLE statistic (
+                  id serial PRIMARY KEY,
+                  period VARCHAR(7),
+                  source VARCHAR(50),
+                  total INTEGER NOT NULL)
             ''')
 
             await connection.execute('''CREATE INDEX on job_chunks (job_id)''')
