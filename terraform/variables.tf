@@ -1,13 +1,13 @@
 variable "image" {
-  default = "CentOS-8-GenericCloud-8.1"
+  default = "CentOS-Stream-GenericCloud-8-20220125"
 }
 
 variable "flavor" {
-  default = "4c6m50d"  # 4 vcpu | 6GB RAM | 50GB disk
+  default = "4c8m80d"  # 4 vcpu | 8GB RAM | 80GB disk
 }
 
-variable "flavor_consumer" {
-  default = "4c8m80d"  # 4 vcpu | 8GB RAM | 80GB disk
+variable "flavor_nfs_server" {
+  default = "2c2m80d"  # 2 vcpu | 2GB RAM | 80GB disk
 }
 
 variable "flavor_monitor" {
@@ -39,7 +39,7 @@ variable "covid_floating_ip" {
 }
 
 variable "default_instances" {
-  default = 25
+  default = 30
 }
 
 variable "test_instances" {

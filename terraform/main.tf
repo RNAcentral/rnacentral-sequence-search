@@ -206,7 +206,7 @@ resource "openstack_compute_instance_v2" "nfs_server" {
   depends_on = [openstack_compute_keypair_v2.sequence_search, openstack_networking_subnet_v2.sequence_search]
   name              = "${terraform.workspace}-nfs-server"
   image_name        = "Ubuntu-18.04"
-  flavor_name       = "${var.flavor}"
+  flavor_name       = "${var.flavor_nfs_server}"
   key_pair          = "${openstack_compute_keypair_v2.sequence_search.name}"
   security_groups   = [ "${openstack_compute_secgroup_v2.sequence_search_nfs_instance.name}" ]
   network {
@@ -233,7 +233,7 @@ resource "openstack_compute_instance_v2" "consumers" {
   depends_on = [openstack_compute_keypair_v2.sequence_search, openstack_networking_subnet_v2.sequence_search]
   name = "${terraform.workspace}-consumer-${count.index + 1}"
   image_name = "${var.image}"
-  flavor_name = "${var.flavor_consumer}"
+  flavor_name = "${var.flavor}"
   key_pair = "${openstack_compute_keypair_v2.sequence_search.name}"
   security_groups = [ "${openstack_compute_secgroup_v2.sequence_search.name}" ]
   network {
