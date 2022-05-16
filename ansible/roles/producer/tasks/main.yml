@@ -3,17 +3,6 @@
 ---
   # This role is related to producer installation
 
-# This repository did not work on CentOS 8
-#  - name: Enable epel repository
-#    yum_repository:
-#      name: epel
-#      baseurl: https://download.fedoraproject.org/pub/epel/$releasever/$basearch/
-#      enabled: yes
-#      state: present
-#      description: epel repostiory
-#      gpgcheck: no
-#    tags: [ install-deps ]
-
   - name: Install yum dependencies
     yum:
       name:
@@ -46,9 +35,9 @@
 
   - name: Install Python 3.7
     shell: |
-      curl -OL https://www.python.org/ftp/python/3.7.7/Python-3.7.7.tgz
-      tar -xzf Python-3.7.7.tgz
-      cd Python-3.7.7
+      curl -OL https://www.python.org/ftp/python/3.7.13/Python-3.7.13.tgz
+      tar -xzf Python-3.7.13.tgz
+      cd Python-3.7.13
       ./configure --enable-optimizations
       make altinstall
     args:
