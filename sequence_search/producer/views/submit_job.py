@@ -153,15 +153,15 @@ async def submit_job(request):
             priority = 'low'
 
         expert_dbs = [
-            "rnacentral.org", "rfam.xfam.org", "rfam.org", "mirbase.org", "scottgroup.med.usherbrooke.ca",
-            "gtrnadb.ucsc.edu"
+            "test.rnacentral.org", "rnacentral.org", "rfam.xfam.org", "rfam.org", "mirbase.org",
+            "scottgroup.med.usherbrooke.ca", "gtrnadb.ucsc.edu"
         ]
         search_from_expert_db = [item for item in expert_dbs if item in url]
         if not search_from_expert_db:
             priority = 'low'
             source = 'API'
         else:
-            if "rnacentral.org" in url:
+            if "rnacentral.org" or "test.rnacentral.org" in url:
                 source = "RNAcentral"
             elif "rfam.xfam.org" or "rfam.org" in url:
                 source = "Rfam"
