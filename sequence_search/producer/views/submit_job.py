@@ -161,9 +161,9 @@ async def submit_job(request):
             priority = 'low'
             source = 'API'
         else:
-            if "rnacentral.org" or "test.rnacentral.org" in url:
+            if "rnacentral.org" in url or "test.rnacentral.org" in url:
                 source = "RNAcentral"
-            elif "rfam.xfam.org" or "rfam.org" in url:
+            elif "rfam.xfam.org" in url or "rfam.org" in url:
                 source = "Rfam"
             elif "mirbase.org" in url:
                 source = "miRBase"
