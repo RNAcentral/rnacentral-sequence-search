@@ -2,6 +2,7 @@
   # Added by cribas
   - name: Copy the script to do backups
     copy: src=../postgres/backup.sh dest=/etc/cron.daily/backup.sh owner=postgres group=postgres mode=0755
+    tags: [ backup-script ]
 
   - name: Create backup directory
     file:
@@ -9,6 +10,22 @@
       state: directory
       owner: postgres
       mode: '0777'
+
+  - name: Copy the script to ping consumers
+    copy: src=../../../../postgres/ping_consumers.sh dest=/home/centos owner=centos mode=0744
+    tags: [ ping-consumers ]
+
+  - name: Copy the file with consumers IPs
+    copy: src=../../../../postgres/consumers.txt dest=/home/centos owner=centos mode=0744
+    tags: [ ping-consumers ]
+
+  - name: Set cron job to ping consumers
+    cron:
+      name: "Ping consumers"
+      user: "centos"
+      minute: "*"
+      job: "sh /home/centos/ping_consumers.sh"
+    tags: [ ping-consumers ]
 
   - name: Set Time Zone
     timezone:
