@@ -4,21 +4,15 @@
 dbname="producer"
 username="docker"
 
-possible_failed_jobs=(`psql -X -A -d $dbname -U $username -t -c "SELECT DISTINCT job_id from job_chunks where status='created'"`)
+possible_failed_jobs=(`psql -X -A -d $dbname -U $username -t -c "SELECT DISTINCT job_id FROM job_chunks WHERE status='created'"`)
 
 for job in ${!possible_failed_jobs[*]}
 do
-  job_status=`psql -X -A -d $dbname -U $username -t -c "SELECT status from jobs where id='${possible_failed_jobs[$job]}'"`
+  job_status=`psql -X -A -d $dbname -U $username -t -c "SELECT status FROM jobs WHERE id='${possible_failed_jobs[$job]}'"`
   if [ "$job_status" == "success" ] || [ "$job_status" == "partial_success" ]
   then
-    # delete infernal entries
-    psql -U $username -d $dbname -c "delete from infernal_result where infernal_job_id in (select id from infernal_job where job_id='${possible_failed_jobs[$job]}')"
-    psql -U $username -d $dbname -c "delete from infernal_job where job_id='${possible_failed_jobs[$job]}'"
-
-    # delete job and job_chunks entries
-    psql -U $username -d $dbname -c "delete from job_chunk_results where job_chunk_id in (select id from job_chunks where job_id='${possible_failed_jobs[$job]}')"
-    psql -U $username -d $dbname -c "delete from job_chunks where job_id='${possible_failed_jobs[$job]}'"
-    psql -U $username -d $dbname -c "delete from jobs where id='${possible_failed_jobs[$job]}'"
+    # delete job
+    psql -U $username -d $dbname -c "DELETE FROM jobs WHERE id='${possible_failed_jobs[$job]}'"
   fi
 done
 
