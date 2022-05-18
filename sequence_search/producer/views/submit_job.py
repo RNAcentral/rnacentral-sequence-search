@@ -174,13 +174,16 @@ async def submit_job(request):
             else:
                 source = 'API'
 
-        period = datetime.today().strftime('%Y-%m')
-        statistic = await get_statistic(request.app['engine'], source, period)
+        if not data['description'] == 'sequence-search-test':
+            period = datetime.today().strftime('%Y-%m')
+            statistic = await get_statistic(request.app['engine'], source, period)
 
-        if statistic:
-            await update_statistic(request.app['engine'], statistic['statistic_id'], statistic['statistic_total'] + 1)
-        else:
-            await create_statistic(request.app['engine'], source, period)
+            if statistic:
+                await update_statistic(
+                    request.app['engine'], statistic['statistic_id'], statistic['statistic_total'] + 1
+                )
+            else:
+                await create_statistic(request.app['engine'], source, period)
 
         # save metadata about this job to the database
         job_id = await save_job(request.app['engine'], data['query'], data['description'], url, priority)
