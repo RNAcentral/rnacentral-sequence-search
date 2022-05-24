@@ -34,28 +34,12 @@ variable "test_floating_ip" {
   default = "45.88.80.122"
 }
 
-variable "covid_floating_ip" {
-  default = "45.88.81.141"
-}
-
 variable "default_instances" {
   default = 30
 }
 
 variable "test_instances" {
-  default = 8
-}
-
-variable "covid_instances" {
-  default = 2
-}
-
-variable "fifty" {
-  default = 50
-}
-
-variable "ninety" {
-  default = 90  # created to use the entire volume
+  default = 10
 }
 
 variable "one_hundred" {
@@ -72,8 +56,4 @@ variable "default_tfstate" {
 
 variable "test_tfstate" {
   default = "terraform.tfstate.d/test/terraform.tfstate"
-}
-
-variable "covid_tfstate" {
-  default = "terraform.tfstate.d/covid/terraform.tfstate"
 }
