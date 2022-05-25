@@ -204,11 +204,11 @@ resource "openstack_compute_instance_v2" "postgres" {
 
 resource "openstack_compute_instance_v2" "nfs_server" {
   depends_on = [openstack_compute_keypair_v2.sequence_search, openstack_networking_subnet_v2.sequence_search]
-  name              = "${terraform.workspace}-nfs-server"
-  image_name        = "Ubuntu-18.04"
-  flavor_name       = "${var.flavor_nfs_server}"
-  key_pair          = "${openstack_compute_keypair_v2.sequence_search.name}"
-  security_groups   = [ "${openstack_compute_secgroup_v2.sequence_search_nfs_instance.name}" ]
+  name = "${terraform.workspace}-nfs-server"
+  image_name = "Ubuntu-18.04"
+  flavor_name = "${var.flavor_nfs_server}"
+  key_pair = "${openstack_compute_keypair_v2.sequence_search.name}"
+  security_groups = [ "${openstack_compute_secgroup_v2.sequence_search_nfs_instance.name}" ]
   network {
     uuid = "${openstack_networking_network_v2.sequence_search.id}"
     fixed_ip_v4 = "192.168.0.7"
