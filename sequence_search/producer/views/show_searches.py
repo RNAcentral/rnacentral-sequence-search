@@ -55,7 +55,7 @@ async def show_searches(request):
         high_priority_last_week_result = convert_average_time(high_priority_last_week_records)
 
         # get data from statistic table
-        searches_per_month_query = await conn.execute("SELECT period,source,total FROM statistic")
+        searches_per_month_query = await conn.execute("SELECT period,source,total FROM statistic ORDER BY period")
         searches_per_month_records = await searches_per_month_query.fetchall()
         searches_per_month_result = []
 
