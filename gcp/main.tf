@@ -1,6 +1,6 @@
 locals {
-  count = "${var.default_instances}"
-  tfstate_file = "${var.default_tfstate}"
+  count = "${terraform.workspace == "default" ? var.default_instances : var.test_instances }"
+  tfstate_file = "${terraform.workspace == "default" ? var.default_tfstate : var.test_tfstate }"
 }
 
 output "tfstate_file" {
@@ -8,28 +8,28 @@ output "tfstate_file" {
 }
 
 resource "google_compute_network" "sequence_search" {
-  name = "gcp-sequence-search-network"
+  name = "gcp-${terraform.workspace}-network"
   auto_create_subnetworks = "false"
 }
 
 resource "google_compute_subnetwork" "sequence_search" {
-  name = "gcp-sequence-search-subnetwork"
+  name = "gcp-${terraform.workspace}-subnetwork"
   ip_cidr_range = "192.168.0.0/24"
   network = "${google_compute_network.sequence_search.name}"
   depends_on = [google_compute_network.sequence_search]
 }
 
 resource "google_compute_address" "nat-ip" {
-  name = "gcp-nat-ip"
+  name = "gcp-${terraform.workspace}-ip"
 }
 
 resource "google_compute_router" "nat-router" {
-  name = "gcp-nat-router"
+  name = "gcp-${terraform.workspace}-router"
   network = google_compute_network.sequence_search.name
 }
 
 resource "google_compute_router_nat" "nat-gateway" {
-  name = "gcp-nat-gateway"
+  name = "gcp-${terraform.workspace}-gateway"
   router = google_compute_router.nat-router.name
   nat_ip_allocate_option = "MANUAL_ONLY"
   nat_ips = [ google_compute_address.nat-ip.self_link ]
@@ -42,7 +42,7 @@ resource "google_compute_router_nat" "nat-gateway" {
 }
 
 resource "google_compute_firewall" "allow-internal" {
-  name = "gcp-fw-allow-internal"
+  name = "gcp-${terraform.workspace}-allow-internal"
   network = google_compute_network.sequence_search.name
   allow {
     protocol = "icmp"
@@ -60,7 +60,7 @@ resource "google_compute_firewall" "allow-internal" {
 }
 
 resource "google_compute_firewall" "ssh" {
-  name = "gcp-fw-ssh"
+  name = "gcp-${terraform.workspace}-ssh"
   network = google_compute_network.sequence_search.name
   allow {
     protocol = "tcp"
@@ -71,7 +71,7 @@ resource "google_compute_firewall" "ssh" {
 }
 
 resource "google_compute_firewall" "http" {
-  name = "gcp-fw-http"
+  name = "gcp-${terraform.workspace}-http"
   network = google_compute_network.sequence_search.name
   allow {
     protocol = "tcp"
@@ -82,8 +82,8 @@ resource "google_compute_firewall" "http" {
 }
 
 resource "google_compute_instance" "producer" {
-  name = "gcp-producer"
-  machine_type = "${var.flavor}"
+  name = "gcp-${terraform.workspace}-producer"
+  machine_type = "${var.flavor-medium}"
   zone = "${var.region}"
   tags = ["allow-internal", "ssh", "http"]
   boot_disk {
@@ -103,7 +103,7 @@ resource "google_compute_instance" "producer" {
 }
 
 resource "google_compute_instance" "postgres" {
-  name = "gcp-postgres"
+  name = "gcp-${terraform.workspace}-postgres"
   machine_type = "${var.flavor}"
   zone = "${var.region}"
   tags = ["allow-internal", "ssh"]
@@ -123,8 +123,8 @@ resource "google_compute_instance" "postgres" {
 }
 
 resource "google_compute_instance" "nfs_server" {
-  name = "gcp-nfs-server"
-  machine_type = "${var.flavor}"
+  name = "gcp-${terraform.workspace}-nfs-server"
+  machine_type = "${var.flavor-small}"
   zone = "${var.region}"
   tags = ["allow-internal", "ssh"]
   boot_disk {
@@ -143,8 +143,8 @@ resource "google_compute_instance" "nfs_server" {
 }
 
 resource "google_compute_instance" "monitor" {
-  name = "gcp-monitor"
-  machine_type = "${var.flavor}"
+  name = "gcp-${terraform.workspace}-monitor"
+  machine_type = "${var.flavor-small}"
   zone = "${var.region}"
   tags = ["allow-internal", "ssh"]
   boot_disk {
@@ -164,7 +164,7 @@ resource "google_compute_instance" "monitor" {
 
 resource "google_compute_instance" "consumers" {
   count = "${local.count}"
-  name = "gcp-consumer-${count.index + 1}"
+  name = "gcp-${terraform.workspace}-consumer-${count.index + 1}"
   machine_type = "${var.flavor}"
   zone = "${var.region}"
   tags = ["allow-internal", "ssh"]
@@ -184,7 +184,7 @@ resource "google_compute_instance" "consumers" {
 }
 
 resource "google_compute_disk" "nfs_volume" {
-  name = "gcp-nfs-volume"
+  name = "gcp-${terraform.workspace}-nfs-volume"
   zone = "${var.region}"
   image = "debian-9-stretch-v20200805"
   size = 50
