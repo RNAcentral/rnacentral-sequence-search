@@ -1,3 +1,4 @@
+# This playbook is not used on GCP
 - hosts: postgres
   remote_user: centos
   become: true

@@ -110,6 +110,7 @@ postgresql_ident_file: "{{ postgresql_conf_directory }}/pg_ident.conf"
 postgresql_varlib_directory_name: "postgresql"
 
 # data_directory changed by cribas
+# Use the default directory on GCP
 #postgresql_data_directory: "/var/lib/{{ postgresql_varlib_directory_name }}/{{ postgresql_version }}/{{ postgresql_cluster_name }}"
 postgresql_data_directory: "/db/{{ postgresql_varlib_directory_name }}/{{ postgresql_version }}/{{ postgresql_cluster_name }}"
 
