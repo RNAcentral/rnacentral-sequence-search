@@ -81,6 +81,10 @@ resource "google_compute_firewall" "http" {
   source_ranges = ["0.0.0.0/0"]
 }
 
+resource "google_compute_address" "producer-ip" {
+  name = "gcp-${terraform.workspace}-producer-ip"
+}
+
 resource "google_compute_instance" "producer" {
   name = "gcp-${terraform.workspace}-producer"
   machine_type = "${var.flavor-medium}"
@@ -94,7 +98,9 @@ resource "google_compute_instance" "producer" {
   network_interface {
     subnetwork = "${google_compute_subnetwork.sequence_search.name}"
     network_ip = "192.168.0.5"
-    access_config { }
+    access_config {
+      nat_ip = google_compute_address.producer-ip.address
+    }
   }
   metadata = {
     ssh-keys = "${var.ssh_user_name}:${file(var.ssh_key_file)}.pub"
