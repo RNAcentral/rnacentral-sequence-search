@@ -31,3 +31,4 @@
         src: "{{ nfs_server_ip }}:/"
         fstype: nfs
         state: mounted
+      tags: [ mount ]
