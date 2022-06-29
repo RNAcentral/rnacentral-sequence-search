@@ -78,6 +78,7 @@
       service:
         name: nfs-kernel-server
         state: restarted
+      tags: [ restart ]
 
     - name: Import ssh role
       import_role:
