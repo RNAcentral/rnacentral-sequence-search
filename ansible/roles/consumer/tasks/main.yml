@@ -219,11 +219,11 @@
   - name: Chown aiohttp code
     command: "chown -R centos:centos /srv/sequence_search"
     changed_when: false
-    tags: [ quick ]
+    tags: [ perm, quick ]
 
   - name: Chmod aiohttp code
     command: "chmod 755 /srv/sequence_search"
-    tags: [ quick ]
+    tags: [ perm, quick ]
 
 
   - name: Install pip3 requirements
