@@ -176,6 +176,38 @@ resource "openstack_compute_secgroup_v2" "sequence_search_monitor_instance" {
   }
 }
 
+resource "openstack_compute_secgroup_v2" "sequence_search_proxy" {
+  name = "${terraform.workspace}_sequence_search_proxy_instance"
+  description = "Security group for the proxy instance"
+  rule {
+    from_port = 22
+    to_port = 22
+    ip_protocol = "tcp"
+    cidr = "0.0.0.0/0"
+  }
+
+  rule {
+    from_port = 8002
+    to_port = 8002
+    ip_protocol = "tcp"
+    cidr = "0.0.0.0/0"
+  }
+
+  rule {
+    from_port = 8080
+    to_port = 8080
+    ip_protocol = "tcp"
+    cidr = "0.0.0.0/0"
+  }
+
+  rule {
+    from_port = -1
+    to_port = -1
+    ip_protocol = "icmp"
+    cidr = "0.0.0.0/0"
+  }
+}
+
 resource "openstack_compute_instance_v2" "producer" {
   depends_on = [openstack_compute_keypair_v2.sequence_search, openstack_networking_subnet_v2.sequence_search]
   name = "${terraform.workspace}-producer"
@@ -228,6 +260,19 @@ resource "openstack_compute_instance_v2" "monitor" {
   }
 }
 
+resource "openstack_compute_instance_v2" "proxy" {
+  depends_on = [openstack_compute_keypair_v2.sequence_search, openstack_networking_subnet_v2.sequence_search]
+  name = "${terraform.workspace}-proxy"
+  image_name = "Ubuntu-18.04"
+  flavor_name = "${var.flavor_monitor}"
+  key_pair = "${openstack_compute_keypair_v2.sequence_search.name}"
+  security_groups = [ "${openstack_compute_secgroup_v2.sequence_search_proxy.name}" ]
+  network {
+    uuid = "${openstack_networking_network_v2.sequence_search.id}"
+    fixed_ip_v4 = "192.168.0.200"
+  }
+}
+
 resource "openstack_compute_instance_v2" "consumers" {
   count = "${local.count}"
   depends_on = [openstack_compute_keypair_v2.sequence_search, openstack_networking_subnet_v2.sequence_search]
@@ -265,7 +310,7 @@ resource "openstack_compute_volume_attach_v2" "attach_db" {
 resource "openstack_compute_floatingip_associate_v2" "sequence_search" {
   depends_on = [openstack_compute_instance_v2.producer, openstack_networking_router_interface_v2.sequence_search]
   floating_ip = "${local.floating_ip}"
-  instance_id = "${openstack_compute_instance_v2.producer.id}"
+  instance_id = "${openstack_compute_instance_v2.proxy.id}"
 }
 
 # resource "null_resource" "post_flight" {
