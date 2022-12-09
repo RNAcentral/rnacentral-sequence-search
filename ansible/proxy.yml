@@ -1,0 +1,101 @@
+- name: Proxy installation and setup
+  hosts: proxy
+  gather_facts: No
+  become: true
+  user: ubuntu
+  vars:
+    ansible_ssh_private_key_file: "../terraform/sequence_search_rsa"
+    litscan_port: 8080
+    sequence_search_port: 8002
+  tasks:
+    - name: Update apt repo
+      apt:
+        update_cache: yes
+        state: present
+      tags: [ install ]
+
+    - name: Upgrade apt packages
+      apt:
+        upgrade: yes
+        update_cache: yes
+        cache_valid_time: 86400
+      tags: [ install ]
+
+    - name: Install apache2 on the compute instance
+      apt:
+        name: "{{ packages }}"
+        state: present
+      vars:
+        packages:
+          - apache2
+      tags: [ install ]
+
+    - name: Enabled proxy related modules
+      apache2_module: name={{ item }} state=present
+      with_items:
+        - proxy
+        - proxy_http
+      notify:
+        - Reload Apache
+      tags: [ module ]
+
+    - name: Remove default apache2 port
+      lineinfile:
+        dest: /etc/apache2/ports.conf
+        state: absent
+        regexp: "^Listen 80"
+      tags: [ ports ]
+
+    - name: Add apache2 port
+      lineinfile:
+        dest: /etc/apache2/ports.conf
+        line: "{{item.line}}"
+      with_items:
+        - line: "Listen {{ litscan_port }}"
+        - line: "Listen {{ sequence_search_port }}"
+      notify:
+        - Reload Apache
+      tags: [ ports ]
+
+    - name: Creating LitScan virtual host
+      copy:
+        dest: "/etc/apache2/sites-available/proxy-litscan.conf"
+        content: |
+          <VirtualHost *:8080> 
+              ProxyPass / http://192.168.0.5:8080/
+              ProxyPassReverse / http://192.168.0.5:8080/
+              ProxyRequests Off
+          </VirtualHost>
+      tags: [ virtualhost ]
+
+    - name: Creating Sequence Search virtual host
+      copy:
+        dest: "/etc/apache2/sites-available/proxy-sequence-search.conf"
+        content: |
+          <VirtualHost *:8002> 
+              ProxyPass / http://192.168.0.5:8002/
+              ProxyPassReverse / http://192.168.0.5:8002/
+              ProxyRequests Off
+          </VirtualHost>
+      tags: [ virtualhost ]
+
+    - name: Disable default virtualhost
+      file: path=/etc/apache2/sites-enabled/000-default.conf state=absent
+      notify: Reload Apache
+      tags: [ disable-default ]
+
+    - name: Enable new virtual host
+      shell: /usr/sbin/a2ensite proxy-litscan.conf & /usr/sbin/a2ensite proxy-sequence-search.conf
+      notify: Reload Apache
+      tags: [ enable-vhost ]
+
+    - name: Import ssh role
+      import_role:
+        name: ssh
+      tags: [ ssh ]
+
+  handlers:
+    - name: Reload Apache
+      service:
+        name: apache2
+        state: reloaded
