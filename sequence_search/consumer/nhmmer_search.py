@@ -35,7 +35,7 @@ async def nhmmer_search(sequence, job_id, database):
     except ValueError:
         db_name = None
 
-    e_value = get_e_value(db_name) if db_name else 11179.11
+    e_value = get_e_value(db_name) if db_name else 11336.09
 
     params = {
         'query': query_file_path(job_id, database),
