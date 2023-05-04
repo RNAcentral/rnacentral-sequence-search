@@ -6,9 +6,9 @@
 # for now I'm going to use this script to restart
 # memcached in case the kernel kills its process.
 
-PID=(`ps -ef | grep -v grep | grep memcached | awk '{print $2}'`)
+systemctl is-active --quiet memcached
+STATUS=$?  # returns 0 if running
 
-if [ -z "$PID" ]
-then
-  sudo service memcached restart
+if [[ "$STATUS" -ne "0" ]]; then
+  sudo service memcached start
 fi
