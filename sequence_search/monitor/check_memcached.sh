@@ -10,5 +10,5 @@ systemctl is-active --quiet memcached
 STATUS=$?  # returns 0 if running
 
 if [[ "$STATUS" -ne "0" ]]; then
-  sudo service memcached start
+  sudo systemctl restart memcached
 fi
