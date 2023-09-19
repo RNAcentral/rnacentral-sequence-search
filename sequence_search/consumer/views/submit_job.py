@@ -91,7 +91,7 @@ async def nhmmer(engine, job_id, sequence, database):
         try:
             line = parse_number_of_hits(filename)
             hits = re.split("[: ]+", line)[4]
-        except ValueError:
+        except (TypeError, ValueError):
             pass
 
         try:
