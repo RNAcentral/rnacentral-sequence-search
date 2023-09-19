@@ -18,10 +18,9 @@ do
         # check the current status
         status=(`psql -X -A -d $DB -U $USER -t -c "select status from consumer where ip='${output}'"`)
 
-        # update and notify if necessary
-        if [ ${status} != "error" ]; then
+        # update status if necessary
+        if [ ${status} == "available" ] || [ ${status} == "busy" ]; then
             psql -U $USER -d $DB -c "update consumer set status='error',job_chunk_id='unreachable' where ip='${output}'"
-            curl -X POST -H 'Content-type: application/json' --data '{"text":"Unable to ping consumer '${output}'"}' $SLACK
         fi
     fi
 done
