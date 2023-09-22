@@ -240,6 +240,16 @@
       state: link
 
 
+  - name: Set cron job to remove old files
+    cron:
+      name: "Remove old results files"
+      user: "centos"
+      minute: 0
+      hour: 0
+      job: "sudo find /srv/sequence_search/consumer/results -type f -mtime +7 -delete"
+    tags: [ cronjob ]
+
+
   - name: Get running processes
 #    shell: "sudo kill $(ps -ef | grep -v grep | grep -w gunicorn | awk '{print $2}')"
     shell: "sudo kill $(ps -ef | grep -v grep | grep -w 'python3.7 -m sequence_search.consumer' | awk '{print $2}')"
