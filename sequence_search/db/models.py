@@ -295,13 +295,13 @@ async def migrate(ENVIRONMENT):
                   alignment TEXT)
             ''')
 
-            await connection.execute('''
-                CREATE TABLE statistic (
-                  id serial PRIMARY KEY,
-                  period VARCHAR(7),
-                  source VARCHAR(50),
-                  total INTEGER NOT NULL)
-            ''')
+            # await connection.execute('''
+            #     CREATE TABLE statistic (
+            #       id serial PRIMARY KEY,
+            #       period VARCHAR(7),
+            #       source VARCHAR(50),
+            #       total INTEGER NOT NULL)
+            # ''')
 
             await connection.execute('''CREATE INDEX on job_chunks (job_id)''')
             await connection.execute('''CREATE INDEX on job_chunk_results (job_chunk_id)''')
