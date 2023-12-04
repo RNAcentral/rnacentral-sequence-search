@@ -8,7 +8,7 @@
     # ansible_ssh_private_key_file: "../gcp/gcp_rsa"
 
     # Basic settings
-    postgresql_version: 9.6
+    postgresql_version: 11
     postgresql_encoding: "UTF-8"
     postgresql_locale: "en_US.UTF-8"
     postgresql_ctype: "en_US.UTF-8"
@@ -44,7 +44,7 @@
     postgresql_users:
       - name: docker
         pass: pass
-        encrypted: no               # denotes if the password is already encrypted.
+        encrypted: yes               # denotes if the password is already encrypted.
 
     # List of schemas to be created (optional)
     postgresql_schemas:
