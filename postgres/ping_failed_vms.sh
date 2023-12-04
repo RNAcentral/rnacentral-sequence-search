@@ -7,6 +7,9 @@ set -o allexport
 source $PWD/.env
 set +o allexport
 
+# this script needs to be run after ping_consumers.sh
+sleep 10
+
 ips=( $(psql -X -A -d producer -U docker -t -c "select ip from consumer where status='error'") )
 
 for ip in "${ips[@]}"
