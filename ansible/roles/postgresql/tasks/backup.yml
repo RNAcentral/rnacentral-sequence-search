@@ -1,0 +1,57 @@
+---
+  # Added by cribas
+  - name: Copy the script to do backups
+    copy: src=../postgres/backup.sh dest=/etc/cron.daily/backup.sh owner=postgres group=postgres mode=0755
+    tags: [ backup-script ]
+
+  - name: Create backup directory
+    file:
+      path: /backup
+      state: directory
+      owner: postgres
+      mode: '0777'
+
+  - name: Copy the script to ping consumers
+    copy: src=../../../../postgres/ping_consumers.sh dest=/home/centos owner=centos mode=0744
+    tags: [ ping-consumers ]
+
+  - name: Copy the file with consumers IPs
+    copy: src=../../../../postgres/consumers.txt dest=/home/centos owner=centos mode=0744
+    tags: [ ping-consumers ]
+
+  - name: Copy the script to ping consumers that crashed
+    copy: src=../../../../postgres/ping_failed_vms.sh dest=/home/centos owner=centos mode=0744
+    tags: [ ping-consumers ]
+
+  - name: Set cron job to ping consumers
+    cron:
+      name: "Ping consumers"
+      user: "centos"
+      minute: "*"
+      job: "sh /home/centos/ping_consumers.sh"
+    tags: [ ping-consumers ]
+
+  - name: Set cron job to ping consumers that crashed
+    cron:
+      name: "Ping consumers that crashed"
+      user: "centos"
+      minute: "*"
+      job: "sh /home/centos/ping_failed_vms.sh"
+    tags: [ ping-consumers ]
+
+  - name: Copy the script to remove old searches
+    copy: src=../../../../postgres/remove_old_jobs.sh dest=/home/centos owner=centos mode=0744
+    tags: [ delete-searches ]
+
+  - name: Set cron job to remove old searches
+    cron:
+      name: "Remove old searches"
+      user: "centos"
+      minute: "0"
+      hour: "3"
+      job: "sh /home/centos/remove_old_jobs.sh"
+    tags: [ delete-searches ]
+
+  - name: Set Time Zone
+    timezone:
+      name: Europe/London
