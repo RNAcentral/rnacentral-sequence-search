@@ -1,6 +1,6 @@
 ---
 - hosts: load_balancer
-  remote_user: centos
+  remote_user: cloud-user
   become: yes
   become_user: root
   gather_facts: True
