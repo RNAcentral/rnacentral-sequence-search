@@ -7,7 +7,7 @@ This directory is the home of the test playbooks:
 
 ## Molecule
 
-The default tested version is postgresql 10, 11, 12, and 13 on Ubuntu 20.04. Linting is disabled for the tests.
+The default tested versions are postgresql 12, 13, 14, 15 and 16 on Debian 11. Linting is disabled for the tests.
 
 The default distribution is ubuntu2204. You can override th with setting the environment variable MOLECULE_DISTRO to one of:
 
@@ -25,7 +25,7 @@ The default distribution is ubuntu2204. You can override th with setting the env
 Manual execution of the molecule tests with the distro of your liking. Examples:
 
 ```bash
-MOLECULE_DISTRO=centos8 molecule converge
+MOLECULE_DISTRO=rockylinux9 molecule converge
 MOLECULE_DISTRO=debian11 molecule converge
 MOLECULE_DISTRO=ubuntu2204 molecule converge
 ```

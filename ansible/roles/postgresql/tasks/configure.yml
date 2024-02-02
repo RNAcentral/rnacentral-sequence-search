@@ -43,7 +43,7 @@
     state: directory
     mode: 0700
   register: pglog_dir_exist
-  when: postgresql_log_directory != "pg_log"
+  when: postgresql_log_directory != "pg_log" or postgresql_log_directory != "log"
 
 - name: PostgreSQL | Ensure the locale for lc_collate and lc_ctype is generated | Debian
   become: yes
@@ -142,6 +142,7 @@
     owner: "{{ postgresql_service_user }}"
     group: "{{ postgresql_service_group }}"
     mode: 0640
+  no_log: "{{ postgresql_hide_passwords }}"
   register: postgresql_configuration_pt1
 
 - name: PostgreSQL | Update configuration - pt. 2 (postgresql.conf)
