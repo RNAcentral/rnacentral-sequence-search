@@ -267,7 +267,7 @@ resource "openstack_compute_instance_v2" "nfs_server" {
   depends_on = [openstack_compute_keypair_v2.sequence_search, openstack_networking_subnet_v2.sequence_search]
   name = "${terraform.workspace}-nfs-server"
   image_name = "Ubuntu-18.04"
-  flavor_name = "${var.flavor_nfs_server}"
+  flavor_name = "${var.flavor_6gb_ram}"
   key_pair = "${openstack_compute_keypair_v2.sequence_search.name}"
   security_groups = [ "${openstack_compute_secgroup_v2.sequence_search_nfs_instance.name}" ]
   network {
@@ -280,7 +280,7 @@ resource "openstack_compute_instance_v2" "monitor" {
   depends_on = [openstack_compute_keypair_v2.sequence_search, openstack_networking_subnet_v2.sequence_search]
   name = "${terraform.workspace}-monitor"
   image_name = "${var.image}"
-  flavor_name = "${var.flavor_monitor}"
+  flavor_name = "${var.flavor_6gb_ram}"
   key_pair = "${openstack_compute_keypair_v2.sequence_search.name}"
   security_groups = [ "${openstack_compute_secgroup_v2.sequence_search_monitor_instance.name}" ]
   network {
@@ -331,14 +331,15 @@ resource "openstack_compute_instance_v2" "consumers" {
   }
 }
 
-resource "openstack_blockstorage_volume_v2" "nfs_volume" {
+# openstack_blockstorage_volume_v2 is still used in DEV
+resource "openstack_blockstorage_volume_v3" "nfs_volume" {
   name = "${terraform.workspace}-nfs-volume"
   size = "${local.nfs_size}"
 }
 
 resource "openstack_compute_volume_attach_v2" "attached" {
   instance_id = "${openstack_compute_instance_v2.nfs_server.id}"
-  volume_id = "${openstack_blockstorage_volume_v2.nfs_volume.id}"
+  volume_id = "${openstack_blockstorage_volume_v3.nfs_volume.id}"
 }
 
 # openstack_blockstorage_volume_v2 is still used in DEV
