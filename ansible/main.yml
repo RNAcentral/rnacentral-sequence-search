@@ -1,4 +1,5 @@
 ---
+- import_playbook: create-user.yml
 - import_playbook: nfs-server.yml
 - import_playbook: nfs-client.yml
 - import_playbook: download-sequences.yml

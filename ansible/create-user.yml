@@ -1,0 +1,34 @@
+- name: Create centos user
+  vars:
+    ansible_ssh_public_key_file: "{{ lookup('file', '../terraform/sequence_search_rsa.pub') }}"
+    new_user: centos
+  hosts: producer:consumers:postgres:monitor
+  become: true
+  gather_facts: no
+  user: cloud-user
+
+  tasks:
+    - name: Create group
+      group:
+        name: "{{ new_user }}"
+        state: present
+
+    - name: Create user
+      user:
+        name: "{{ new_user }}"
+        state: present
+        shell: /bin/bash
+        group: "{{ new_user }}"
+
+    - name: Set authorized keys
+      authorized_key:
+        user: "{{ new_user }}"
+        key: "{{ ansible_ssh_public_key_file }}"
+        state: present
+
+    - name: Give sudo access to centos user
+      blockinfile:
+        path: /etc/sudoers
+        insertafter: "cloud-user	ALL=(ALL)	NOPASSWD: ALL"
+        block: |
+          {{ new_user }}        ALL=(ALL)       NOPASSWD: ALL
