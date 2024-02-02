@@ -1,25 +1,17 @@
 variable "image" {
-  default = "CentOS-Stream-GenericCloud-8-20220125"
+  default = "CentOS-Stream-GenericCloud-9"
 }
 
 variable "flavor" {
   default = "4c8m80d"  # 4 vcpu | 8GB RAM | 80GB disk
 }
 
-variable "flavor_nfs_server" {
-  default = "2c2m80d"  # 2 vcpu | 2GB RAM | 80GB disk
-}
-
-variable "flavor_monitor" {
-  default = "1c2m20d"  # 1 vcpu | 2GB RAM | 20GB disk
+variable "flavor_6gb_ram" {
+  default = "4c6m50d"  # 4 vcpu | 6GB RAM | 50GB disk
 }
 
 variable "ssh_key_file" {
   default = "sequence_search_rsa"
-}
-
-variable "ssh_user_name" {
-  default = "centos"
 }
 
 variable "external_network_id" {
