@@ -100,11 +100,10 @@ async def create_consumer_scheduler(app):
     """
     async def periodic():
         while True:
-            loop.create_task(check_chunks_and_consumers(app))
+            await check_chunks_and_consumers(app)
             await asyncio.sleep(5)
 
-    loop = asyncio.get_event_loop()
-    task = loop.create_task(periodic())
+    asyncio.ensure_future(periodic())
 
 
 def create_app():
