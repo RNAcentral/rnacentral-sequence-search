@@ -57,7 +57,7 @@ async def nhmmer(engine, job_id, sequence, database):
     """
     job_chunk_id = await get_job_chunk_from_job_and_database(engine, job_id, database)
 
-    logger.info('Nhmmer search started for: job_id = %s, database = %s' % (job_id, database))
+    logging.debug('Nhmmer search started for: job_id = %s, database = %s' % (job_id, database))
 
     # I assume, subprocess creation can't raise exceptions
     process, filename = await nhmmer_search(sequence=sequence, job_id=job_id, database=database)
@@ -74,17 +74,17 @@ async def nhmmer(engine, job_id, sequence, database):
         if return_code != 0:
             raise NhmmerError("Nhmmer process returned non-zero status code")
     except asyncio.TimeoutError as e:
-        logger.warning('Nhmmer job chunk timeout out: job_id = %s, database = %s' % (job_id, database))
+        logging.debug('Nhmmer job chunk timeout out: job_id = %s, database = %s' % (job_id, database))
         process.kill()
 
         # TODO: what do we do in case we lost the database connection here?
         await set_job_chunk_status(engine, job_id, database, status=JOB_CHUNK_STATUS_CHOICES.timeout)
     except Exception as e:
-        logger.error('Nhmmer search error for: job_id = %s, database = %s' % (job_id, database))
+        logging.debug('Nhmmer search error for: job_id = %s, database = %s' % (job_id, database))
         # TODO: what do we do in case we lost the database connection here?
         await set_job_chunk_status(engine, job_id, database, status=JOB_CHUNK_STATUS_CHOICES.error)
     else:
-        logger.info('Nhmmer search success for: job_id = %s, database = %s' % (job_id, database))
+        logging.debug('Nhmmer search success for: job_id = %s, database = %s' % (job_id, database))
 
         # check the total number of hits
         hits = 0
@@ -156,7 +156,7 @@ async def submit_job(request):
     try:
         data = serialize(request, data)
     except (KeyError, TypeError, ValueError) as e:
-        logger.error(e)
+        logging.debug('Serialization error: ' % e)
         raise web.HTTPBadRequest(text=str(e)) from e
 
     # cache variables for brevity
@@ -173,7 +173,7 @@ async def submit_job(request):
         await set_job_chunk_status(engine, job_id, database, status=JOB_CHUNK_STATUS_CHOICES.started)
         await set_job_chunk_consumer(engine, job_id, database, consumer_ip)
     except (DatabaseConnectionError, SQLError) as e:
-        logger.error(e)
+        logging.debug('Database error: ' % e)
         raise web.HTTPBadRequest(text=str(e)) from e
 
     # spawn nhmmer job in the background and return 201
