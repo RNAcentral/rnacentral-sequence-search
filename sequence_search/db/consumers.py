@@ -46,7 +46,7 @@ async def find_available_consumers(engine):
             ''')
 
         result = []
-        async for row in connection.execute(query, status=CONSUMER_STATUS_CHOICES.available):
+        async for row in await connection.execute(query, status=CONSUMER_STATUS_CHOICES.available):
             result.append(Consumer(row[0], row[1], row[2], row[3]))
 
         return result
@@ -68,7 +68,7 @@ async def find_busy_consumers(engine):
             ''')
 
         result = []
-        async for row in connection.execute(query, status=CONSUMER_STATUS_CHOICES.busy):
+        async for row in await connection.execute(query, status=CONSUMER_STATUS_CHOICES.busy):
             result.append(Consumer(row[0], row[1], row[2], row[3]))
 
         return result
@@ -87,7 +87,7 @@ async def get_consumers_statuses(engine):
             ''')
 
             result = []
-            async for row in connection.execute(query):
+            async for row in await connection.execute(query):
                 result.append({"ip": row.ip, "status": row.status})
             return result
     except psycopg2.Error as e:
@@ -103,7 +103,7 @@ async def get_consumer_status(engine, consumer_ip):
                 FROM consumer
                 WHERE ip=:consumer_ip
             ''')
-            async for row in connection.execute(query, consumer_ip=consumer_ip):
+            async for row in await connection.execute(query, consumer_ip=consumer_ip):
                 return row.status
     except psycopg2.Error as e:
         raise DatabaseConnectionError(str(e)) from e

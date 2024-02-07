@@ -46,7 +46,7 @@ async def sequence_exists(engine, query):
                     (Job.c.query == query) & Job.c.result_in_db
                 )
                 job_list = []
-                async for row in connection.execute(sql_query):
+                async for row in await connection.execute(sql_query):
                     job_list.append(row[0])
                 return job_list
             except Exception as e:
@@ -70,7 +70,7 @@ async def database_used_in_search(engine, job_id, databases):
             try:
                 sql_query = sa.select([JobChunk.c.database]).select_from(JobChunk).where(JobChunk.c.job_id == job_id)
                 result = []
-                async for row in connection.execute(sql_query):
+                async for row in await connection.execute(sql_query):
                     result.append(row[0])
                 return True if Counter(result) == Counter(databases) else False
             except Exception as e:
@@ -94,7 +94,7 @@ async def get_job(engine, job_id):
                     Job.c.hits,
                     Job.c.status
                 ]).select_from(Job).where(Job.c.id == job_id)
-                async for row in connection.execute(sql_query):
+                async for row in await connection.execute(sql_query):
                     return {
                         'id': row.id,
                         'query': row.query,
@@ -186,7 +186,7 @@ async def get_jobs_statuses(engine):
                 )
 
                 jobs_dict = {}
-                async for row in connection.execute(query):
+                async for row in await connection.execute(query):
                     if row.job_id not in jobs_dict:
                         jobs_dict[row.job_id] = {
                             'id': row.job_id,
@@ -245,7 +245,7 @@ async def get_job_chunks_status(engine, job_id):
                          .order_by(JobChunk.c.database))  # noqa
 
                 output = []
-                async for row in connection.execute(query):
+                async for row in await connection.execute(query):
                     output.append({
                         'job_id': row.job_id,
                         'query': row.query,
@@ -286,7 +286,7 @@ async def update_job_status_from_job_chunks_status(engine, job_id):
                 unfinished_chunks_found = False
                 errors_found = False
                 hits = 0
-                async for row in connection.execute(query):
+                async for row in await connection.execute(query):
                     if row.status == JOB_CHUNK_STATUS_CHOICES.pending or row.status == JOB_CHUNK_STATUS_CHOICES.started:
                         unfinished_chunks_found = True
                         break
@@ -313,7 +313,7 @@ async def job_exists(engine, job_id):
         async with engine.acquire() as connection:
             try:
                 exists = False
-                async for row in connection.execute(sa.text('''SELECT * FROM jobs WHERE id=:job_id'''), job_id=job_id):
+                async for row in await connection.execute(sa.text('''SELECT * FROM jobs WHERE id=:job_id'''), job_id=job_id):
                     exists = True
                     break
                 return exists
@@ -331,7 +331,7 @@ async def get_job_query(engine, job_id):
             try:
                 sql_query = sa.select([Job.c.query]).select_from(Job).where(Job.c.id == job_id)
 
-                async for row in connection.execute(sql_query):
+                async for row in await connection.execute(sql_query):
                     return row.query
             except Exception as e:
                 raise SQLError("Failed to get job query, job_id = %s" % job_id) from e
@@ -347,7 +347,7 @@ async def get_job_ordering(engine, job_id):
             try:
                 sql_query = sa.select([Job.c.ordering]).select_from(Job).where(Job.c.id == job_id)
 
-                async for row in connection.execute(sql_query):
+                async for row in await connection.execute(sql_query):
                     return row.ordering
             except Exception as e:
                 raise SQLError("Failed to get job ordering, job_id = %s" % job_id) from e
@@ -417,7 +417,7 @@ async def get_job_results(engine, job_id, limit=1000):
             popular_species = {7955, 3702, 6239, 7227, 559292, 4896, 511145, 224308}
 
             results = []
-            async for row in connection.execute(sql):
+            async for row in await connection.execute(sql):
                 # check species priority.
                 # priority order = human (9606), mouse (10090), popular species, others
                 try:
@@ -521,7 +521,7 @@ async def find_highest_priority_jobs(engine):
                          .order_by(Job.c.priority, Job.c.submitted))  # noqa
 
                 # get job chunks
-                async for row in connection.execute(query):
+                async for row in await connection.execute(query):
                     output.append((row.id, row.priority, row.submitted, row.database))
 
                 query = (sa.select([InfernalJob.c.job_id, InfernalJob.c.submitted, InfernalJob.c.priority])
@@ -531,7 +531,7 @@ async def find_highest_priority_jobs(engine):
                          )
 
                 # get infernal jobs
-                async for row in connection.execute(query):
+                async for row in await connection.execute(query):
                     output.append((row.job_id, row.priority, row.submitted))
 
                 return sorted(output, key=itemgetter(1, 2))  # sort by priority first, then by date
@@ -578,7 +578,7 @@ async def get_infernal_job_results(engine, job_id):
                 .where(InfernalJob.c.job_id == job_id))  # noqa
 
             results = []
-            async for row in connection.execute(sql):
+            async for row in await connection.execute(sql):
                 results.append({
                     'target_name': row[1],
                     'accession_rfam': row[2],
@@ -629,7 +629,7 @@ async def get_infernal_job_status(engine, job_id):
                 query = (select_statement.select_from(InfernalJob).where(InfernalJob.c.job_id == job_id))  # noqa
 
                 result = False
-                async for row in connection.execute(query):
+                async for row in await connection.execute(query):
                     result = ({
                         'job_id': row.job_id,
                         'submitted': row.submitted,

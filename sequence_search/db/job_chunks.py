@@ -93,7 +93,7 @@ async def get_consumer_ip_from_job_chunk(engine, job_chunk_id):
                      .select_from(JobChunk)
                      .where(JobChunk.c.id == job_chunk_id)
                      .apply_labels())
-            async for row in connection.execute(query):
+            async for row in await connection.execute(query):
                 return row[0]
 
             raise DoesNotExist("JobChunk", "job_chunk_id = %s" % job_chunk_id)
@@ -132,8 +132,8 @@ async def set_job_chunk_status(engine, job_id, database, status, hits=None):
                     ''')
 
                     id = None  # if connection didn't return any rows, return None
-                    async for row in connection.execute(query, job_id=job_id, database=database, status=status,
-                                                        submitted=submitted):
+                    async for row in await connection.execute(query, job_id=job_id, database=database, status=status,
+                                                              submitted=submitted):
                         id = row.id
                     return id
                 elif finished:
@@ -145,8 +145,8 @@ async def set_job_chunk_status(engine, job_id, database, status, hits=None):
                     ''')
 
                     id = None  # if connection didn't return any rows, return None
-                    async for row in connection.execute(query, job_id=job_id, database=database, status=status,
-                                                        finished=finished, hits=hits):
+                    async for row in await connection.execute(query, job_id=job_id, database=database, status=status,
+                                                              finished=finished, hits=hits):
                         id = row.id
                     return id
                 else:
@@ -158,7 +158,7 @@ async def set_job_chunk_status(engine, job_id, database, status, hits=None):
                     ''')
 
                     id = None  # if connection didn't return any rows, return None
-                    async for row in connection.execute(query, job_id=job_id, database=database, status=status):
+                    async for row in await connection.execute(query, job_id=job_id, database=database, status=status):
                         id = row.id
                     return id
             except Exception as e:
@@ -180,7 +180,7 @@ async def set_job_chunk_consumer(engine, job_id, database, consumer_ip):
                     RETURNING *;
                 ''')
                 id = None  # if connection didn't return any rows, return None
-                async for row in connection.execute(query, job_id=job_id, database=database, consumer_ip=consumer_ip):
+                async for row in await connection.execute(query, job_id=job_id, database=database, consumer_ip=consumer_ip):
                     id = row.id
 
                 return id

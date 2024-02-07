@@ -32,7 +32,7 @@ async def get_statistic(engine, source, period):
                 sql_query = sa.select([Statistic.c.id, Statistic.c.total]).select_from(Statistic).where(
                     (Statistic.c.source == source) & (Statistic.c.period == period)
                 )
-                async for row in connection.execute(sql_query):
+                async for row in await connection.execute(sql_query):
                     return {"statistic_id": row.id, "statistic_total": row.total}
             except Exception as e:
                 raise SQLError("Failed to check if record exists for source %s and period %s" % (source, period)) from e
