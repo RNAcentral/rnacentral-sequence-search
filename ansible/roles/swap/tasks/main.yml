@@ -1,0 +1,51 @@
+# file: swap/tasks/main.yml
+
+---
+  - name: Set swap_file variable
+    set_fact:
+      swap_file: "/swapfile"
+    tags: [ create-swap ]
+
+  - name: Check if swap file exists
+    stat:
+      path: "{{swap_file}}"
+    register: swap_file_check
+    tags: [ create-swap ]
+
+  - name: Create swap file
+    command: fallocate -l 8G {{swap_file}}
+    when: not swap_file_check.stat.exists
+    tags: [ create-swap ]
+
+  - name: Change swap file permissions
+    file: path="{{swap_file}}"
+      owner=centos
+      group=centos
+      mode=0600
+    tags: [ create-swap ]
+
+  - name: Format swap file
+    command: "mkswap {{swap_file}}"
+    when: not swap_file_check.stat.exists
+    tags: [ format-swap ]
+
+  - name: Write swap entry in fstab
+    mount: name=none
+      src={{swap_file}}
+      fstype=swap
+      opts=sw
+      passno=0
+      dump=0
+      state=present
+    tags: [ format-swap ]
+
+  - name: Turn on swap
+    command: swapon -a
+    when: not swap_file_check.stat.exists
+    tags: [ swapon ]
+
+  - name: Set swappiness
+    sysctl:
+      name: vm.swappiness
+      value: "1"
+    tags: [ swappiness ]

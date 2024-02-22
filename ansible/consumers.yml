@@ -11,3 +11,4 @@
     - {role: consumer, tags: 'consumer'}
     - ssh
     - iptables
+    - swap
