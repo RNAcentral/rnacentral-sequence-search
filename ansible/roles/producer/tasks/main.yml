@@ -140,12 +140,12 @@
     shell: "ps -ef | grep -v grep | grep -w 'python3.7 -m sequence_search.producer' | awk '{print $2}'"
     #    shell: "sudo kill $(ps -ef | grep -v grep | grep -w producer | awk '{print $2}')"
     register: running_processes
-    tags: [ restart, quick ]
+    tags: [ restart, quick, stop ]
 
   - name: Kill running processes
     shell: "kill {{ item }}"
     with_items: "{{ running_processes.stdout_lines }}"
-    tags: [ restart, quick ]
+    tags: [ restart, quick, stop ]
 
   # copied over from: https://stackoverflow.com/questions/46515704/how-to-kill-a-running-process-using-ansible
   - wait_for:
@@ -154,19 +154,19 @@
     with_items: "{{ running_processes.stdout_lines }}"
     ignore_errors: yes
     register: killed_processes
-    tags: [ restart, quick ]
+    tags: [ restart, quick, stop ]
 
   - name: Force kill stuck processes
     shell: "kill -9 {{ item }}"
     with_items: "{{ killed_processes.results | select('failed') | map(attribute='item') | list }}"
-    tags: [ restart, quick ]
+    tags: [ restart, quick, stop ]
 
   - wait_for:
       path: "/proc/{{ item }}/status"
       state: absent
     with_items: "{{ running_processes.stdout_lines }}"
     ignore_errors: yes
-    tags: [ restart, quick ]
+    tags: [ restart, quick, stop ]
 
   - name: Clean database
     shell:
@@ -179,4 +179,4 @@
       chdir: /srv
 #      cmd: /usr/local/bin/gunicorn producer.main:app --daemon --bind 0.0.0.0:8002 --worker-class aiohttp.worker.GunicornWebWorker --access-logfile /var/log/gunicorn/access_log --error-logfile /var/log/gunicorn/error_log --env ENVIRONMENT=PRODUCTION --log-level=DEBUG --timeout 120
       cmd: ENVIRONMENT=PRODUCTION nohup /usr/local/bin/python3.7 -m sequence_search.producer &> /var/log/gunicorn/access_log &
-    tags: [ restart, quick ]
+    tags: [ restart, quick, start ]
