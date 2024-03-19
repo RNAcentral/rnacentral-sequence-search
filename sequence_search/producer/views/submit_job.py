@@ -154,7 +154,7 @@ async def submit_job(request):
 
         expert_dbs = [
             "test.rnacentral.org", "rnacentral.org", "rfam.xfam.org", "rfam.org", "mirbase.org",
-            "scottgroup.med.usherbrooke.ca", "gtrnadb.ucsc.edu"
+            "scottgroup.med.usherbrooke.ca", "gtrnadb.ucsc.edu", "ribocentre.org"
         ]
         search_from_expert_db = [item for item in expert_dbs if item in url]
         if not search_from_expert_db:
@@ -171,6 +171,8 @@ async def submit_job(request):
                 source = "snoDB"
             elif "gtrnadb.ucsc.edu" in url:
                 source = "GtRNAdb"
+            elif "ribocentre.org" in url:
+                source = "Ribocentre"
             else:
                 source = 'API'
 
