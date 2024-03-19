@@ -161,18 +161,24 @@ async def submit_job(request):
             priority = 'low'
             source = 'API'
         else:
+            # Searches from miRBase, snoDB, GtRNAdb and Ribocentre will receive the highest priority,
+            # as they require only one consumer and are extremely fast
             if "rnacentral.org" in url or "test.rnacentral.org" in url:
                 source = "RNAcentral"
             elif "rfam.xfam.org" in url or "rfam.org" in url:
                 source = "Rfam"
             elif "mirbase.org" in url:
                 source = "miRBase"
+                priority = "critical"
             elif "scottgroup.med.usherbrooke.ca" in url:
                 source = "snoDB"
+                priority = "critical"
             elif "gtrnadb.ucsc.edu" in url:
                 source = "GtRNAdb"
+                priority = "critical"
             elif "ribocentre.org" in url:
                 source = "Ribocentre"
+                priority = "critical"
             else:
                 source = 'API'
 
