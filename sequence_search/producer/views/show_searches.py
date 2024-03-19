@@ -36,7 +36,7 @@ async def show_searches(request):
         last_24_hours_result = convert_average_time(last_24_hours_records)
 
         high_priority_24_hours = await conn.execute(
-            query + "AND priority = 'high' AND submitted > %s", datetime.datetime.now() - datetime.timedelta(days=1)
+            query + "AND priority != 'low' AND submitted > %s", datetime.datetime.now() - datetime.timedelta(days=1)
         )
         high_priority_24_hours_records = await high_priority_24_hours.fetchall()
         high_priority_24_hours_result = convert_average_time(high_priority_24_hours_records)
@@ -49,7 +49,7 @@ async def show_searches(request):
         last_week_result = convert_average_time(last_week_records)
 
         high_priority_last_week = await conn.execute(
-            query + "AND priority = 'high' AND submitted > %s", datetime.datetime.now() - datetime.timedelta(days=7)
+            query + "AND priority != 'low' AND submitted > %s", datetime.datetime.now() - datetime.timedelta(days=7)
         )
         high_priority_last_week_records = await high_priority_last_week.fetchall()
         high_priority_last_week_result = convert_average_time(high_priority_last_week_records)
