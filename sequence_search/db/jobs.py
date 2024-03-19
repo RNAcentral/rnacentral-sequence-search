@@ -42,9 +42,7 @@ async def sequence_exists(engine, query):
     try:
         async with engine.acquire() as connection:
             try:
-                sql_query = sa.select([Job.c.id]).select_from(Job).where(
-                    (Job.c.query == query) & Job.c.result_in_db
-                )
+                sql_query = sa.select([Job.c.id]).select_from(Job).where((Job.c.query == query))
                 job_list = []
                 async for row in await connection.execute(sql_query):
                     job_list.append(row[0])
@@ -151,10 +149,10 @@ async def set_job_status(engine, job_id, status, hits=None):
     try:
         async with engine.acquire() as connection:
             try:
-                query = sa.text('''UPDATE jobs SET status = :status, finished = :finished, hits = :hits, 
-                result_in_db = :result_in_db WHERE id = :job_id''')
-                await connection.execute(query, job_id=job_id, status=status, finished=finished, hits=hits,
-                                         result_in_db=True)
+                query = sa.text('''
+                    UPDATE jobs SET status = :status, finished = :finished, hits = :hits WHERE id = :job_id
+                ''')
+                await connection.execute(query, job_id=job_id, status=status, finished=finished, hits=hits)
             except Exception as e:
                 raise SQLError("Failed to save job to the database about failed job, job_id = %s, "
                                "status = %s" % (job_id, status)) from e

@@ -150,7 +150,6 @@ class JobAndSequenceExistsTestCase(DBTestCase):
                     query='AACAGCATGAGTGCGCTGGATGCTG',
                     description='CATE_ECOLI',
                     submitted=datetime.datetime.now(),
-                    result_in_db=True,
                     status=JOB_STATUS_CHOICES.success
                 )
             )
@@ -184,7 +183,6 @@ class SaveR2DTTestCase(DBTestCase):
                     query='AACAGCATGAGTGCGCTGGATGCTG',
                     description='CATE_ECOLI',
                     submitted=datetime.datetime.now(),
-                    result_in_db=True,
                     status=JOB_STATUS_CHOICES.success
                 )
             )
