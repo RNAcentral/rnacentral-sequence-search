@@ -16,6 +16,7 @@ import re
 from aiohttp import web
 from aiojobs.aiohttp import atomic
 from datetime import datetime
+from urllib.parse import urlparse
 
 from sequence_search.db.models import JOB_CHUNK_STATUS_CHOICES
 from sequence_search.producer.settings import MIN_QUERY_LENGTH, MAX_QUERY_LENGTH
@@ -142,7 +143,7 @@ async def submit_job(request):
 
         # get URL - for statistical purposes
         try:
-            url = data['url']
+            url = urlparse(data['url']).netloc
         except KeyError:
             url = ''
 
