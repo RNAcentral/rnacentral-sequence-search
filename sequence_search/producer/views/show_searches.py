@@ -67,7 +67,13 @@ async def show_searches(request):
 
         searches_per_month = []
         expert_db_results = [
-            {"RNAcentral": []}, {"Rfam": []}, {"miRBase": []}, {"snoDB": []}, {"GtRNAdb": []}, {"API": []},
+            {"API": []},
+            {"GtRNAdb": []},
+            {"miRBase": []},
+            {"Rfam": []},
+            {"Ribocentre": []},
+            {"RNAcentral": []},
+            {"snoDB": []},
         ]
 
         for elem in searches_per_month_result:
