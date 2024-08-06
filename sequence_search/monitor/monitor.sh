@@ -26,15 +26,15 @@ if curl -s --head  --request GET $HOST | grep "200 OK" > /dev/null; then
     # Job status
     STATUS=$(curl -s ${HOST}/api/job-status/$JOB_ID | jq -r '.chunks | .[] | .status')
 
-    # Wait up to 30 minutes to finish
-    PAUSE="0"
+    # Wait up to 50 minutes to finish
+    PAUSE=0
     if [ "$STATUS" == "started" ] || [ "$STATUS" == "pending" ]
     then
         while [ $PAUSE -lt 300 ]
         do
             sleep 10
             STATUS=$(curl -s ${HOST}/api/job-status/$JOB_ID | jq -r '.chunks | .[] | .status')
-            if [ "$STATUS" == "success" ] || [ "$STATUS" = "partial_success" ]; then
+            if [ "$STATUS" == "success" ] || [ "$STATUS" == "partial_success" ]; then
                 # Sequence search is working normal
                 break
             elif [ "$STATUS" == "error" ] || [ "$STATUS" == "timeout" ]; then
@@ -49,8 +49,19 @@ if curl -s --head  --request GET $HOST | grep "200 OK" > /dev/null; then
                 curl -s -d "payload=$json" $WEBHOOK_URL
                 break
             fi
-            PAUSE=$[$PAUSE+1]
+            PAUSE=$((PAUSE + 1))
         done
+
+        # After 50 minutes, if status is still started or pending, send a message
+        if [ "$STATUS" == "started" ] || [ "$STATUS" == "pending" ]; then
+            text="The sequence search has not performed a search within a 50 minute period. \n
+            Either there are too many jobs to run, or the sequence search is having problems. \n
+            \n
+            Job status of this test: ${STATUS} - ${HOST}/api/facets-search/$JOB_ID"
+            escapedText=$(echo ${text} | sed 's/"/\"/g' | sed "s/'/\'/g" )
+            json="{\"text\": \"$escapedText\"}"
+            curl -s -d "payload=$json" $WEBHOOK_URL
+        fi
     fi
 
 # No worries if it's not up, UptimeRobot will notify the team.
