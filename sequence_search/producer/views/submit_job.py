@@ -183,7 +183,9 @@ async def submit_job(request):
             else:
                 source = 'API'
 
-        if not data['description'] == 'sequence-search-test':
+        if data["description"] == "sequence-search-test":
+            priority = "db-seq-test"
+        else:
             period = datetime.today().strftime('%Y-%m')
             statistic = await get_statistic(request.app['engine'], source, period)
 
