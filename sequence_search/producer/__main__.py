@@ -1,5 +1,5 @@
 """
-Copyright [2009-2019] EMBL-European Bioinformatics Institute
+Copyright [2009-present] EMBL-European Bioinformatics Institute
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
 You may obtain a copy of the License at
@@ -47,19 +47,27 @@ async def on_startup(app):
         # create initial migrations in the database
         await migrate(app['settings'].ENVIRONMENT)
 
-    # initialize scheduling tasks to consumers in background
-    await create_consumer_scheduler(app)
+    # initialize scheduling tasks to consumers in the background
+    asyncio.create_task(check_chunks_and_consumers(app))
 
 
 async def check_chunks_and_consumers(app):
-    # if there are any pending jobs and free consumers, schedule their execution
-    unfinished_job = await find_highest_priority_jobs(app['engine'])
-    available_consumers = await find_available_consumers(app['engine'])
+    """
+    Periodically runs a task that checks the status of consumers in the database and
+     - schedules job_chunks to run on consumers
+     - restarts stuck consumers
+    """
+    while True:
+        # Fetch jobs and available consumers
+        unfinished_jobs = await find_highest_priority_jobs(app['engine'])
+        available_consumers = await find_available_consumers(app['engine'])
 
-    for consumer in available_consumers:
-        if unfinished_job:
-            job = unfinished_job.pop(0)
+        # Assign jobs to available consumers
+        while unfinished_jobs and available_consumers:
+            consumer = available_consumers.pop(0)
+            job = unfinished_jobs.pop(0)
             query = await get_job_query(app['engine'], job[0])
+
             if len(job) == 4:
                 await delegate_job_chunk_to_consumer(
                     engine=app['engine'],
@@ -78,32 +86,17 @@ async def check_chunks_and_consumers(app):
                     query=query
                 )
 
-    busy_consumers = await find_busy_consumers(app['engine'])
-    for consumer in busy_consumers:
-        if consumer.job_chunk_id is None:
-            await set_consumer_status(app['engine'], consumer.ip, CONSUMER_STATUS_CHOICES.available)
-        elif consumer.job_chunk_id != 'infernal-job':
-            job_chunk = await get_job_chunk(app['engine'], consumer.job_chunk_id)
-            if job_chunk.finished is not None:
-                await set_consumer_job_chunk_id(app['engine'], consumer.ip, None)
+        busy_consumers = await find_busy_consumers(app['engine'])
+        for consumer in busy_consumers:
+            if consumer.job_chunk_id is None:
                 await set_consumer_status(app['engine'], consumer.ip, CONSUMER_STATUS_CHOICES.available)
+            elif consumer.job_chunk_id != 'infernal-job':
+                job_chunk = await get_job_chunk(app['engine'], consumer.job_chunk_id)
+                if job_chunk.finished is not None:
+                    await set_consumer_job_chunk_id(app['engine'], consumer.ip, None)
+                    await set_consumer_status(app['engine'], consumer.ip, CONSUMER_STATUS_CHOICES.available)
 
-
-async def create_consumer_scheduler(app):
-    """
-    Periodically runs a task that checks the status of consumers in the database and
-     - schedules job_chunks to run on consumers
-     - restarts stuck consumers
-
-    Stolen from:
-    https://stackoverflow.com/questions/37512182/how-can-i-periodically-execute-a-function-with-asyncio
-    """
-    async def periodic():
-        while True:
-            await check_chunks_and_consumers(app)
-            await asyncio.sleep(5)
-
-    asyncio.ensure_future(periodic())
+        await asyncio.sleep(3)
 
 
 def create_app():
