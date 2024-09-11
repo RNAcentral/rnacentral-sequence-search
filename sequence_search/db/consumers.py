@@ -45,11 +45,9 @@ async def find_available_consumers(engine):
                 WHERE status=:status
             ''')
 
-            result = []
-            async for row in await connection.execute(query, status=CONSUMER_STATUS_CHOICES.available):
-                result.append(Consumer(row[0], row[1], row[2], row[3]))
-
-            return result
+            results = await connection.execute(query, status=CONSUMER_STATUS_CHOICES.available)
+            rows = await results.fetchall()
+            return [Consumer(row[0], row[1], row[2], row[3]) for row in rows]
 
     except psycopg2.Error as e:
         raise DatabaseConnectionError(str(e)) from e
