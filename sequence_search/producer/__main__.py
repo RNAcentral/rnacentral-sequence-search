@@ -68,7 +68,7 @@ async def check_chunks_and_consumers(app):
             job = unfinished_jobs.pop(0)
             query = await get_job_query(app['engine'], job[0])
 
-            if len(job) == 4:
+            if job[3] is not None:  # data from JobChunk
                 await delegate_job_chunk_to_consumer(
                     engine=app['engine'],
                     consumer_ip=consumer.ip,
@@ -77,7 +77,7 @@ async def check_chunks_and_consumers(app):
                     database=job[3],
                     query=query
                 )
-            else:
+            else:  # data from InfernalJob
                 await delegate_infernal_job_to_consumer(
                     engine=app['engine'],
                     consumer_ip=consumer.ip,
