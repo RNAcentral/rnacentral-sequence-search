@@ -497,48 +497,50 @@ async def find_highest_priority_jobs(engine):
     # among the running jobs, find the one with high priority, submitted first
     try:
         async with engine.acquire() as connection:
-            try:
-                output = []
-                select_statement = sa.select(
+            output = []
+            query = (
+                sa.select(
                     [
                         Job.c.id.label('id'),
-                        Job.c.status.label('job_status'),
-                        Job.c.submitted.label('submitted'),
                         Job.c.priority.label('priority'),
-                        JobChunk.c.job_id.label('job_id'),
-                        JobChunk.c.id.label('job_chunk_id'),
-                        JobChunk.c.database.label('database'),
-                        JobChunk.c.status.label('status')
-                    ],
-                    use_labels=True
+                        Job.c.submitted.label('submitted'),
+                        JobChunk.c.database.label('database')
+                    ]
                 )
+                .select_from(
+                    sa.join(Job, JobChunk, Job.c.id == JobChunk.c.job_id)
+                )
+                .where(
+                    sa.and_(
+                        Job.c.status == JOB_STATUS_CHOICES.started,
+                        JobChunk.c.status == JOB_CHUNK_STATUS_CHOICES.pending
+                    )
+                )
+                .union_all(
+                    sa.select(
+                        [
+                            InfernalJob.c.job_id.label('id'),
+                            InfernalJob.c.priority.label('priority'),
+                            InfernalJob.c.submitted.label('submitted'),
+                            sa.literal(None).label('database')
+                        ]
+                    )
+                    .select_from(InfernalJob)
+                    .where(InfernalJob.c.status == JOB_CHUNK_STATUS_CHOICES.pending)
+                )
+                .order_by('priority', 'submitted')
+                .limit(30)
+            )
 
-                query = (select_statement
-                         .select_from(sa.join(Job, JobChunk, Job.c.id == JobChunk.c.job_id))  # noqa
-                         .where(sa.and_(Job.c.status == JOB_STATUS_CHOICES.started, JobChunk.c.status == JOB_CHUNK_STATUS_CHOICES.pending))
-                         .order_by(Job.c.priority, Job.c.submitted))  # noqa
+            async for row in connection.execute(query):
+                output.append((row.id, row.priority, row.submitted, row.database))
 
-                # get job chunks
-                async for row in await connection.execute(query):
-                    output.append((row.id, row.priority, row.submitted, row.database))
-
-                query = (sa.select([InfernalJob.c.job_id, InfernalJob.c.submitted, InfernalJob.c.priority])
-                         .select_from(InfernalJob)
-                         .where(InfernalJob.c.status == JOB_CHUNK_STATUS_CHOICES.pending)
-                         .order_by(InfernalJob.c.priority, InfernalJob.c.submitted)  # noqa
-                         )
-
-                # get infernal jobs
-                async for row in await connection.execute(query):
-                    output.append((row.job_id, row.priority, row.submitted))
-
-                return sorted(output, key=itemgetter(1, 2))  # sort by priority first, then by date
-
-            except Exception as e:
-                raise SQLError("Failed to find highest priority jobs") from e
+            return output
 
     except psycopg2.Error as e:
         raise DatabaseConnectionError(str(e)) from e
+    except Exception as e:
+        raise SQLError("Failed to find highest priority jobs") from e
 
 
 async def get_infernal_job_results(engine, job_id):
