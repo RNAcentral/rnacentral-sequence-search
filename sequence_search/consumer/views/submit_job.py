@@ -110,7 +110,8 @@ async def nhmmer(engine, job_id, sequence, database):
         except (DatabaseConnectionError, SQLError) as e:
             # TODO: what do we do in case we lost the database connection here?
             # TODO: probably, clean the nhmmer query and result files?
-            pass
+            logging.debug('Error saving job chunk results = %s' % e)
+            await set_job_chunk_status(engine, job_id, database, status=JOB_CHUNK_STATUS_CHOICES.error)
 
     # TODO: what do we do in case we lost the database connection here?
     # update job in the database (maybe the whole job is done)
