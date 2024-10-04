@@ -16,12 +16,13 @@ import logging
 
 import sqlalchemy as sa
 import psycopg2
+from aiohttp import ClientConnectionError, ClientResponseError
+from asyncio import TimeoutError
 from netifaces import interfaces, ifaddresses, AF_INET
 
 from . import DatabaseConnectionError
 from .job_chunks import get_job_chunk_from_job_and_database
 from ..consumer.settings import PORT
-from ..producer.consumer_client import ConsumerClient
 from .models import CONSUMER_STATUS_CHOICES
 
 
@@ -143,29 +144,66 @@ async def set_consumer_job_chunk_id(engine, consumer_ip, job_id=None, database=N
         logging.error(str(e))
 
 
-async def delegate_job_chunk_to_consumer(engine, consumer_ip, consumer_port, job_id, database, query):
-    """When a consumer returns result, set its state in the database to 'available'."""
+async def delegate_job_chunk_to_consumer(engine, consumer_ip, consumer_port, job_id, database, query, consumer_client):
+    """
+    This function calls submit_job to submit a job_chunk to a consumer
+    :param engine: params to connect to the db
+    :param consumer_ip: ip of the consumer
+    :param consumer_port: port used by the consumer
+    :param job_id: id of the job
+    :param database: an all-except-rrna- or whitelist-rrna-* file
+    :param query: the sequence that the user wants to search
+    :param consumer_client: the client initialized in on_startup
+    :return: None (if there are no errors)
+    """
     try:
         async with engine.acquire() as connection:
-            response = await ConsumerClient().submit_job(consumer_ip, consumer_port, job_id, database, query)
+            response = await consumer_client.submit_job(consumer_ip, consumer_port, job_id, database, query)
 
-            if response.status >= 400:
-                text = await response.text()
-                raise ConsumerConnectionError(text)
+            if response is None or response.status >= 400:
+                text = await response.text() if response else "No response from consumer"
+                raise ConsumerConnectionError(f"Error from consumer: {text}")
+    except ClientConnectionError:
+        logging.error(f"Connection error while submitting job {job_id} to {consumer_ip}:{consumer_port}.")
+    except ClientResponseError as e:
+        logging.error(f"Invalid response from consumer {consumer_ip}:{consumer_port} with status {e.status}.")
+    except TimeoutError:
+        logging.error(f"Timeout while submitting job {job_id} to {consumer_ip}:{consumer_port}.")
     except psycopg2.Error as e:
-        logging.error(str(e))
+        logging.error(f"Database error: {str(e)}")
+    except Exception as e:
+        logging.error(f"Unexpected error: {str(e)}")
 
 
-async def delegate_infernal_job_to_consumer(engine, consumer_ip, consumer_port, job_id, query):
+
+async def delegate_infernal_job_to_consumer(engine, consumer_ip, consumer_port, job_id, query, consumer_client):
+    """
+    This function calls submit_job to submit an infernal_job to a consumer
+    :param engine: params to connect to the db
+    :param consumer_ip: ip of the consumer
+    :param consumer_port: port used by the consumer
+    :param job_id: id of the job
+    :param query: the sequence that the user wants to search
+    :param consumer_client: the client initialized in on_startup
+    :return: None (if there are no errors)
+    """
     try:
         async with engine.acquire() as connection:
-            response = await ConsumerClient().submit_infernal_job(consumer_ip, consumer_port, job_id, query)
+            response = await consumer_client.submit_infernal_job(consumer_ip, consumer_port, job_id, query)
 
-            if response.status >= 400:
-                text = await response.text()
-                raise ConsumerConnectionError(text)
+            if response is None or response.status >= 400:
+                text = await response.text() if response else "No response from consumer"
+                raise ConsumerConnectionError(f"Error from consumer: {text}")
+    except ClientConnectionError:
+        logging.error(f"Connection error while submitting job {job_id} to {consumer_ip}:{consumer_port}.")
+    except ClientResponseError as e:
+        logging.error(f"Invalid response from consumer {consumer_ip}:{consumer_port} with status {e.status}.")
+    except TimeoutError:
+        logging.error(f"Timeout while submitting job {job_id} to {consumer_ip}:{consumer_port}.")
     except psycopg2.Error as e:
-        logging.error(str(e))
+        logging.error(f"Database error: {str(e)}")
+    except Exception as e:
+        logging.error(f"Unexpected error: {str(e)}")
 
 
 def get_ip(app):
