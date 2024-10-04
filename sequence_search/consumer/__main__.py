@@ -13,6 +13,7 @@ limitations under the License.
 
 import logging
 import os
+import asyncio
 
 import aiohttp_jinja2
 import jinja2
@@ -39,20 +40,51 @@ async def on_startup(app):
     await init_pg(app)
 
     # register self in the database
-    await register_consumer_in_the_database(app)
+    app['register_consumer_task'] = asyncio.create_task(register_consumer_in_the_database(app))
 
     # clear queries and results directories
-    for name in os.listdir(settings.RESULTS_DIR):
-        os.remove(settings.RESULTS_DIR / name)
+    app['clear_directories_task'] = asyncio.create_task(clear_directories(app))
 
-    for name in os.listdir(settings.QUERY_DIR):
-        os.remove(settings.QUERY_DIR / name)
 
-    for name in os.listdir(settings.INFERNAL_RESULTS_DIR):
-        os.remove(settings.INFERNAL_RESULTS_DIR / name)
+async def clear_directories(app):
+    # clear results directories
+    try:
+        for name in os.listdir(settings.RESULTS_DIR):
+            os.remove(settings.RESULTS_DIR / name)
 
-    for name in os.listdir(settings.INFERNAL_QUERY_DIR):
-        os.remove(settings.INFERNAL_QUERY_DIR / name)
+        for name in os.listdir(settings.QUERY_DIR):
+            os.remove(settings.QUERY_DIR / name)
+
+        for name in os.listdir(settings.INFERNAL_RESULTS_DIR):
+            os.remove(settings.INFERNAL_RESULTS_DIR / name)
+
+        for name in os.listdir(settings.INFERNAL_QUERY_DIR):
+            os.remove(settings.INFERNAL_QUERY_DIR / name)
+    except Exception as e:
+        logging.error(f"Error clearing directories: {str(e)}")
+
+
+async def on_cleanup(app):
+    # cancel the register consumer task
+    task = app.get('register_consumer_task')
+    if task:
+        task.cancel()
+        try:
+            await task
+        except asyncio.CancelledError:
+            logging.info("Background task register_consumer_in_the_database was cancelled")
+
+    # cancel the directory cleaning task if still running
+    clear_task = app.get('clear_directories_task')
+    if clear_task:
+        clear_task.cancel()
+        try:
+            await clear_task
+        except asyncio.CancelledError:
+            logging.info("Background task clear_directories was cancelled")
+
+    # Close the database connection
+    await close_pg(app)
 
 
 def create_app():
@@ -71,9 +103,9 @@ def create_app():
     for key, value in get_postgres_credentials(settings.ENVIRONMENT)._asdict().items():
         setattr(app['settings'], key, value)
 
-    # create db connection on startup, shutdown on exit
+    # create db connection on startup, proper cleanup on shutdown
     app.on_startup.append(on_startup)
-    app.on_cleanup.append(close_pg)
+    app.on_cleanup.append(on_cleanup)
 
     # setup views and routes
     setup_routes(app)
