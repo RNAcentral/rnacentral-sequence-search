@@ -135,6 +135,7 @@ async def set_job_chunk_status(engine, job_id, database, status, hits=None):
                     async for row in await connection.execute(query, job_id=job_id, database=database, status=status,
                                                               submitted=submitted):
                         id = row.id
+                        break
                     return id
                 elif finished:
                     query = sa.text('''
@@ -148,6 +149,7 @@ async def set_job_chunk_status(engine, job_id, database, status, hits=None):
                     async for row in await connection.execute(query, job_id=job_id, database=database, status=status,
                                                               finished=finished, hits=hits):
                         id = row.id
+                        break
                     return id
                 else:
                     query = sa.text('''
@@ -160,6 +162,7 @@ async def set_job_chunk_status(engine, job_id, database, status, hits=None):
                     id = None  # if connection didn't return any rows, return None
                     async for row in await connection.execute(query, job_id=job_id, database=database, status=status):
                         id = row.id
+                        break
                     return id
             except Exception as e:
                 raise SQLError("Failed to set_job_chunk_status in the database,"
@@ -182,7 +185,7 @@ async def set_job_chunk_consumer(engine, job_id, database, consumer_ip):
                 id = None  # if connection didn't return any rows, return None
                 async for row in await connection.execute(query, job_id=job_id, database=database, consumer_ip=consumer_ip):
                     id = row.id
-
+                    break
                 return id
             except Exception as e:
                 raise SQLError("Failed to set_job_chunk_consumer in the database,"

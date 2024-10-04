@@ -636,6 +636,7 @@ async def get_infernal_job_status(engine, job_id):
                         'finished': row.finished,
                         'status': row.status,
                     })
+                    break
 
                 if result:
                     return result

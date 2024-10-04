@@ -75,6 +75,7 @@ async def set_infernal_job_status(engine, job_id, status):
                     infernal_job = None  # if connection didn't return any rows, return None
                     async for row in await connection.execute(query, job_id=job_id, status=status, submitted=submitted):
                         infernal_job = row.id
+                        break
                     return infernal_job
                 elif finished:
                     query = sa.text('''
@@ -87,6 +88,7 @@ async def set_infernal_job_status(engine, job_id, status):
                     infernal_job = None  # if connection didn't return any rows, return None
                     async for row in await connection.execute(query, job_id=job_id, status=status, finished=finished):
                         infernal_job = row.id
+                        break
                     return infernal_job
                 else:
                     query = sa.text('''
@@ -99,6 +101,7 @@ async def set_infernal_job_status(engine, job_id, status):
                     infernal_job = None  # if connection didn't return any rows, return None
                     async for row in await connection.execute(query, job_id=job_id, status=status):
                         infernal_job = row.id
+                        break
                     return infernal_job
             except Exception as e:
                 raise SQLError("Failed to set_job_chunk_status in the database,"
@@ -128,6 +131,7 @@ async def set_consumer_to_infernal_job(engine, job_id, consumer_ip):
                 infernal_job = None  # if connection didn't return any rows, return None
                 async for row in await connection.execute(query, job_id=job_id, consumer_ip=consumer_ip):
                     infernal_job = row.id
+                    break
                 return infernal_job
             except Exception as e:
                 raise SQLError("Failed to set_consumer_to_infernal_job in the database, job_id = %s" % job_id) from e
