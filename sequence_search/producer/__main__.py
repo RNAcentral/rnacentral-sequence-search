@@ -28,6 +28,7 @@ from ..db.jobs import get_job_query, find_highest_priority_jobs
 from ..db.consumers import delegate_job_chunk_to_consumer, find_available_consumers, find_busy_consumers, \
     set_consumer_status, set_consumer_job_chunk_id, CONSUMER_STATUS_CHOICES, delegate_infernal_job_to_consumer
 from ..db.settings import get_postgres_credentials
+from .consumer_client import ConsumerClient
 from .urls import setup_routes
 
 """
@@ -48,7 +49,29 @@ async def on_startup(app):
         await migrate(app['settings'].ENVIRONMENT)
 
     # initialize scheduling tasks to consumers in the background
-    asyncio.create_task(check_chunks_and_consumers(app))
+    app['check_chunks_task'] = asyncio.create_task(check_chunks_and_consumers(app))
+
+    # initialize ConsumerClient
+    app['consumer_client'] = ConsumerClient()
+
+
+async def on_cleanup(app):
+    # proper cleanup for background task on app shutdown
+    task = app.get('check_chunks_task')
+    if task:
+        task.cancel()
+        try:
+            await task
+        except asyncio.CancelledError:
+            logging.info("Background task check_chunks_and_consumers was cancelled")
+
+    # close the aiohttp session if it exists
+    consumer_client = app.get('consumer_client')
+    if consumer_client:
+        await consumer_client.close_session()
+
+    # close the database connection
+    await close_pg(app)
 
 
 async def check_chunks_and_consumers(app):
@@ -58,49 +81,55 @@ async def check_chunks_and_consumers(app):
      - restarts stuck consumers
     """
     while True:
-        # Fetch jobs and available consumers
-        unfinished_jobs = await find_highest_priority_jobs(app['engine'])
-        available_consumers = await find_available_consumers(app['engine'])
+        try:
+            # Fetch jobs and available consumers
+            unfinished_jobs = await find_highest_priority_jobs(app['engine'])
+            available_consumers = await find_available_consumers(app['engine'])
 
-        # Assign jobs to available consumers
-        while unfinished_jobs and available_consumers:
-            consumer = available_consumers.pop(0)
-            job = unfinished_jobs.pop(0)
-            query = await get_job_query(app['engine'], job[0])
+            # Assign jobs to available consumers
+            while unfinished_jobs and available_consumers:
+                consumer = available_consumers.pop(0)
+                job = unfinished_jobs.pop(0)
+                query = await get_job_query(app['engine'], job[0])
 
-            if job[3] is not None:  # data from JobChunk
-                await delegate_job_chunk_to_consumer(
-                    engine=app['engine'],
-                    consumer_ip=consumer.ip,
-                    consumer_port=consumer.port,
-                    job_id=job[0],
-                    database=job[3],
-                    query=query
-                )
-            else:  # data from InfernalJob
-                await delegate_infernal_job_to_consumer(
-                    engine=app['engine'],
-                    consumer_ip=consumer.ip,
-                    consumer_port=consumer.port,
-                    job_id=job[0],
-                    query=query
-                )
+                if job[3] is not None:  # data from JobChunk
+                    await delegate_job_chunk_to_consumer(
+                        engine=app['engine'],
+                        consumer_ip=consumer.ip,
+                        consumer_port=consumer.port,
+                        job_id=job[0],
+                        database=job[3],
+                        query=query,
+                        consumer_client=app['consumer_client']
+                    )
+                else:  # data from InfernalJob
+                    await delegate_infernal_job_to_consumer(
+                        engine=app['engine'],
+                        consumer_ip=consumer.ip,
+                        consumer_port=consumer.port,
+                        job_id=job[0],
+                        query=query,
+                        consumer_client=app['consumer_client']
+                    )
 
-        busy_consumers = await find_busy_consumers(app['engine'])
-        for consumer in busy_consumers:
-            if consumer.job_chunk_id is None:
-                await set_consumer_status(app['engine'], consumer.ip, CONSUMER_STATUS_CHOICES.available)
-            elif consumer.job_chunk_id != 'infernal-job':
-                job_chunk = await get_job_chunk(app['engine'], consumer.job_chunk_id)
-                if job_chunk.finished is not None:
-                    await set_consumer_job_chunk_id(app['engine'], consumer.ip, None)
+            busy_consumers = await find_busy_consumers(app['engine'])
+            for consumer in busy_consumers:
+                if consumer.job_chunk_id is None:
                     await set_consumer_status(app['engine'], consumer.ip, CONSUMER_STATUS_CHOICES.available)
+                elif consumer.job_chunk_id != 'infernal-job':
+                    job_chunk = await get_job_chunk(app['engine'], consumer.job_chunk_id)
+                    if job_chunk.finished is not None:
+                        await set_consumer_job_chunk_id(app['engine'], consumer.ip, None)
+                        await set_consumer_status(app['engine'], consumer.ip, CONSUMER_STATUS_CHOICES.available)
 
-        await asyncio.sleep(3)
+        except Exception as e:
+            logging.error(f"Unexpected error in check_chunks_and_consumers: {str(e)}", exc_info=True)
+        finally:
+            await asyncio.sleep(3)
 
 
 def create_app():
-    logging.basicConfig(level=logging.DEBUG)
+    logging.basicConfig(level=logging.WARNING)
 
     app = web.Application(middlewares=[
         web_middlewares.normalize_path_middleware(append_slash=True),
@@ -117,7 +146,7 @@ def create_app():
 
     # create db connection on startup, shutdown on exit
     app.on_startup.append(on_startup)
-    app.on_cleanup.append(close_pg)
+    app.on_cleanup.append(on_cleanup)
 
     # setup views and routes
     setup_routes(app)
