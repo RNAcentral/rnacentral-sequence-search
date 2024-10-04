@@ -237,7 +237,8 @@ async def submit_job(request):
                         consumer_ip=consumer.ip,
                         consumer_port=consumer.port,
                         job_id=job_id,
-                        query=data['query']
+                        query=data['query'],
+                        consumer_client=request.app['consumer_client']
                     )
                 except Exception as e:
                     return web.HTTPBadGateway(text=str(e))
@@ -251,7 +252,8 @@ async def submit_job(request):
                         consumer_port=consumers[index].port,
                         job_id=job_id,
                         database=databases[index],
-                        query=data['query']
+                        query=data['query'],
+                        consumer_client=request.app['consumer_client']
                     )
                 except Exception as e:
                     return web.HTTPBadGateway(text=str(e))
