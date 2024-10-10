@@ -152,19 +152,19 @@ async def submit_job(request):
 
     curl -H "Content-Type:application/json" -d "{\"job_id\": 1, \"database\": \"mirbase.fasta\", \"sequence\": \"AAAAGGTCGGAGCGAGGCAAAATTGGCTTTCAAACTAGGTTCTGGGTTCACATAAGACCT\"}" localhost:8000/submit-job
     """
-    # validate the data
+    # validate the incoming data
     data = await request.json()
     try:
         data = serialize(request, data)
     except (KeyError, TypeError, ValueError) as e:
-        logging.debug('Serialization error: ' % e)
+        logging.error(f"Serialization error: {e}")
         raise web.HTTPBadRequest(text=str(e)) from e
 
     # cache variables for brevity
-    engine = request.app['engine']
-    job_id = data['job_id']
-    sequence = data['sequence']
-    database = data['database']
+    engine = request.app["engine"]
+    job_id = data["job_id"]
+    sequence = data["sequence"]
+    database = data["database"]
     consumer_ip = get_ip(request.app)  # 'host.docker.internal'
 
     # if request was successful, save the consumer state and job_chunk state to the database
@@ -174,8 +174,11 @@ async def submit_job(request):
         await set_job_chunk_status(engine, job_id, database, status=JOB_CHUNK_STATUS_CHOICES.started)
         await set_job_chunk_consumer(engine, job_id, database, consumer_ip)
     except (DatabaseConnectionError, SQLError) as e:
-        logging.debug('Database error: ' % e)
-        raise web.HTTPBadRequest(text=str(e)) from e
+        logging.error(f"Database error for job_id={job_id}, consumer={consumer_ip}, database={database}: {e}")
+        raise web.HTTPBadRequest(text=f"Database error: {e}")
+    except Exception as e:
+        logging.error(f"Unexpected error while processing job_id={job_id}, consumer_ip={consumer_ip}: {e}")
+        raise web.HTTPInternalServerError(text=f"Unexpected error occurred: {e}")
 
     # spawn nhmmer job in the background and return 201
     await spawn(request, nhmmer(engine, job_id, sequence, database))
