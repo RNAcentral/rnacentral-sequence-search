@@ -12,10 +12,11 @@ limitations under the License.
 """
 
 import datetime
-
+import logging
 import sqlalchemy as sa
 import psycopg2
 
+from tenacity import retry, stop_after_attempt, wait_fixed
 from . import DatabaseConnectionError, SQLError, DoesNotExist
 from .models import JobChunk, JOB_CHUNK_STATUS_CHOICES
 
@@ -101,13 +102,17 @@ async def get_consumer_ip_from_job_chunk(engine, job_chunk_id):
         raise DatabaseConnectionError(str(e)) from e
 
 
+@retry(stop=stop_after_attempt(3), wait=wait_fixed(3))
 async def set_job_chunk_status(engine, job_id, database, status, hits=None):
     """
-    :param hits: total number of hits
+    Update the job_chunk's status in the database.
+    Retry up to 3 times with a 3-second wait
+
     :param engine: params to connect to the db
     :param job_id: id of the job
     :param database: Consumer-side database (actual file name stored in the database)
     :param status: an option from consumer.JOB_CHUNK_STATUS
+    :param hits: total number of hits (optional)
     :return: None
     """
     finished = None
@@ -122,74 +127,73 @@ async def set_job_chunk_status(engine, job_id, database, status, hits=None):
 
     try:
         async with engine.acquire() as connection:
-            try:
-                if submitted:
-                    query = sa.text('''
-                        UPDATE job_chunks
-                        SET status = :status, submitted = :submitted
-                        WHERE job_id = :job_id AND database = :database
-                        RETURNING *;
-                    ''')
+            query_params = {"status": status, "job_id": job_id, "database": database}
+            extra_fields = ""
 
-                    id = None  # if connection didn't return any rows, return None
-                    async for row in await connection.execute(query, job_id=job_id, database=database, status=status,
-                                                              submitted=submitted):
-                        id = row.id
-                        break
-                    return id
-                elif finished:
-                    query = sa.text('''
-                        UPDATE job_chunks
-                        SET status = :status, finished = :finished, hits = :hits
-                        WHERE job_id = :job_id AND database = :database
-                        RETURNING *;
-                    ''')
+            if submitted:
+                query_params["submitted"] = submitted
+                extra_fields += ", submitted = :submitted"
 
-                    id = None  # if connection didn't return any rows, return None
-                    async for row in await connection.execute(query, job_id=job_id, database=database, status=status,
-                                                              finished=finished, hits=hits):
-                        id = row.id
-                        break
-                    return id
-                else:
-                    query = sa.text('''
-                        UPDATE job_chunks
-                        SET status = :status
-                        WHERE job_id = :job_id AND database = :database
-                        RETURNING *;
-                    ''')
+            if finished:
+                query_params["finished"] = finished
+                query_params["hits"] = hits
+                extra_fields += ", finished = :finished, hits = :hits"
 
-                    id = None  # if connection didn't return any rows, return None
-                    async for row in await connection.execute(query, job_id=job_id, database=database, status=status):
-                        id = row.id
-                        break
-                    return id
-            except Exception as e:
-                raise SQLError("Failed to set_job_chunk_status in the database,"
-                               " job_id = %s, database = %s, status = %s" % (job_id, database, status)) from e
+            query = sa.text(f'''
+                UPDATE job_chunks
+                SET status = :status {extra_fields}
+                WHERE job_id = :job_id AND database = :database;
+            ''')
+
+            await connection.execute(query, **query_params)
+
     except psycopg2.Error as e:
-        raise DatabaseConnectionError("Failed to open connection to the database in "
-                      "set_job_chunk_status, job_id = %s, database = %s" % (job_id, database)) from e
+        logging.error(
+            f"Database error while updating job chunk status for job_id={job_id}, database={database}: {str(e)}"
+        )
+        raise DatabaseConnectionError(
+            f"Failed to update job chunk status for job_id={job_id}, database={database}"
+        ) from e
+
+    except Exception as e:
+        logging.error(
+            f"Unexpected error while updating job chunk status for job_id={job_id}, database={database}: {str(e)}"
+        )
+        raise SQLError(f"Failed to update job chunk status for job_id={job_id}, database={database}") from e
 
 
+@retry(stop=stop_after_attempt(3), wait=wait_fixed(3))
 async def set_job_chunk_consumer(engine, job_id, database, consumer_ip):
+    """
+    Update the consumer field in the job_chunks table for the given job_id and database.
+    Retry up to 3 times with a 3-second wait
+
+    :param engine: params to connect to the db
+    :param job_id: id of the job
+    :param database: an all-except-rrna- or whitelist-rrna-* file
+    :param consumer_ip: IP of the consumer that is handling this job chunk
+    :return: id of the updated job_chunk, or None if no rows were affected
+    """
+    query = sa.text('''
+        UPDATE job_chunks
+        SET consumer = :consumer_ip
+        WHERE job_id = :job_id AND database = :database
+        RETURNING id;
+    ''')
+
     try:
         async with engine.acquire() as connection:
-            try:
-                query = sa.text('''
-                    UPDATE job_chunks
-                    SET consumer = :consumer_ip
-                    WHERE job_id=:job_id AND database=:database
-                    RETURNING *;
-                ''')
-                id = None  # if connection didn't return any rows, return None
-                async for row in await connection.execute(query, job_id=job_id, database=database, consumer_ip=consumer_ip):
-                    id = row.id
-                    break
-                return id
-            except Exception as e:
-                raise SQLError("Failed to set_job_chunk_consumer in the database,"
-                               " job_id = %s, database = %s" % (job_id, database)) from e
-    except psycopg2.Error as e:
-        raise DatabaseConnectionError("Failed to open connection to the database in "
-                      "set_job_chunk_status, job_id = %s, database = %s" % (job_id, database)) from e
+            result = await connection.execute(query, job_id=job_id, database=database, consumer_ip=consumer_ip)
+            row = await result.fetchone()  # expecting one row or None
+            return row.id if row else None
+
+    except psycopg2.Error as db_err:
+        logging.error(f"Database error: {db_err}. Job_id={job_id}, database={database}")
+        raise DatabaseConnectionError(
+            f"Failed to update job_chunk in the database for job_id={job_id}, "
+            f"database={database}"
+        ) from db_err
+
+    except Exception as e:
+        logging.error(f"Unexpected error in set_job_chunk_consumer: {e}. Job_id={job_id}, database={database}")
+        raise SQLError(f"Failed to set job_chunk consumer for job_id={job_id}, database={database}") from e

@@ -11,16 +11,17 @@ See the License for the specific language governing permissions and
 limitations under the License.
 """
 
-from collections import namedtuple
 import logging
-
 import sqlalchemy as sa
 import psycopg2
+
 from aiohttp import ClientConnectionError, ClientResponseError
 from asyncio import TimeoutError
+from collections import namedtuple
 from netifaces import interfaces, ifaddresses, AF_INET
+from tenacity import retry, stop_after_attempt, wait_fixed
 
-from . import DatabaseConnectionError
+from . import DatabaseConnectionError, SQLError
 from .job_chunks import get_job_chunk_from_job_and_database
 from ..consumer.settings import PORT
 from .models import CONSUMER_STATUS_CHOICES
@@ -108,41 +109,72 @@ async def get_consumer_status(engine, consumer_ip):
         raise DatabaseConnectionError(str(e)) from e
 
 
+@retry(stop=stop_after_attempt(3), wait=wait_fixed(3))
 async def set_consumer_status(engine, consumer_ip, status):
-    """Write consumer status in the database to status."""
+    """
+    Updates the status of the consumer in the database.
+    Retry up to 3 times with a 3-second wait
+
+    :param engine: params to connect to the db
+    :param consumer_ip: IP address of the consumer to update
+    :param status: new status to set for the consumer.
+    :return: None
+    """
     try:
         async with engine.acquire() as connection:
             query = sa.text('''
                 UPDATE consumer
                 SET status = :status
                 WHERE ip=:consumer_ip
-                RETURNING consumer.*;
             ''')
-            result = await connection.execute(query, consumer_ip=consumer_ip, status=status)
+            await connection.execute(query, consumer_ip=consumer_ip, status=status)
 
     except psycopg2.Error as e:
-        raise DatabaseConnectionError(str(e)) from e
+        logging.error(f"Database error while updating status for consumer_ip={consumer_ip}: {str(e)}")
+        raise DatabaseConnectionError(f"Failed to update status for consumer_ip={consumer_ip}") from e
+
+    except Exception as e:
+        logging.error(f"Unexpected error while updating status for consumer_ip={consumer_ip}: {e}")
+        raise SQLError(f"Failed to update status for consumer_ip={consumer_ip}") from e
 
 
+@retry(stop=stop_after_attempt(3), wait=wait_fixed(3))
 async def set_consumer_job_chunk_id(engine, consumer_ip, job_id=None, database=None):
+    """
+    Updates the consumer's job_chunk_id based on the given job_id and database.
+    Retry up to 3 times with a 3-second wait
+
+    :param engine: params to connect to the db
+    :param consumer_ip: IP address of the consumer to update
+    :param job_id: id of the job (optional)
+    :param database: an all-except-rrna- or whitelist-rrna-* file (optional)
+    :return: None
+    """
     try:
         async with engine.acquire() as connection:
+            job_chunk_id = None
+
             if job_id is not None:
-                job_chunk_id = await get_job_chunk_from_job_and_database(engine, job_id, database)
-            else:
-                job_chunk_id = None
+                try:
+                    job_chunk_id = await get_job_chunk_from_job_and_database(engine, job_id, database)
+                except Exception as e:
+                    logging.error(f"Error fetching job_chunk_id for job_id={job_id} and database={database}: {e}")
+                    raise SQLError(f"Failed to fetch job_chunk_id for job_id={job_id} and database={database}") from e
 
             query = sa.text('''
                 UPDATE consumer
                 SET job_chunk_id=:job_chunk_id
                 WHERE ip=:consumer_ip
-                RETURNING consumer.*;
             ''')
-            result = await connection.execute(query, consumer_ip=consumer_ip, job_chunk_id=job_chunk_id)
+            await connection.execute(query, consumer_ip=consumer_ip, job_chunk_id=job_chunk_id)
 
     except psycopg2.Error as e:
-        logging.error(str(e))
+        logging.error(f"Database error while updating job_chunk_id for consumer_ip={consumer_ip}: {str(e)}")
+        raise DatabaseConnectionError(f"Failed to update job_chunk_id for consumer_ip={consumer_ip}") from e
 
+    except Exception as e:
+        logging.error(f"Unexpected error while updating job_chunk_id for consumer_ip={consumer_ip}: {e}")
+        raise SQLError(f"Failed to update job_chunk_id for consumer_ip={consumer_ip}") from e
 
 async def delegate_job_chunk_to_consumer(engine, consumer_ip, consumer_port, job_id, database, query, consumer_client):
     """
