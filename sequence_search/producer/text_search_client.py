@@ -1,5 +1,5 @@
 """
-Copyright [2009-2019] EMBL-European Bioinformatics Institute
+Copyright [2009-present] EMBL-European Bioinformatics Institute
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
 You may obtain a copy of the License at
@@ -95,10 +95,10 @@ async def get_text_search_results(results, job_id, query, start, size, facetcoun
     # get the hostname of the machine to use the correct URL
     hostname = socket.gethostname()
 
-    if hostname == 'default-producer' or hostname == 'gcp-default-producer':
-        ebi_search_url = 'https://www.ebi.ac.uk/ebisearch/ws/rest/rnacentral/seqtoolresults/'
+    if "default-producer" in hostname:
+        ebi_search_url = "https://www.ebi.ac.uk/ebisearch/ws/rest/rnacentral/seqtoolresults/"
     else:
-        ebi_search_url = 'https://wwwdev.ebi.ac.uk/ebisearch/ws/rest/rnacentral/seqtoolresults/'
+        ebi_search_url = "https://wwwdev.ebi.ac.uk/ebisearch/ws/rest/rnacentral/seqtoolresults/"
 
     # request facets from ebi text search (dev or prod)
     url = "{ebi_search_url}" \
