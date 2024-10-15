@@ -125,7 +125,7 @@ async def check_chunks_and_consumers(app):
         except Exception as e:
             logging.error(f"Unexpected error in check_chunks_and_consumers: {str(e)}", exc_info=True)
         finally:
-            await asyncio.sleep(3)
+            await asyncio.sleep(5)
 
 
 def create_app():
