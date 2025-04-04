@@ -119,6 +119,8 @@ If you want to update nginx configuration, make changes in
 
 #### Manual installation in local environment
 
+FYI - HMMR3 needs to be comiled with Rosetta2 if running on an Mac M1 Pro Chip. [Instructions](https://github.com/EddyRivasLab/hmmer/issues/283#issuecomment-1369792267) 
+
 1. `git clone https://github.com/RNAcentral/rnacentral-sequence-search.git`
 2. `cd rnacentral-sequence-search`
 3. `python3 -m venv ENV`
