@@ -178,64 +178,40 @@ resource "openstack_compute_secgroup_v2" "sequence_search_monitor_instance" {
 
 # Used only in DEV
 #
-#resource "openstack_compute_secgroup_v2" "sequence_search_proxy" {
-#  name = "${terraform.workspace}_sequence_search_proxy_instance"
-#  description = "Security group for the proxy instance"
-#  rule {
-#    from_port = 22
-#    to_port = 22
-#    ip_protocol = "tcp"
-#    cidr = "0.0.0.0/0"
-#  }
-#
-#  rule {
-#    from_port = 8002
-#    to_port = 8002
-#    ip_protocol = "tcp"
-#    cidr = "0.0.0.0/0"
-#  }
-#
-#  rule {
-#    from_port = 8080
-#    to_port = 8080
-#    ip_protocol = "tcp"
-#    cidr = "0.0.0.0/0"
-#  }
-#
-#  rule {
-#    from_port = -1
-#    to_port = -1
-#    ip_protocol = "icmp"
-#    cidr = "0.0.0.0/0"
-#  }
-#}
+resource "openstack_compute_secgroup_v2" "sequence_search_proxy" {
+ name = "${terraform.workspace}_sequence_search_proxy_instance"
+ description = "Security group for the proxy instance"
+ rule {
+   from_port = 22
+   to_port = 22
+   ip_protocol = "tcp"
+   cidr = "0.0.0.0/0"
+ }
+
+ rule {
+   from_port = 80
+   to_port = 80
+   ip_protocol = "tcp"
+   cidr = "0.0.0.0/0"
+ }
+
+ rule {
+   from_port = 8080
+   to_port = 8080
+   ip_protocol = "tcp"
+   cidr = "0.0.0.0/0"
+ }
+
+ rule {
+   from_port = -1
+   to_port = -1
+   ip_protocol = "icmp"
+   cidr = "0.0.0.0/0"
+ }
+}
 
 # Used only in DEV
-#
-#resource "openstack_compute_secgroup_v2" "litscan_prefer" {
-#  name = "${terraform.workspace}_litscan_prefer_instance"
-#  description = "Security group for the litscan-prefer instance"
-#  rule {
-#    from_port = 22
-#    to_port = 22
-#    ip_protocol = "tcp"
-#    cidr = "0.0.0.0/0"
-#  }
-#
-#  rule {
-#    from_port = 5000
-#    to_port = 5000
-#    ip_protocol = "tcp"
-#    cidr = "0.0.0.0/0"
-#  }
-#
-#  rule {
-#    from_port = -1
-#    to_port = -1
-#    ip_protocol = "icmp"
-#    cidr = "0.0.0.0/0"
-#  }
-#}
+
 
 resource "openstack_compute_instance_v2" "producer" {
   depends_on = [openstack_compute_keypair_v2.sequence_search, openstack_networking_subnet_v2.sequence_search]
@@ -291,31 +267,19 @@ resource "openstack_compute_instance_v2" "monitor" {
 
 # Used only in DEV
 #
-#resource "openstack_compute_instance_v2" "proxy" {
-#  depends_on = [openstack_compute_keypair_v2.sequence_search, openstack_networking_subnet_v2.sequence_search]
-#  name = "${terraform.workspace}-proxy"
-#  image_name = "Ubuntu-18.04"
-#  flavor_name = "${var.flavor_monitor}"
-#  key_pair = "${openstack_compute_keypair_v2.sequence_search.name}"
-#  security_groups = [ "${openstack_compute_secgroup_v2.sequence_search_proxy.name}" ]
-#  network {
-#    uuid = "${openstack_networking_network_v2.sequence_search.id}"
-#    fixed_ip_v4 = "192.168.0.200"
-#  }
-#}
+resource "openstack_compute_instance_v2" "proxy" {
+ depends_on = [openstack_compute_keypair_v2.sequence_search, openstack_networking_subnet_v2.sequence_search]
+ name = "${terraform.workspace}-proxy"
+ image_name = "Ubuntu-18.04"
+ flavor_name = "1c2m20d"
+ key_pair = "${openstack_compute_keypair_v2.sequence_search.name}"
+ security_groups = [ "${openstack_compute_secgroup_v2.sequence_search_proxy.name}" ]
+ network {
+   uuid = "${openstack_networking_network_v2.sequence_search.id}"
+   fixed_ip_v4 = "192.168.0.200"
+ }
+}
 
-#resource "openstack_compute_instance_v2" "litscan_prefer" {
-#  depends_on = [openstack_compute_keypair_v2.sequence_search, openstack_networking_subnet_v2.sequence_search]
-#  name = "${terraform.workspace}-litscan-prefer"
-#  image_name = "Ubuntu-18.04"
-#  flavor_name = "${var.flavor_monitor}"
-#  key_pair = "${openstack_compute_keypair_v2.sequence_search.name}"
-#  security_groups = [ "${openstack_compute_secgroup_v2.litscan_prefer.name}" ]
-#  network {
-#    uuid = "${openstack_networking_network_v2.sequence_search.id}"
-#    fixed_ip_v4 = "192.168.0.210"
-#  }
-#}
 
 resource "openstack_compute_instance_v2" "consumers" {
   count = "${local.count}"
@@ -361,12 +325,6 @@ resource "openstack_compute_floatingip_associate_v2" "sequence_search" {
 }
 
 # Used only in DEV
-#
-#resource "openstack_compute_floatingip_associate_v2" "litscan_prefer" {
-#  depends_on = [openstack_compute_instance_v2.litscan_prefer, openstack_networking_router_interface_v2.sequence_search]
-#  floating_ip = "${var.litscan_prefer_floating_ip}"
-#  instance_id = "${openstack_compute_instance_v2.litscan_prefer.id}"
-#}
 
 # resource "null_resource" "post_flight" {
 #   triggers = {
