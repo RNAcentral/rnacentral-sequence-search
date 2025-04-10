@@ -58,3 +58,8 @@ sequence_search/monitor/.conf-file
 sequence_search/monitor/test*
 sequence_search/producer/static/rnacentral-sequence-search-embed
 .env
+
+
+terraform/terraform.tfstate.d/test/terraform.tfstate
+.DS_Store
+terraform/.terraform.lock.hcl
