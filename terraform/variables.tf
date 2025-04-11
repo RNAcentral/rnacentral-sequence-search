@@ -26,10 +26,6 @@ variable "test_floating_ip" {
   default = "45.88.80.122"
 }
 
-variable "litscan_prefer_floating_ip" {
-  default = "45.88.81.188"
-}
-
 variable "default_instances" {
   default = 30
 }
