@@ -19,6 +19,7 @@
         state: present
         shell: /bin/bash
         group: "{{ new_user }}"
+        create_home: yes
 
     - name: Set authorized keys
       authorized_key:
