@@ -6,7 +6,6 @@
   vars:
     ansible_ssh_private_key_file: "../terraform/sequence_search_rsa"
     litscan_port: 8080
-    sequence_search_port: 8002
   tasks:
     - name: Update apt repo
       apt:
@@ -39,20 +38,12 @@
         - Reload Apache
       tags: [ module ]
 
-    - name: Remove default apache2 port
-      lineinfile:
-        dest: /etc/apache2/ports.conf
-        state: absent
-        regexp: "^Listen 80"
-      tags: [ ports ]
-
     - name: Add apache2 port
       lineinfile:
         dest: /etc/apache2/ports.conf
         line: "{{item.line}}"
       with_items:
         - line: "Listen {{ litscan_port }}"
-        - line: "Listen {{ sequence_search_port }}"
       notify:
         - Reload Apache
       tags: [ ports ]
@@ -72,7 +63,7 @@
       copy:
         dest: "/etc/apache2/sites-available/proxy-sequence-search.conf"
         content: |
-          <VirtualHost *:8002> 
+          <VirtualHost *:80> 
               ProxyPass / http://192.168.0.5:8002/
               ProxyPassReverse / http://192.168.0.5:8002/
               ProxyRequests Off
