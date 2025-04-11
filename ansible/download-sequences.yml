@@ -1,3 +1,7 @@
+# Downloading using this playbook sometimes fails, it may be
+# easier to access the producer and download manually using:
+# sudo yum install wget
+# wget http://ftp.ebi.ac.uk/pub/databases/RNAcentral/current_release/.sequence-search-export/sequences-database.fa.tar.gz
 - name: Download sequence database
   hosts: producer
   become: true
@@ -7,11 +11,10 @@
   tasks:
     - name: Download compressed archive from RNAcentral FTP
       get_url:
-        url: http://ftp.ebi.ac.uk/pub/databases/RNAcentral/current_release/sequences/.internal/sequences-database.fa.tar.gz
-        dest: /nfs/sequence-database.fa.tar.gz
+        url: http://ftp.ebi.ac.uk/pub/databases/RNAcentral/current_release/.sequence-search-export/sequences-database.fa.tar.gz
+        dest: /nfs/sequences-database.fa.tar.gz
 
     - name: Uncompress the archive
-      shell: tar -xf sequence-database.fa.tar.gz
+      shell: tar -xf sequences-database.fa.tar.gz
       args:
         chdir: /nfs
-        creates: /nfs/zwd.fasta
