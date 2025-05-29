@@ -1,9 +1,9 @@
 locals {
-  count = "${terraform.workspace == "default" ? var.default_instances : var.test_instances }"
-  floating_ip = "${terraform.workspace == "default" ? var.default_floating_ip : var.test_floating_ip }"
-  tfstate_file = "${terraform.workspace == "default" ? var.default_tfstate : var.test_tfstate }"
+  count = var.test_instances
+  floating_ip = var.test_floating_ip
+  tfstate_file = var.test_tfstate
   nfs_size = var.one_hundred
-  db_size = "${terraform.workspace == "default" ? var.two_hundred : var.one_hundred }"
+  db_size = var.one_hundred
 }
 
 output "floating_ip" {
