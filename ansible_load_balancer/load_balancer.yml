@@ -14,4 +14,4 @@
           template: upstream.conf.j2
       nginx_backend_ip: "{{ main_ip }}"
       nginx_fallback_backend_ip: "{{ fallback_ip }}"
-      nginx_backend_port: "8002"
+      nginx_backend_port: "{{ '8002' if main_ip == '45.88.81.147' else '80' }}"
