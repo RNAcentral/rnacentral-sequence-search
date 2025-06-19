@@ -53,7 +53,7 @@ rnacentral_databases = [
     RnacentralDatabases("rdp", "RDP", 9.36),
     RnacentralDatabases("refseq", "RefSeq", 83.68),
     RnacentralDatabases("rfam", "Rfam", 321.5),
-    RnacentralDatabases("ribocentre", "Ribocentre", 21.86),
+    RnacentralDatabases("ribocentre", "Ribocentre", 14.58),
     RnacentralDatabases("rgd", "RGD", 26.12),
     RnacentralDatabases("sgd", "SGD", 0.07),
     RnacentralDatabases("silva", "SILVA", 8584.62),
